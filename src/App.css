@@ -1,42 +1,191 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* src/App.css */
+
+/* ปรับพื้นฐานให้เต็มหน้าจอจริง ๆ */
+:root {
+  --primary-color: #4A2418; /* สีน้ำตาลเข้มของปุ่ม */
+  --bg-color: #D9C5B2;      /* สีพื้นหลังน้ำตาลอ่อน */
+  --card-bg: #FFF9F5;       /* สีครีมใน Card */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  background-color: var(--bg-color);
+  background-image: radial-gradient(#c4ae9a 3px, transparent 3px); /* ลายจุดจำลองอุ้งเท้า */
+  background-size: 40px 40px;
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Navbar */
+.navbar {
+  width: 95%;
+  max-width: 1000px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 30px;
+  border-radius: 50px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  font-weight: bold;
+  font-size: 20px;
+  color: #4A2418;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.nav-links {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Login Card */
+.login-card {
+  background-color: var(--card-bg);
+  width: 100%;
+  max-width: 450px;
+  padding: 40px;
+  border-radius: 35px;
+  margin-top: 40px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  position: relative;
+  text-align: center;
 }
 
-.card {
-  padding: 2em;
+.back-btn {
+  position: absolute;
+  left: 25px;
+  top: 25px;
+  color: #D88C6C;
+  font-size: 20px;
+  cursor: pointer;
 }
 
-.read-the-docs {
-  color: #888;
+.profile-img {
+  width: 100px;
+  height: 100px;
+  background: white;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #eee;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+h2 {
+  font-size: 24px;
+  margin-bottom: 5px;
+  color: #000;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 25px;
+}
+
+/* Type Selector */
+.type-label {
+  text-align: left;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.type-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.type-item {
+  flex: 1;
+  background: white;
+  border: 1.5px solid #eee;
+  padding: 10px 5px;
+  border-radius: 12px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.type-item:hover {
+  border-color: var(--primary-color);
+}
+
+/* Form Inputs */
+.form-group {
+  text-align: left;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 5px;
+  padding-left: 5px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: white;
+}
+
+.form-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-top: -5px;
+  margin-bottom: 25px;
+}
+
+/* Sign In Button */
+.btn-signin {
+  width: 100%;
+  padding: 15px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-signin:hover {
+  opacity: 0.9;
+}
+
+.register-text {
+  margin-top: 15px;
+  font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  .navbar { border-radius: 20px; }
+  .type-group { flex-direction: column; }
+  .login-card { padding: 30px 20px; }
 }
