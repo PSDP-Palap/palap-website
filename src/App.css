@@ -1,42 +1,72 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+:root {
+  --primary-brown: #4A1D10;
+  --bg-tan: #D2B49C;
+  --dash-color: #D2B49C;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.container {
+  background-color: var(--bg-tan);
+  /* ลายจุดจางๆ แทนอุ้งเท้า */
+  background-image: radial-gradient(rgba(0,0,0,0.05) 2px, transparent 2px);
+  background-size: 30px 30px;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.navbar {
+  width: 95%;
+  max-width: 1100px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 35px;
+  border-radius: 60px;
+  border: 1.5px solid var(--dash-color) !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  font-size: 22px;
+  color: var(--primary-brown);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.nav-links {
+  display: flex;
+  gap: 25px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.nav-links a {
+  text-decoration: none;
+  color: #333;
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+/* ส่วน Card พื้นฐาน */
+.auth-card {
+  background: #FFF9F5;
+  width: 100%;
+  padding: 40px;
+  border-radius: 40px;
+  border: 2px solid var(--dash-color) !important;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  position: relative;
 }

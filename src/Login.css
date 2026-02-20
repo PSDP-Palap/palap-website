@@ -1,0 +1,102 @@
+/* src/Login.css */
+
+/* ตัวการ์ดหลัก */
+.auth-card.login {
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+/* วงกลมโลโก้/โปรไฟล์ */
+.profile-circle {
+  width: 100px;
+  height: 100px;
+  background: white;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  font-size: 50px;
+  border: 1px solid #f0f0f0;
+}
+
+/* หัวข้อและคำบรรยาย */
+.auth-card h2 {
+  font-weight: 900;
+  margin-top: 10px;
+  color: #000;
+}
+
+.auth-card .subtitle {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* ส่วนของฟอร์ม */
+.auth-form-container {
+  text-align: left;
+}
+
+.auth-form-container label {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+/* Input ที่มีเงาด้านในตามรูป */
+.auth-form-container input[type="email"],
+.auth-form-container input[type="password"] {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  margin-bottom: 15px;
+  background: white;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  outline: none;
+}
+
+/* ส่วนจำรหัสผ่านและลืมรหัสผ่าน */
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+/* ปุ่ม Sign In */
+.btn-signin {
+  width: 100%;
+  padding: 15px;
+  background: #4A1D10;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-signin:hover {
+  background: #2D1109;
+}
+
+/* ข้อความด้านล่างปุ่ม */
+.register-link-text {
+  font-size: 13px;
+  margin-top: 15px;
+  color: #333;
+}
