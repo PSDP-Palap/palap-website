@@ -1,0 +1,22 @@
+{
+  "files.exclude": {
+    ".tanstack": true,
+    "node_modules": true
+  },
+  "files.watcherExclude": {
+    "**/routeTree.gen.ts": true
+  },
+  "search.exclude": {
+    "**/routeTree.gen.ts": true
+  },
+  "files.readonlyInclude": {
+    "**/routeTree.gen.ts": true
+  },
+  "python-envs.pythonProjects": [
+    {
+      "path": "node_modules",
+      "envManager": "ms-python.python:venv",
+      "packageManager": "ms-python.python:pip"
+    }
+  ]
+}
