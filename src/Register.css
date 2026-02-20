@@ -1,11 +1,11 @@
 /* src/Register.css */
 .register-card {
-  background: var(--card-cream);
+  background: #FFF9F5;
   width: 100%;
   max-width: 480px;
   padding: 40px;
   border-radius: 40px; /* ความมนตามรูป */
-  border: 2px dashed var(--dash-color) !important; /* เส้นประห้ามหาย */
+  border: 2px solid var(--solid-color) !important; /* เส้นประห้ามหาย */
   text-align: center;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   position: relative;
@@ -17,7 +17,7 @@
   left: 25px;
   top: 25px;
   text-decoration: none;
-  color: #E07A5F;
+  color: #3d0a01;
   font-size: 24px;
   font-weight: bold;
 }

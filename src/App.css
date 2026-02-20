@@ -33,7 +33,7 @@
   align-items: center;
   padding: 12px 35px;
   border-radius: 60px;
-  border: 1.5px dashed var(--dash-color) !important;
+  border: 1.5px solid var(--dash-color) !important;
   box-shadow: 0 4px 15px rgba(0,0,0,0.08);
   margin-bottom: 20px;
 }
@@ -65,7 +65,7 @@
   width: 100%;
   padding: 40px;
   border-radius: 40px;
-  border: 2px dashed var(--dash-color) !important;
+  border: 2px solid var(--dash-color) !important;
   text-align: center;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   position: relative;
