@@ -1,0 +1,60 @@
+/* src/Register.css */
+.register-card {
+  background: #FFF9F5;
+  width: 100%;
+  max-width: 480px;
+  padding: 40px;
+  border-radius: 40px; /* ความมนตามรูป */
+  border: 2px solid var(--solid-color) !important; /* เส้นประห้ามหาย */
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.back-arrow {
+  position: absolute;
+  left: 25px;
+  top: 25px;
+  text-decoration: none;
+  color: #3d0a01;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.register-form-container {
+  text-align: left;
+  margin-top: 20px;
+}
+
+.register-form-container label {
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.register-form-container input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+  background: white;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); /* เงายุบลงไป */
+  outline: none;
+}
+
+.btn-register {
+  width: 100%;
+  padding: 15px;
+  background: #4A1D10;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+}

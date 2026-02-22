@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* :root {
+  --primary-brown: #4A1D10;
+  --bg-tan: #D2B49C;
+  --dash-color: #D2B49C;
+} */
+
+/* .container {
+  background-color: var(--bg-tan);
+  background-image: radial-gradient(rgba(0,0,0,0.05) 2px, transparent 2px);
+  background-size: 30px 30px;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+} */
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  font-size: 22px;
+  color: var(--primary-brown);
+}
+
+/* ส่วน Card พื้นฐาน */
+.auth-card {
+  background: #FFF9F5;
+  width: 100%;
+  padding: 40px;
+  border-radius: 40px;
+  border: 2px solid var(--dash-color) !important;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  position: relative;
+}
