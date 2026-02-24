@@ -16,7 +16,7 @@ const RecommendSection = () => {
   return (
     <section className="recommend-section snap-section">
       <h3>RECOMMEND</h3>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {recommendations.map((item, index) => (
           <div className="bg-white rounded-xl" key={index}>
             <img
