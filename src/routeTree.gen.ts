@@ -60,11 +60,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/service' | '/login' | '/register'
   id:
-  | '__root__'
-  | '/'
-  | '/service'
-  | '/_authentication/login'
-  | '/_authentication/register'
+    | '__root__'
+    | '/'
+    | '/service'
+    | '/_authentication/login'
+    | '/_authentication/register'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
