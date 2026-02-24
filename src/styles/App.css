@@ -29,12 +29,12 @@
 
 /* ส่วน Card พื้นฐาน */
 .auth-card {
-  background: #FFF9F5;
+  background: #fff9f5;
   width: 100%;
   padding: 40px;
   border-radius: 40px;
   border: 2px solid var(--dash-color) !important;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   position: relative;
 }

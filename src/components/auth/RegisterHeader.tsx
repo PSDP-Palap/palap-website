@@ -13,4 +13,3 @@ const RegisterHeader = () => {
 };
 
 export default RegisterHeader;
-

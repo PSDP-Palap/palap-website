@@ -1,33 +1,49 @@
-import type { FormEvent } from "react";
-import { useState } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
 
-import { useAuth } from "@/context/AuthContext";
+import supabase from "@/utils/supabase";
 
 const LoginForm = () => {
   const router = useRouter();
-  const { signIn } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      console.error(error.message);
+      return { error: error.message };
+    }
+
+    return {};
+  };
+
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
 
-    const { error: signInError } = await signIn(email, password);
+    try {
+      const { error: signInError } = await signIn(email, password);
 
-    setSubmitting(false);
+      if (signInError) {
+        setError(signInError);
+        return;
+      }
 
-    if (signInError) {
-      setError(signInError);
-      return;
+      router.navigate({ to: "/" });
+    } catch {
+      setError("ไม่สามารถล็อกอินได้ กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setSubmitting(false);
     }
-
-    router.navigate({ to: "/" });
   };
 
   return (
@@ -68,10 +84,10 @@ const LoginForm = () => {
           <span>Remember</span>
         </label>
         <Link
-          to="/register"
+          to="/sign-up"
           className="underline hover:text-slate-700 transition-colors"
         >
-          Forget password?
+          Create account
         </Link>
       </div>
 
@@ -91,4 +107,3 @@ const LoginForm = () => {
 };
 
 export default LoginForm;
-

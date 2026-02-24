@@ -1,15 +1,18 @@
 import { Link, useRouter } from "@tanstack/react-router";
 
-import { useAuth } from "@/context/AuthContext";
+import { useProfileStore } from "@/stores/useProfileStore";
+import supabase from "@/utils/supabase";
 
 const Navbar = () => {
   const router = useRouter();
-  const { user, signOut, loading } = useAuth();
+  const { profile } = useProfileStore();
 
   const handleLogout = async () => {
-    await signOut();
+    await supabase.auth.signOut();
     router.navigate({ to: "/" });
   };
+
+  const displayName = profile?.full_name || null;
 
   return (
     <nav className="fixed top-4 right-0 left-0 w-full container mx-auto bg-white rounded-full drop-shadow-xl z-50">
@@ -25,11 +28,10 @@ const Navbar = () => {
           <li className="font-semibold">
             <Link to="/service">SERVICE</Link>
           </li>
-          {!loading && user ? (
+
+          {displayName ? (
             <>
-              <li className="text-sm text-gray-600">
-                {user.email ?? "Signed in"}
-              </li>
+              <li className="text-sm text-gray-600">{displayName}</li>
               <li>
                 <button
                   type="button"
@@ -42,7 +44,7 @@ const Navbar = () => {
             </>
           ) : (
             <li className="font-semibold">
-              <Link to="/login">LOGIN</Link>
+              <Link to="/sign-in">LOGIN</Link>
             </li>
           )}
         </ul>

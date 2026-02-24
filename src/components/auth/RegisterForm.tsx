@@ -1,12 +1,10 @@
-import type { FormEvent } from "react";
-import { useState } from "react";
 import { useRouter } from "@tanstack/react-router";
+import { useState } from "react";
 
-import { useAuth } from "@/context/AuthContext";
+import supabase from "@/utils/supabase";
 
 const RegisterForm = () => {
   const router = useRouter();
-  const { signUp } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,7 +14,18 @@ const RegisterForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const signUp = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({ email, password });
+
+    if (error) {
+      console.error(error.message);
+      return { error: error.message };
+    }
+
+    return {};
+  };
+
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
@@ -33,18 +42,18 @@ const RegisterForm = () => {
 
     setSubmitting(true);
 
-    const { error: signUpError } = await signUp(email, password);
+    const { error } = await signUp(email, password);
 
     setSubmitting(false);
 
-    if (signUpError) {
-      setError(signUpError);
+    if (error) {
+      setError(error);
       return;
     }
 
     setSuccess("Account created. Please check your email to confirm.");
     setTimeout(() => {
-      router.navigate({ to: "/login" });
+      router.navigate({ to: "/sign-in" });
     }, 1500);
   };
 

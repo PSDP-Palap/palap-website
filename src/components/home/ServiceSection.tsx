@@ -1,17 +1,15 @@
-interface ServiceItem {
-  title: string;
-  icon: string;
-}
+import { useServiceStore } from "@/stores/useServiceStore";
+import type { ServiceCategory } from "@/types/service";
 
-const services: ServiceItem[] = [
-  { title: "ซื้อของ", icon: "🍲" },
-  { title: "รับ - ส่ง", icon: "🚐" },
-  { title: "ดูแล", icon: "🦮" }
-  // { title: "โรงพยาบาล", icon: "🏥" },
-  // { title: "คำแนะนำ", icon: "⭐" }
-];
+const categoryIconMap: Record<ServiceCategory, string> = {
+  SHOPPING: "🍲",
+  DELIVERY: "🚐",
+  CARE: "🦮"
+};
 
 const ServiceSection = () => {
+  const { services } = useServiceStore();
+
   return (
     <section className="flex flex-col gap-4">
       <h3 className="text-2xl font-bold">SERVICE</h3>
@@ -22,8 +20,10 @@ const ServiceSection = () => {
             className="flex flex-col bg-orange-400 justify-center items-center p-8 rounded-xl"
             key={index}
           >
-            <div className="service-icon">{service.icon}</div>
-            <p>{service.title}</p>
+            <div className="service-icon">
+              {categoryIconMap[service.category] ?? "🐾"}
+            </div>
+            <p>{service.name}</p>
           </div>
         ))}
       </div>

@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import supabase from "@/utils/supabase";
 
-export const Route = createFileRoute("/service")({
+export const Route = createFileRoute("/service/")({
   beforeLoad: async () => {
     const {
       data: { user }
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/service")({
 
     if (!user) {
       throw redirect({
-        to: "/login"
+        to: "/sign-in"
       });
     }
   },
@@ -18,5 +18,5 @@ export const Route = createFileRoute("/service")({
 });
 
 function RouteComponent() {
-  return <div>Hello "/service"!</div>;
+  return <div>Hello "/service/"!</div>;
 }
