@@ -18,6 +18,8 @@ import { Route as GuestSignUpRouteImport } from './routes/_guest/sign-up'
 import { Route as GuestSignInRouteImport } from './routes/_guest/sign-in'
 import { Route as FreelanceFreelanceRouteImport } from './routes/_freelance/freelance'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedFreelanceSignUpRouteImport } from './routes/_authenticated/freelance-sign-up'
+import { Route as AuthenticatedEditProfileRouteImport } from './routes/_authenticated/edit-profile'
 import { Route as AdminAdminRouteImport } from './routes/_admin/admin'
 import { Route as AuthenticatedServiceIndexRouteImport } from './routes/_authenticated/service/index'
 import { Route as AuthenticatedServiceIdRouteImport } from './routes/_authenticated/service/$id'
@@ -63,6 +65,18 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedFreelanceSignUpRoute =
+  AuthenticatedFreelanceSignUpRouteImport.update({
+    id: '/freelance-sign-up',
+    path: '/freelance-sign-up',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedEditProfileRoute =
+  AuthenticatedEditProfileRouteImport.update({
+    id: '/edit-profile',
+    path: '/edit-profile',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AdminAdminRoute = AdminAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -83,6 +97,8 @@ const AuthenticatedServiceIdRoute = AuthenticatedServiceIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminAdminRoute
+  '/edit-profile': typeof AuthenticatedEditProfileRoute
+  '/freelance-sign-up': typeof AuthenticatedFreelanceSignUpRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/freelance': typeof FreelanceFreelanceRoute
   '/sign-in': typeof GuestSignInRoute
@@ -93,6 +109,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminAdminRoute
+  '/edit-profile': typeof AuthenticatedEditProfileRoute
+  '/freelance-sign-up': typeof AuthenticatedFreelanceSignUpRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/freelance': typeof FreelanceFreelanceRoute
   '/sign-in': typeof GuestSignInRoute
@@ -108,6 +126,8 @@ export interface FileRoutesById {
   '/_freelance': typeof FreelanceRouteWithChildren
   '/_guest': typeof GuestRouteWithChildren
   '/_admin/admin': typeof AdminAdminRoute
+  '/_authenticated/edit-profile': typeof AuthenticatedEditProfileRoute
+  '/_authenticated/freelance-sign-up': typeof AuthenticatedFreelanceSignUpRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_freelance/freelance': typeof FreelanceFreelanceRoute
   '/_guest/sign-in': typeof GuestSignInRoute
@@ -120,6 +140,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/edit-profile'
+    | '/freelance-sign-up'
     | '/profile'
     | '/freelance'
     | '/sign-in'
@@ -130,6 +152,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/edit-profile'
+    | '/freelance-sign-up'
     | '/profile'
     | '/freelance'
     | '/sign-in'
@@ -144,6 +168,8 @@ export interface FileRouteTypes {
     | '/_freelance'
     | '/_guest'
     | '/_admin/admin'
+    | '/_authenticated/edit-profile'
+    | '/_authenticated/freelance-sign-up'
     | '/_authenticated/profile'
     | '/_freelance/freelance'
     | '/_guest/sign-in'
@@ -225,6 +251,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/freelance-sign-up': {
+      id: '/_authenticated/freelance-sign-up'
+      path: '/freelance-sign-up'
+      fullPath: '/freelance-sign-up'
+      preLoaderRoute: typeof AuthenticatedFreelanceSignUpRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/edit-profile': {
+      id: '/_authenticated/edit-profile'
+      path: '/edit-profile'
+      fullPath: '/edit-profile'
+      preLoaderRoute: typeof AuthenticatedEditProfileRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_admin/admin': {
       id: '/_admin/admin'
       path: '/admin'
@@ -260,12 +300,16 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedEditProfileRoute: typeof AuthenticatedEditProfileRoute
+  AuthenticatedFreelanceSignUpRoute: typeof AuthenticatedFreelanceSignUpRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedServiceIdRoute: typeof AuthenticatedServiceIdRoute
   AuthenticatedServiceIndexRoute: typeof AuthenticatedServiceIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedEditProfileRoute: AuthenticatedEditProfileRoute,
+  AuthenticatedFreelanceSignUpRoute: AuthenticatedFreelanceSignUpRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedServiceIdRoute: AuthenticatedServiceIdRoute,
   AuthenticatedServiceIndexRoute: AuthenticatedServiceIndexRoute,

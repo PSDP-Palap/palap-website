@@ -1,6 +1,7 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useEffect } from "react";
+import { Toaster } from "react-hot-toast";
 
 import Navbar from "@/components/Navbar";
 import { useUserStore } from "@/stores/useUserStore";
@@ -26,6 +27,7 @@ function RootLayout() {
 
   return (
     <>
+      <Toaster position="bottom-right" reverseOrder={false} />
       <Navbar />
       <main>
         <Outlet />

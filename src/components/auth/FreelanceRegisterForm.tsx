@@ -4,11 +4,10 @@ import toast from "react-hot-toast";
 
 import supabase from "@/utils/supabase";
 
-const RegisterForm = () => {
+const FreelanceRegisterForm = () => {
   const router = useRouter();
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +19,7 @@ const RegisterForm = () => {
     e.preventDefault();
 
     if (!agree) {
-      toast.error("Please agree to the terms of service and privacy policy.");
+      toast.error("Please agree to the terms of service.");
       return;
     }
 
@@ -30,7 +29,7 @@ const RegisterForm = () => {
     }
 
     setSubmitting(true);
-    const loadingToast = toast.loading("Creating account...");
+    const loadingToast = toast.loading("Registering as freelance...");
 
     try {
       const { error } = await supabase.auth.signUp({
@@ -38,9 +37,9 @@ const RegisterForm = () => {
         password,
         options: {
           data: {
-            full_name: `${firstName} ${lastName}`.trim(),
+            full_name: username,
             phone_number: phone,
-            role: "customer"
+            role: "freelance"
           }
         }
       });
@@ -55,7 +54,7 @@ const RegisterForm = () => {
         router.navigate({ to: "/sign-in" });
       }, 2000);
     } catch (err) {
-      console.error("Signup error:", err);
+      console.error("Freelance signup error:", err);
       toast.error("An unexpected error occurred", { id: loadingToast });
     } finally {
       setSubmitting(false);
@@ -67,46 +66,18 @@ const RegisterForm = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className="block text-xs font-medium text-slate-700">
-            First Name
+            Username
           </label>
           <input
             type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
             className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-300"
-            placeholder="John"
+            placeholder="John Doe"
           />
         </div>
-        <div className="space-y-1">
-          <label className="block text-xs font-medium text-slate-700">
-            Last Name
-          </label>
-          <input
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            required
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-300"
-            placeholder="Doe"
-          />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className="block text-xs font-medium text-slate-700">
-            Email
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-300"
-            placeholder="example@mail.com"
-          />
-        </div>
         <div className="space-y-1">
           <label className="block text-xs font-medium text-slate-700">
             Phone Number
@@ -120,6 +91,20 @@ const RegisterForm = () => {
             placeholder="08XXXXXXXX"
           />
         </div>
+      </div>
+
+      <div className="space-y-1">
+        <label className="block text-xs font-medium text-slate-700">
+          Email
+        </label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-300"
+          placeholder="example@mail.com"
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -166,10 +151,10 @@ const RegisterForm = () => {
         disabled={submitting}
         className="w-full mt-1 inline-flex justify-center rounded-xl bg-linear-to-r from-orange-400 to-amber-400 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:from-orange-500 hover:to-amber-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
       >
-        {submitting ? "Creating..." : "Create Account"}
+        {submitting ? "Registering..." : "Register as Freelance"}
       </button>
     </form>
   );
 };
 
-export default RegisterForm;
+export default FreelanceRegisterForm;

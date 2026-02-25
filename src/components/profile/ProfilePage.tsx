@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+
 import { useUserStore } from "@/stores/useUserStore";
 
 const ProfilePage = () => {
@@ -93,17 +94,19 @@ const ProfilePage = () => {
                 </h2>
 
                 <div className="space-y-3">
-                  <button className="w-full text-left px-6 py-4 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between group">
-                    <div>
-                      <p className="font-bold text-gray-700">Edit Profile</p>
-                      <p className="text-xs text-gray-400">
-                        Update your personal information
-                      </p>
-                    </div>
-                    <span className="group-hover:translate-x-1 transition-transform">
-                      →
-                    </span>
-                  </button>
+                  <Link to="/edit-profile" className="block w-full">
+                    <button className="w-full text-left px-6 py-4 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between group">
+                      <div>
+                        <p className="font-bold text-gray-700">Edit Profile</p>
+                        <p className="text-xs text-gray-400">
+                          Update your personal information
+                        </p>
+                      </div>
+                      <span className="group-hover:translate-x-1 transition-transform">
+                        →
+                      </span>
+                    </button>
+                  </Link>
 
                   <button className="w-full text-left px-6 py-4 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between group">
                     <div>
@@ -118,19 +121,21 @@ const ProfilePage = () => {
                   </button>
 
                   {profile.role === "customer" && (
-                    <button className="w-full text-left px-6 py-4 rounded-2xl bg-[#9a3c0b]/5 hover:bg-[#9a3c0b]/10 transition-colors flex items-center justify-between group">
-                      <div>
-                        <p className="font-bold text-[#9a3c0b]">
-                          Apply as Freelance
-                        </p>
-                        <p className="text-xs text-[#9a3c0b]/60">
-                          Start providing pet care services
-                        </p>
-                      </div>
-                      <span className="text-[#9a3c0b] group-hover:translate-x-1 transition-transform">
-                        →
-                      </span>
-                    </button>
+                    <Link to="/freelance-sign-up" className="block w-full">
+                      <button className="w-full text-left px-6 py-4 rounded-2xl bg-[#9a3c0b]/5 hover:bg-[#9a3c0b]/10 transition-colors flex items-center justify-between group">
+                        <div>
+                          <p className="font-bold text-[#9a3c0b]">
+                            Apply as Freelance
+                          </p>
+                          <p className="text-xs text-[#9a3c0b]/60">
+                            Start providing pet care services
+                          </p>
+                        </div>
+                        <span className="text-[#9a3c0b] group-hover:translate-x-1 transition-transform">
+                          →
+                        </span>
+                      </button>
+                    </Link>
                   )}
                 </div>
               </div>

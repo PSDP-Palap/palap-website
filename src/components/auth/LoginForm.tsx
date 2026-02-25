@@ -1,5 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 import supabase from "@/utils/supabase";
 
@@ -9,7 +10,6 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -18,7 +18,6 @@ const LoginForm = () => {
     });
 
     if (error) {
-      console.error(error.message);
       return { error: error.message };
     }
 
@@ -27,20 +26,22 @@ const LoginForm = () => {
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
     setSubmitting(true);
+
+    const loadingToast = toast.loading("Signing in...");
 
     try {
       const { error: signInError } = await signIn(email, password);
 
       if (signInError) {
-        setError(signInError);
+        toast.error(signInError, { id: loadingToast });
         return;
       }
 
+      toast.success("Welcome back!", { id: loadingToast });
       router.navigate({ to: "/" });
     } catch {
-      setError("ไม่สามารถล็อกอินได้ กรุณาลองใหม่อีกครั้ง");
+      toast.error("ไม่สามารถล็อกอินได้ กรุณาลองใหม่อีกครั้ง", { id: loadingToast });
     } finally {
       setSubmitting(false);
     }
@@ -90,10 +91,6 @@ const LoginForm = () => {
           Create account
         </Link>
       </div>
-
-      {error ? (
-        <p className="text-red-500 text-xs mt-1 text-center">{error}</p>
-      ) : null}
 
       <button
         type="submit"

@@ -1,4 +1,5 @@
 import type { Session } from "@supabase/supabase-js";
+import toast from "react-hot-toast";
 import { create } from "zustand";
 
 import type { Profile, UserRole } from "@/types/user";
@@ -13,6 +14,8 @@ interface UserState {
   setSession: (session: Session | null) => void;
   setProfile: (profile: Profile | null) => void;
   initialize: () => Promise<void>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -40,10 +43,20 @@ export const useUserStore = create<UserState>((set, get) => ({
           .select("*")
           .single();
 
+        let address = null;
+        if (profile?.role === "customer") {
+          const { data: customer } = await supabase
+            .from("customers")
+            .select("address")
+            .eq("id", profile.id)
+            .single();
+          address = customer?.address;
+        }
+
         // Merge profile data with role from app_metadata if available
         const roleFromMeta = session.user.app_metadata?.role as UserRole;
         if (profile) {
-          set({ profile: { ...profile, role: roleFromMeta || profile.role } });
+          set({ profile: { ...profile, role: roleFromMeta || profile.role, address } });
         } else {
           // Fallback if profile doesn't exist yet
           set({
@@ -53,7 +66,8 @@ export const useUserStore = create<UserState>((set, get) => ({
               full_name: session.user.user_metadata?.full_name || "",
               role: roleFromMeta || "customer",
               phone_number: null,
-              created_at: new Date().toISOString()
+              created_at: new Date().toISOString(),
+              address: null
             } as Profile
           });
         }
@@ -74,9 +88,19 @@ export const useUserStore = create<UserState>((set, get) => ({
           .select("*")
           .single();
 
+        let address = null;
+        if (profile?.role === "customer") {
+          const { data: customer } = await supabase
+            .from("customers")
+            .select("address")
+            .eq("id", profile.id)
+            .single();
+          address = customer?.address;
+        }
+
         const roleFromMeta = session?.user?.app_metadata?.role as UserRole;
         if (profile) {
-          set({ profile: { ...profile, role: roleFromMeta || profile.role } });
+          set({ profile: { ...profile, role: roleFromMeta || profile.role, address } });
         }
       } else if (event === "SIGNED_OUT") {
         set({ profile: null });
@@ -84,8 +108,50 @@ export const useUserStore = create<UserState>((set, get) => ({
     });
   },
 
+  updateProfile: async (updates: Partial<Profile>) => {
+    const { profile } = get();
+    if (!profile) return { error: "No profile found" };
+
+    const { full_name, phone_number, address } = updates;
+    console.log("Updating profile for ID:", profile.id, "with updates:", updates);
+
+    // Update profiles table
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ full_name, phone_number })
+      .eq("id", profile.id);
+
+    if (profileError) {
+      console.error("Error updating profiles table:", profileError);
+      return { error: profileError };
+    }
+
+    // Update customers table if role is customer
+    if (profile.role === "customer" && address !== undefined) {
+      console.log("Updating customers table for ID:", profile.id);
+
+      const { error: customerError } = await supabase
+        .from("customers")
+        .upsert({
+          id: profile.id,
+          address,
+          updated_at: new Date().toISOString()
+        });
+
+      if (customerError) {
+        console.error("Error updating customers table:", customerError);
+        return { error: customerError };
+      }
+    }
+
+    // Update local state
+    set({ profile: { ...profile, ...updates } });
+    console.log("Profile updated successfully in store and Supabase");
+    return { error: null };
+  },
   signOut: async () => {
     await supabase.auth.signOut();
     set({ session: null, profile: null });
+    toast.success("Signed out successfully");
   }
 }));

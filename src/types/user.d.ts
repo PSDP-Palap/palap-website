@@ -7,4 +7,5 @@ export type Profile = {
     phone_number: string | null;
     role: UserRole;
     created_at: string;
+    address?: string | null;
 };
