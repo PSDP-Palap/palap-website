@@ -1,33 +1,46 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
+import AdminDashboard from "@/components/admin/DashboardPage";
 import BannerSection from "@/components/home/BannerSection";
 import HeaderSection from "@/components/home/HeaderSection";
 import RecommendSection from "@/components/home/RecommendSection";
 import ServiceSection from "@/components/home/ServiceSection";
-import type { UserRole } from "@/types/user";
-import supabase from "@/utils/supabase";
+import { useUserStore } from "@/stores/useUserStore";
 
 export const Route = createFileRoute("/")({
-  beforeLoad: async () => {
-    const {
-      data: { user }
-    } = await supabase.auth.getUser();
-
-    const role = user?.app_metadata?.role as UserRole;
-
-    if (role === "admin") {
-      throw redirect({
-        to: "/dashboard"
-      });
-    }
-  },
   component: RouteComponent
 });
 
 function RouteComponent() {
+  const { profile } = useUserStore();
+
+  // If Admin, show Admin Dashboard
+  if (profile?.role === "admin") {
+    return <AdminDashboard />;
+  }
+
+  // If Freelance, show Freelance Dashboard
+  if (profile?.role === "freelance") {
+    return (
+      <div className="pt-24 container mx-auto text-center">
+        <h1 className="text-2xl font-bold text-orange-600">
+          Freelance Dashboard
+        </h1>
+        <p className="mt-4 text-gray-600">
+          ยินดีต้อนรับ Freelance! คุณสามารถจัดการงานของคุณได้ที่นี่
+        </p>
+
+        <div className="mt-8 p-12 border-2 border-dashed border-gray-200 rounded-3xl">
+          <p className="text-gray-400">Freelance Features Coming Soon...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Otherwise, show regular Home Page
   return (
-    <main className="pb-16 bg-[#FFF2EC]">
-      <img src="home_header.png" alt="home_header" />
+    <main className="relative pb-16 bg-[#FFF2EC]">
+      <img src="home_header.png" alt="home_header" className="w-full" />
 
       <div className="container m-auto">
         <HeaderSection />

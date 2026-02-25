@@ -1,9 +1,8 @@
 import { Link } from "@tanstack/react-router";
-
-import { useProfileStore } from "@/stores/useProfileStore";
+import { useUserStore } from "@/stores/useUserStore";
 
 const ProfilePage = () => {
-  const { profile, isLoading } = useProfileStore();
+  const { profile, isLoading } = useUserStore();
 
   if (isLoading) {
     return (

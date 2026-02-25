@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-import { useProfileStore } from "@/stores/useProfileStore";
+import { useUserStore } from "@/stores/useUserStore";
 import { useServiceStore } from "@/stores/useServiceStore";
 import type { Service, ServiceCategory } from "@/types/service";
 
@@ -15,10 +15,14 @@ const emptyForm: ServiceFormState = {
 };
 
 const AdminDashboard = () => {
-  const { profile } = useProfileStore();
+  const { profile } = useUserStore();
 
-  const { services, createService, updateService, deleteService } =
+  const { services, loadServices, createService, updateService, deleteService } =
     useServiceStore();
+
+  useEffect(() => {
+    loadServices();
+  }, [loadServices]);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ServiceFormState>(emptyForm);

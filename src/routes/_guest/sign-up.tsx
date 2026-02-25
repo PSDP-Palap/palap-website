@@ -4,7 +4,7 @@ import RegisterBackButton from "@/components/auth/RegisterBackButton";
 import RegisterForm from "@/components/auth/RegisterForm";
 import RegisterHeader from "@/components/auth/RegisterHeader";
 
-export const Route = createFileRoute("/sign-up")({
+export const Route = createFileRoute("/_guest/sign-up")({
   component: () => (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-orange-100 via-rose-50 to-amber-100 px-4">
       <div className="w-full max-w-2xl bg-white/90 backdrop-blur-sm shadow-xl rounded-3xl p-8 border border-orange-100 space-y-6">

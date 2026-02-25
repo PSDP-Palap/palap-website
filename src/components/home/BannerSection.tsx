@@ -31,7 +31,7 @@ const BannerSection = () => {
   return (
     <section className="flex flex-col gap-4 my-8">
       <div className="relative">
-        <img src="./home_banner.png" alt="banner" />
+        <img src="./home_banner.png" alt="banner" className="w-full" />
         <div className="absolute h-full w-full top-0 flex flex-col justify-center ">
           <h2 className="p-16 text-xl md:text-3xl lg:text-5xl text-white">
             เรื่องของสัตว์เลี้ยง ไว้ใจให้ <strong>Palap</strong> ช่วยคุณ

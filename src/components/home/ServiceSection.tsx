@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useServiceStore } from "@/stores/useServiceStore";
 import type { ServiceCategory } from "@/types/service";
 
@@ -8,7 +9,11 @@ const categoryIconMap: Record<ServiceCategory, string> = {
 };
 
 const ServiceSection = () => {
-  const { services } = useServiceStore();
+  const { services, loadServices } = useServiceStore();
+
+  useEffect(() => {
+    loadServices();
+  }, [loadServices]);
 
   return (
     <section className="flex flex-col gap-4">

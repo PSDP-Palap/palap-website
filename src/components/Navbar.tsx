@@ -1,39 +1,37 @@
 import { Link, useRouter } from "@tanstack/react-router";
 
-import { useAuthStore } from "@/stores/useAuthStore";
-import { useProfileStore } from "@/stores/useProfileStore";
-import supabase from "@/utils/supabase";
+import { useUserStore } from "@/stores/useUserStore";
 
 const Navbar = () => {
   const router = useRouter();
-  const { isLoggedIn, session } = useAuthStore();
-  const { profile } = useProfileStore();
+  const { session, profile, signOut } = useUserStore();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     router.navigate({ to: "/" });
   };
 
+  const isLoggedIn = !!session;
   const displayName = profile?.full_name || session?.user?.email || null;
 
   return (
-    <nav className="fixed top-4 right-0 left-0 w-full container mx-auto bg-white rounded-full drop-shadow-xl z-50">
-      <div className="flex justify-between items-center py-4 px-6 z-50">
-        <div>
+    <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl bg-white rounded-full drop-shadow-xl z-50 pointer-events-auto">
+      <div className="flex justify-between items-center py-4 px-8">
+        <div className="flex items-center gap-2">
           <span>🐾</span>
-          <span>Palap</span>
+          <span className="font-bold">Palap</span>
         </div>
-        <ul className="flex gap-4 items-center">
-          <li className="font-semibold">
+        <ul className="flex gap-6 items-center">
+          <li className="font-semibold hover:text-orange-500 transition-colors">
             <Link to="/">HOME</Link>
           </li>
-          <li className="font-semibold">
+          <li className="font-semibold hover:text-orange-500 transition-colors">
             <Link to="/service">SERVICE</Link>
           </li>
 
           {isLoggedIn ? (
             <>
-              <li className="text-sm text-gray-600 hover:text-[#9a3c0b] transition-colors">
+              <li className="text-sm text-gray-600 hover:text-orange-500 transition-colors">
                 <Link to="/profile">{displayName}</Link>
               </li>
               <li>
@@ -47,7 +45,7 @@ const Navbar = () => {
               </li>
             </>
           ) : (
-            <li className="font-semibold">
+            <li className="font-semibold hover:text-orange-500 transition-colors">
               <Link to="/sign-in">LOGIN</Link>
             </li>
           )}

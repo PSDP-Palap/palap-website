@@ -9,32 +9,33 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignUpRouteImport } from './routes/sign-up'
-import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as AuthedRouteImport } from './routes/_authed'
+import { Route as GuestRouteImport } from './routes/_guest'
+import { Route as FreelanceRouteImport } from './routes/_freelance'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ServiceIndexRouteImport } from './routes/service/index'
-import { Route as ServiceIdRouteImport } from './routes/service/$id'
-import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as GuestSignUpRouteImport } from './routes/_guest/sign-up'
+import { Route as GuestSignInRouteImport } from './routes/_guest/sign-in'
+import { Route as FreelanceFreelanceRouteImport } from './routes/_freelance/freelance'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AdminAdminRouteImport } from './routes/_admin/admin'
+import { Route as AuthenticatedServiceIndexRouteImport } from './routes/_authenticated/service/index'
+import { Route as AuthenticatedServiceIdRouteImport } from './routes/_authenticated/service/$id'
 
-const SignUpRoute = SignUpRouteImport.update({
-  id: '/sign-up',
-  path: '/sign-up',
+const GuestRoute = GuestRouteImport.update({
+  id: '/_guest',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignInRoute = SignInRouteImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
+const FreelanceRoute = FreelanceRouteImport.update({
+  id: '/_freelance',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthedRoute = AuthedRouteImport.update({
-  id: '/_authed',
+const AdminRoute = AdminRouteImport.update({
+  id: '/_admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -42,120 +43,151 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ServiceIndexRoute = ServiceIndexRouteImport.update({
-  id: '/service/',
-  path: '/service/',
-  getParentRoute: () => rootRouteImport,
+const GuestSignUpRoute = GuestSignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => GuestRoute,
 } as any)
-const ServiceIdRoute = ServiceIdRouteImport.update({
+const GuestSignInRoute = GuestSignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => GuestRoute,
+} as any)
+const FreelanceFreelanceRoute = FreelanceFreelanceRouteImport.update({
+  id: '/freelance',
+  path: '/freelance',
+  getParentRoute: () => FreelanceRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AdminAdminRoute = AdminAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AuthenticatedServiceIndexRoute =
+  AuthenticatedServiceIndexRouteImport.update({
+    id: '/service/',
+    path: '/service/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedServiceIdRoute = AuthenticatedServiceIdRouteImport.update({
   id: '/service/$id',
   path: '/service/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthedRoute,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/profile': typeof ProfileRoute
-  '/sign-in': typeof SignInRoute
-  '/sign-up': typeof SignUpRoute
-  '/dashboard': typeof AuthedDashboardRoute
-  '/service/$id': typeof ServiceIdRoute
-  '/service/': typeof ServiceIndexRoute
+  '/admin': typeof AdminAdminRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/freelance': typeof FreelanceFreelanceRoute
+  '/sign-in': typeof GuestSignInRoute
+  '/sign-up': typeof GuestSignUpRoute
+  '/service/$id': typeof AuthenticatedServiceIdRoute
+  '/service/': typeof AuthenticatedServiceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/profile': typeof ProfileRoute
-  '/sign-in': typeof SignInRoute
-  '/sign-up': typeof SignUpRoute
-  '/dashboard': typeof AuthedDashboardRoute
-  '/service/$id': typeof ServiceIdRoute
-  '/service': typeof ServiceIndexRoute
+  '/admin': typeof AdminAdminRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/freelance': typeof FreelanceFreelanceRoute
+  '/sign-in': typeof GuestSignInRoute
+  '/sign-up': typeof GuestSignUpRoute
+  '/service/$id': typeof AuthenticatedServiceIdRoute
+  '/service': typeof AuthenticatedServiceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authed': typeof AuthedRouteWithChildren
-  '/profile': typeof ProfileRoute
-  '/sign-in': typeof SignInRoute
-  '/sign-up': typeof SignUpRoute
-  '/_authed/dashboard': typeof AuthedDashboardRoute
-  '/service/$id': typeof ServiceIdRoute
-  '/service/': typeof ServiceIndexRoute
+  '/_admin': typeof AdminRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_freelance': typeof FreelanceRouteWithChildren
+  '/_guest': typeof GuestRouteWithChildren
+  '/_admin/admin': typeof AdminAdminRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_freelance/freelance': typeof FreelanceFreelanceRoute
+  '/_guest/sign-in': typeof GuestSignInRoute
+  '/_guest/sign-up': typeof GuestSignUpRoute
+  '/_authenticated/service/$id': typeof AuthenticatedServiceIdRoute
+  '/_authenticated/service/': typeof AuthenticatedServiceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/profile'
+    | '/freelance'
     | '/sign-in'
     | '/sign-up'
-    | '/dashboard'
     | '/service/$id'
     | '/service/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/profile'
+    | '/freelance'
     | '/sign-in'
     | '/sign-up'
-    | '/dashboard'
     | '/service/$id'
     | '/service'
   id:
     | '__root__'
     | '/'
-    | '/_authed'
-    | '/profile'
-    | '/sign-in'
-    | '/sign-up'
-    | '/_authed/dashboard'
-    | '/service/$id'
-    | '/service/'
+    | '/_admin'
+    | '/_authenticated'
+    | '/_freelance'
+    | '/_guest'
+    | '/_admin/admin'
+    | '/_authenticated/profile'
+    | '/_freelance/freelance'
+    | '/_guest/sign-in'
+    | '/_guest/sign-up'
+    | '/_authenticated/service/$id'
+    | '/_authenticated/service/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthedRoute: typeof AuthedRouteWithChildren
-  ProfileRoute: typeof ProfileRoute
-  SignInRoute: typeof SignInRoute
-  SignUpRoute: typeof SignUpRoute
-  ServiceIdRoute: typeof ServiceIdRoute
-  ServiceIndexRoute: typeof ServiceIndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  FreelanceRoute: typeof FreelanceRouteWithChildren
+  GuestRoute: typeof GuestRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sign-up': {
-      id: '/sign-up'
-      path: '/sign-up'
-      fullPath: '/sign-up'
-      preLoaderRoute: typeof SignUpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sign-in': {
-      id: '/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof SignInRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authed': {
-      id: '/_authed'
+    '/_guest': {
+      id: '/_guest'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthedRouteImport
+      preLoaderRoute: typeof GuestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_freelance': {
+      id: '/_freelance'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof FreelanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_admin': {
+      id: '/_admin'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -165,49 +197,114 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/service/': {
-      id: '/service/'
+    '/_guest/sign-up': {
+      id: '/_guest/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof GuestSignUpRouteImport
+      parentRoute: typeof GuestRoute
+    }
+    '/_guest/sign-in': {
+      id: '/_guest/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof GuestSignInRouteImport
+      parentRoute: typeof GuestRoute
+    }
+    '/_freelance/freelance': {
+      id: '/_freelance/freelance'
+      path: '/freelance'
+      fullPath: '/freelance'
+      preLoaderRoute: typeof FreelanceFreelanceRouteImport
+      parentRoute: typeof FreelanceRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_admin/admin': {
+      id: '/_admin/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminAdminRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_authenticated/service/': {
+      id: '/_authenticated/service/'
       path: '/service'
       fullPath: '/service/'
-      preLoaderRoute: typeof ServiceIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedServiceIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
-    '/service/$id': {
-      id: '/service/$id'
+    '/_authenticated/service/$id': {
+      id: '/_authenticated/service/$id'
       path: '/service/$id'
       fullPath: '/service/$id'
-      preLoaderRoute: typeof ServiceIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authed/dashboard': {
-      id: '/_authed/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthedDashboardRouteImport
-      parentRoute: typeof AuthedRoute
+      preLoaderRoute: typeof AuthenticatedServiceIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
-interface AuthedRouteChildren {
-  AuthedDashboardRoute: typeof AuthedDashboardRoute
+interface AdminRouteChildren {
+  AdminAdminRoute: typeof AdminAdminRoute
 }
 
-const AuthedRouteChildren: AuthedRouteChildren = {
-  AuthedDashboardRoute: AuthedDashboardRoute,
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdminRoute: AdminAdminRoute,
 }
 
-const AuthedRouteWithChildren =
-  AuthedRoute._addFileChildren(AuthedRouteChildren)
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedServiceIdRoute: typeof AuthenticatedServiceIdRoute
+  AuthenticatedServiceIndexRoute: typeof AuthenticatedServiceIndexRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedServiceIdRoute: AuthenticatedServiceIdRoute,
+  AuthenticatedServiceIndexRoute: AuthenticatedServiceIndexRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
+interface FreelanceRouteChildren {
+  FreelanceFreelanceRoute: typeof FreelanceFreelanceRoute
+}
+
+const FreelanceRouteChildren: FreelanceRouteChildren = {
+  FreelanceFreelanceRoute: FreelanceFreelanceRoute,
+}
+
+const FreelanceRouteWithChildren = FreelanceRoute._addFileChildren(
+  FreelanceRouteChildren,
+)
+
+interface GuestRouteChildren {
+  GuestSignInRoute: typeof GuestSignInRoute
+  GuestSignUpRoute: typeof GuestSignUpRoute
+}
+
+const GuestRouteChildren: GuestRouteChildren = {
+  GuestSignInRoute: GuestSignInRoute,
+  GuestSignUpRoute: GuestSignUpRoute,
+}
+
+const GuestRouteWithChildren = GuestRoute._addFileChildren(GuestRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthedRoute: AuthedRouteWithChildren,
-  ProfileRoute: ProfileRoute,
-  SignInRoute: SignInRoute,
-  SignUpRoute: SignUpRoute,
-  ServiceIdRoute: ServiceIdRoute,
-  ServiceIndexRoute: ServiceIndexRoute,
+  AdminRoute: AdminRouteWithChildren,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  FreelanceRoute: FreelanceRouteWithChildren,
+  GuestRoute: GuestRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

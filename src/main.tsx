@@ -5,7 +5,6 @@ import ReactDOM from "react-dom/client";
 import { routeTree } from "./routeTree.gen";
 
 const router = createRouter({ routeTree });
-
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
@@ -17,7 +16,7 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <RouterProvider router={router} context={{ auth: null }} />
+      <RouterProvider router={router} />
     </StrictMode>
   );
 }

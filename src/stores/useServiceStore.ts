@@ -6,18 +6,20 @@ import supabase from "@/utils/supabase";
 type ServiceState = {
   services: Service[];
   loadServices: () => Promise<void>;
-  createService: (service: Omit<Service, "service_id">) => void;
+  createService: (service: Omit<Service, "service_id">) => Promise<void>;
   updateService: (
     serviceId: string,
     partial: Partial<Omit<Service, "service_id">>
-  ) => void;
-  deleteService: (serviceId: string) => void;
+  ) => Promise<void>;
+  deleteService: (serviceId: string) => Promise<void>;
 };
 
 export const useServiceStore = create<ServiceState>((set) => ({
   services: [],
   loadServices: async () => {
-    const { data, error } = await supabase.from("services").select("*");
+    const { data, error } = await supabase
+      .from("services")
+      .select("*");
 
     if (error) {
       console.error("Failed to load services from Supabase", error);
@@ -26,24 +28,52 @@ export const useServiceStore = create<ServiceState>((set) => ({
 
     set({ services: (data as Service[]) ?? [] });
   },
-  createService: (service: Omit<Service, "service_id">) => {
-    const newService: Service = {
-      ...service,
-      service_id: Date.now().toString()
-    };
-    set((state) => ({ services: [...state.services, newService] }));
+  createService: async (service: Omit<Service, "service_id">) => {
+    const { data, error } = await supabase
+      .from("services")
+      .insert([service])
+      .select();
+
+    if (error) {
+      console.error("Failed to create service in Supabase", error);
+      return;
+    }
+
+    if (data) {
+      set((state) => ({ services: [...state.services, data[0] as Service] }));
+    }
   },
-  updateService: (
+  updateService: async (
     serviceId: string,
     partial: Partial<Omit<Service, "service_id">>
   ) => {
+    const { error } = await supabase
+      .from("services")
+      .update(partial)
+      .eq("service_id", serviceId);
+
+    if (error) {
+      console.error("Failed to update service in Supabase", error);
+      return;
+    }
+
     set((state) => ({
       services: state.services.map((service) =>
         service.service_id === serviceId ? { ...service, ...partial } : service
       )
     }));
   },
-  deleteService: (serviceId: string) => {
+  deleteService: async (serviceId: string) => {
+    const { error } = await supabase
+      .from("services")
+      .delete()
+      .eq("service_id", serviceId);
+
+    if (error) {
+      console.error("Failed to delete service from Supabase", error);
+      return;
+    }
+
     set((state) => ({
       services: state.services.filter(
         (service) => service.service_id !== serviceId
