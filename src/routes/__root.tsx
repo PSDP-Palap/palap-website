@@ -14,33 +14,43 @@ export const Route = createRootRoute({
 function RootLayout() {
   const { isLoading, setIsLoggedIn, setSession, setIsLoading } = useAuthStore();
 
-  const { setProfile } = useProfileStore();
+  const { setProfile, setIsLoading: setProfileLoading } = useProfileStore();
 
   useEffect(() => {
-    setIsLoading(true);
+    const initAuth = async () => {
+      setIsLoading(true);
+      setProfileLoading(true);
 
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange(async (_, session) => {
-      setSession(session);
-      setIsLoggedIn(!!session);
+      const {
+        data: { subscription }
+      } = supabase.auth.onAuthStateChange(async (_, session) => {
+        setSession(session);
+        setIsLoggedIn(!!session);
 
-      if (session) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*")
-          .single();
+        if (session) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("*")
+            .single();
 
-        setProfile(profile);
-      } else {
-        setProfile(null);
-      }
-    });
+          setProfile(profile);
+        } else {
+          setProfile(null);
+        }
+        
+        setIsLoading(false);
+        setProfileLoading(false);
+      });
 
-    setIsLoading(false);
+      return subscription;
+    };
 
-    return () => subscription.unsubscribe();
-  }, [setIsLoading, setIsLoggedIn, setProfile, setSession]);
+    const subscriptionPromise = initAuth();
+
+    return () => {
+      subscriptionPromise.then((sub) => sub.unsubscribe());
+    };
+  }, [setIsLoading, setIsLoggedIn, setProfile, setSession, setProfileLoading]);
 
   if (isLoading) return <p>Loading...</p>;
 
