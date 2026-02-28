@@ -19,7 +19,7 @@ export const Sidebar = () => {
             className="w-full h-full object-cover"
           />
         </div>
-        <h3 className="font-bold text-lg mb-2 text-center">Mrs. Srisagat Jaidee</h3>
+        <h3 className="font-bold text-lg mb-2 text-center">ฝากด้วยแหละ</h3>
         
         {/* Badges */}
         <div className="flex flex-col gap-1 w-full px-4">
