@@ -1,8 +1,5 @@
-// DashboardContent.tsx
-// DashboardContent.tsx
-import { StatCards } from './StatCards'; // ใช้ ./ เพราะอยู่ในโฟลเดอร์เดียวกัน
-import { JobItem } from './JobItem';   // ใช้ ./ เพราะอยู่ในโฟลเดอร์เดียวกัน
-
+import { StatCards } from './StatCards'; 
+import { JobItem } from './JobItem';
 
 export const DashboardContent = () => {
   const mockJobs = [
