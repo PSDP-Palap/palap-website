@@ -1,22 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
+// freelance.tsx
+import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { Sidebar } from '../../components/Dashborad_Freelance/Sidebar'
+import { DashboardContent } from '../../components/Dashborad_Freelance/DashboardContent'
 
-export const Route = createFileRoute("/_freelance/freelance")({
-  component: RouteComponent
-});
-
-function RouteComponent() {
-  return (
-    <div className="pt-24 container mx-auto text-center">
-      <h1 className="text-2xl font-bold text-orange-600">
-        Freelance Dashboard
-      </h1>
-      <p className="mt-4 text-gray-600">
-        ยินดีต้อนรับ Freelance! คุณสามารถจัดการงานของคุณได้ที่นี่
-      </p>
-
-      <div className="mt-8 p-12 border-2 border-dashed border-gray-200 rounded-3xl">
-        <p className="text-gray-400">Freelance Features Coming Soon...</p>
+export const Route = createFileRoute('/_freelance/freelance')({
+  component: () => (
+    <div className="min-h-screen bg-[#FDE2D2] flex flex-col">
+      <div className="flex p-8 gap-8 flex-1">
+        <div className="w-1/4">
+          <Sidebar />
+        </div>
+        <div className="flex-1">
+          <DashboardContent />
+          <Outlet /> 
+        </div>
       </div>
     </div>
-  );
-}
+  ),
+})
