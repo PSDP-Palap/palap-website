@@ -30,7 +30,7 @@ curl -fsSL https://bun.sh/install | bash
 ### Clone โปรเจค (หากใช้ Github Desktop ให้ข้ามขั้นตอนนี้)
 
 ```sh
-git clone [https://github.com/your-username/palap-website.git](https://github.com/your-username/palap-website.git)
+git clone https://github.com/PSDP-Palap/palap-website.git
 
 cd palap-website
 ```
