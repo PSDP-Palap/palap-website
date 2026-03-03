@@ -1,10 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/service/$id")({
-  component: RouteComponent
+  beforeLoad: () => {
+    throw redirect({ to: "/service" });
+  },
 });
-
-function RouteComponent() {
-  const { id } = Route.useParams();
-  return <div>id: {id}</div>;
-}

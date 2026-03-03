@@ -29,6 +29,9 @@ const Navbar = () => {
             <Link to="/">HOME</Link>
           </li>
           <li className="font-semibold hover:text-orange-500 transition-colors">
+            <Link to="/product">PRODUCT</Link>
+          </li>
+          <li className="font-semibold hover:text-orange-500 transition-colors">
             <Link to="/service">SERVICE</Link>
           </li>
 

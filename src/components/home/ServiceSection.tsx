@@ -35,7 +35,7 @@ const ServiceSection = () => {
           </p>
         </div>
         <Link
-          to="/service"
+          to="/product"
           className="text-[#9a3c0b] font-bold underline underline-offset-4 hover:text-orange-600 transition-colors"
         >
           ดูทั้งหมด
@@ -45,7 +45,7 @@ const ServiceSection = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
         {services.slice(0, 3).map((service) => (
           <Link
-            to="/service/$id"
+            to="/product/$id"
             params={{ id: service.service_id }}
             key={service.service_id}
             className="group"

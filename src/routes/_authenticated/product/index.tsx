@@ -1,0 +1,279 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { createFileRoute } from "@tanstack/react-router";
+import supabase from "@/utils/supabase";
+
+// favorite icon asset for top-right of each card
+import favoriteIcon from "@/assets/3d659b7bdc33c87baf693bc75bf90986.jpg";
+
+// router utilities and cart store
+import { useRouter } from "@tanstack/react-router";
+import { useCartStore } from "@/stores/useCartStore";
+
+export const Route = createFileRoute("/_authenticated/product/")({
+  component: RouteComponent
+});
+
+// 1. Product shape coming from Supabase has a `product_id` string key
+//    map it to an `id` property here so we can use it reliably in the UI.
+//    using a string allows UUIDs as well as numeric ids.
+
+interface Product {
+  id: string;               // derived from product_id
+  name: string;
+  description: string;
+  price: number;
+  qty?: number;
+  image_url?: string | null;
+}  
+
+const MOCK_DESCRIPTIONS: { [key: string]: string } = {
+  default: 'High quality pet care service with professional grooming and care experts.',
+};
+
+
+function RouteComponent() {
+  const [services, setServices] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  // react-router instance for navigation
+  const router = useRouter();
+
+  // global cart state
+  const cartItems = useCartStore((s) => s.items);
+
+  const isFetchingRef = useRef(false);
+
+  const withTimeout = async <T,>(factory: () => Promise<T>, timeoutMs = 12000): Promise<T> => {
+    return new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error("Request timed out. Please try again."));
+      }, timeoutMs);
+
+      factory()
+        .then((result) => {
+          clearTimeout(timer);
+          resolve(result);
+        })
+        .catch((err) => {
+          clearTimeout(timer);
+          reject(err);
+        });
+    });
+  };
+
+  // load function reused by effect and retry button
+  const load = useCallback(async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
+    // safety watchdog in case browser suspends request/timer while tab is inactive
+    const watchdog = setTimeout(() => {
+      isFetchingRef.current = false;
+      setLoading(false);
+      setError("Loading took too long. Please try again.");
+    }, 20000);
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY } = import.meta.env as any;
+      if (!VITE_SUPABASE_URL || !VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY) {
+        throw new Error('Supabase environment variables are not defined');
+      }
+
+      const { data, error } = await withTimeout(
+        async () =>
+          await supabase
+            .from('products')
+            .select('*')
+      );
+
+      if (error) throw error;
+
+      if (data) {
+        // convert the Supabase record to our Product interface
+        const dataWithDescriptions: Product[] = data.map((item: any) => ({
+          id: item.product_id ?? String(item.id ?? ""),
+          name: item.name,
+          description: item.description || MOCK_DESCRIPTIONS.default,
+          price: item.price,
+          qty: item.qty,
+          image_url: item.image_url,
+        }));
+        setServices(dataWithDescriptions);
+      } else {
+        setServices([]);
+      }
+    } catch (err: any) {
+      console.error('Error fetching products:', err);
+      setError(err.message || String(err));
+    } finally {
+      clearTimeout(watchdog);
+      isFetchingRef.current = false;
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // whenever detail dialog opens, initialize quantity from existing selection or default 1
+  // detail overlay removed from this page, no related effects
+
+  // 3. Helper to calculate total price from cart store
+  const totalPrice = Object.entries(cartItems).reduce((sum, [id, qty]) => {
+    const item = services.find((s) => s.id === id);
+    return sum + (item?.price || 0) * qty;
+  }, 0);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#D35400] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-[#D35400] font-bold animate-pulse">Loading Products...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#F9E6D8] flex flex-col items-center justify-center">
+        <p className="text-red-600 font-bold mb-4">{error}</p>
+        <button
+          className="bg-[#D35400] text-white px-6 py-2 rounded-lg"
+          onClick={() => {
+            load();
+          }}
+        >Retry</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#F9E6D8] font-sans pb-32"> 
+      <main className="max-w-6xl mx-auto p-6 pt-28">
+        
+        {/* Banner Section */}
+        <div className="bg-[#FF914D] rounded-2xl p-8 mb-8 relative overflow-hidden flex justify-between items-center shadow-lg border-b-4 border-orange-600/20">
+          <div className="z-10">
+            <h1 className="text-3xl font-black text-white uppercase">SELECT PRODUCTS</h1>
+            <p className="text-white/90 text-sm font-semibold mt-1">High quality supplies for your pet</p>
+          </div>
+          <img 
+            src="" 
+            alt="Cat Banner" 
+            className="absolute right-6 -bottom-4 w-44 object-contain opacity-90 drop-shadow-xl"
+          />
+        </div>
+
+        {/* Grid of Services */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {services.map((item, idx) => {
+            const qty = cartItems[item.id] || 0;
+            const isSelected = qty > 0;
+            return (
+              <div key={item.id ?? idx} className="relative h-full">
+                <div 
+                  onClick={() => {
+                    // navigate to detail page for this item
+                    router.navigate({
+                      to: "/product/$id",
+                      params: { id: item.id }
+                    });
+                  }}
+                  className={`bg-white rounded-2xl p-5 shadow-sm transition-all cursor-pointer border-2 h-full flex flex-col group
+                    ${isSelected ? 'border-orange-500 ring-4 ring-orange-500/10 scale-[1.02]' : 'border-transparent hover:border-orange-200 hover:shadow-md'}`}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="w-20 h-20 bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
+                      <img 
+                        src={item.image_url || "https://via.placeholder.com/80"} 
+                        alt={item.name} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                      />
+                    </div>
+                    {/* favorite / selected indicator replaced with custom image; qty badge if selected */}
+                    <div className="relative">
+                      <img
+                        src={favoriteIcon}
+                        alt="favorite"
+                        className={`w-7 h-7 object-cover ${isSelected ? 'opacity-100' : 'opacity-30'} `}
+                      />
+                      {isSelected && (
+                        <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                          {qty}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 4. Use item.name here */}
+                  <h3 className="font-bold text-lg text-[#4A2600] leading-tight mb-2">{item.name}</h3>
+                  <p className="text-xs text-gray-500 line-clamp-2 flex-grow leading-relaxed">
+                    {item.description}
+                  </p>
+                  
+                  <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-50">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-gray-400 font-bold mb-1">Stock: {item.qty ?? 0}</span>
+                      <span className={`text-2xl font-black transition-colors ${isSelected ? 'text-orange-600' : 'text-[#4A2600]'}`}>
+                        ฿{item.price}
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-bold uppercase tracking-tighter text-gray-400 group-hover:text-orange-600 transition-colors">
+                      View Product →
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </main>
+
+      {/* Footer Summary Bar */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-orange-100 p-5 flex justify-between items-center px-10 shadow-2xl z-50">
+        <div className="flex flex-col">
+          <p className="text-[10px] uppercase tracking-widest font-black text-orange-800/40 mb-1">
+            Selected Items ({
+              Object.values(cartItems).reduce((a, b) => a + b, 0)
+            })
+          </p>
+          <p className="font-bold text-sm text-[#4A2600] max-w-md truncate">
+            {Object.keys(cartItems).length > 0
+              ? Object.entries(cartItems)
+                  .map(([id, qty]) => {
+                    const name = services.find(s => s.id === id)?.name;
+                    return name ? `${name} x${qty}` : null;
+                  })
+                  .filter(Boolean)
+                  .join(', ')
+              : "No items selected"}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-8">
+          <div className="text-right">
+            <p className="text-[10px] uppercase font-black text-orange-800/40">Total Amount</p>
+            <p className="text-2xl font-black text-orange-600">฿{totalPrice}</p>
+          </div>
+          <button 
+            disabled={Object.keys(cartItems).length === 0}
+            onClick={() => router.navigate({ to: "/payment" })}
+            className={`px-10 py-4 rounded-2xl font-black uppercase text-sm tracking-widest transition-all transform active:scale-95 ${
+              Object.keys(cartItems).length > 0 
+              ? "bg-[#D35400] text-white hover:bg-[#b34700] shadow-lg shadow-orange-700/20" 
+              : "bg-gray-100 text-gray-300 cursor-not-allowed border border-gray-200"
+            }`}
+          >
+            Check Out
+          </button>
+        </div>
+      </footer>
+    </div>
+  );
+} 
