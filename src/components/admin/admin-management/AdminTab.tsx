@@ -9,6 +9,7 @@ import { EditAdminDialog } from "./EditAdminDialog";
 
 export const AdminTab = () => {
   const [admins, setAdmins] = useState<Profile[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState<Profile | null>(null);
@@ -63,8 +64,15 @@ export const AdminTab = () => {
     return () => controller.abort();
   }, []);
 
+  const filteredAdmins = admins.filter(
+    (admin) =>
+      admin.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      admin.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative">
       <div className="p-6 border-b border-gray-100 flex justify-between items-center">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-bold text-gray-800">Admin</h2>
@@ -90,12 +98,31 @@ export const AdminTab = () => {
             </svg>
           </button>
         </div>
-        <button
-          onClick={() => setIsAddDialogOpen(true)}
-          className="bg-[#A6411C] text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#8e3718] transition-colors"
-        >
-          เพิ่ม Admin ใหม่
-        </button>
+        <div className="relative w-64">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="ค้นหา..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#A6411C] focus:bg-white transition-all"
+          />
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left">
@@ -118,8 +145,8 @@ export const AdminTab = () => {
                   กำลังโหลดข้อมูล...
                 </td>
               </tr>
-            ) : admins.length > 0 ? (
-              admins.map((admin, index) => (
+            ) : filteredAdmins.length > 0 ? (
+              filteredAdmins.map((admin, index) => (
                 <tr
                   key={admin.id}
                   className="hover:bg-gray-50 transition-colors"
@@ -127,8 +154,11 @@ export const AdminTab = () => {
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {index + 1}
                   </td>
-                  <td className="px-6 py-4 text-sm font-mono text-gray-500">
-                    {admin.id}
+                  <td
+                    className="px-6 py-4 text-sm font-mono text-gray-500 truncate max-w-25"
+                    title={admin.id}
+                  >
+                    {admin.id.split("-")[0]}...
                   </td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-800">
                     {admin.full_name}
@@ -186,12 +216,41 @@ export const AdminTab = () => {
                   colSpan={5}
                   className="px-6 py-10 text-center text-gray-500"
                 >
-                  ไม่พบข้อมูล Admin
+                  {searchTerm
+                    ? "ไม่พบข้อมูลที่ตรงกับการค้นหา"
+                    : "ไม่พบข้อมูล Admin"}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Floating Add Button */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <button
+          onClick={() => setIsAddDialogOpen(true)}
+          className="bg-[#A6411C] text-white p-4 rounded-full shadow-2xl hover:bg-[#8e3718] transition-all flex items-center gap-2 group hover:scale-110 active:scale-95"
+          title="เพิ่ม Admin ใหม่"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap text-sm font-semibold">
+            เพิ่ม Admin ใหม่
+          </span>
+        </button>
       </div>
 
       <AddAdminDialog
