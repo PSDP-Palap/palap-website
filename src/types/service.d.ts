@@ -7,4 +7,7 @@ export interface Service {
     category: ServiceCategory;
     pickup_address: string;
     dest_address: string;
+    image_url?: string | null;
+    detail_1?: string | null;
+    detail_2?: string | null;
 }

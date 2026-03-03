@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PlaceholderTab } from "@/components/admin/shared/PlaceholderTab";
+import { ShopTab } from "@/components/admin/shop-management/ShopTab";
 
 export const Route = createFileRoute("/_admin/management/shop")({
-  component: () => <PlaceholderTab label="Shop" />
+  component: ShopTab
 });

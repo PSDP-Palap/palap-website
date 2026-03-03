@@ -50,18 +50,39 @@ const ServiceSection = () => {
             key={service.service_id}
             className="group"
           >
-            <div className="flex flex-col bg-white hover:bg-orange-50 justify-center items-center p-10 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-orange-50">
-              <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
-                {categoryIconMap[service.category] ?? "🐾"}
+            <div 
+              className="flex flex-col p-0 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-orange-100 overflow-hidden group relative"
+              style={{
+                background: "linear-gradient(135deg, rgba(255, 155, 69, 0.3) 0%, rgba(255, 155, 69, 1) 100%)"
+              }}
+            >
+              {/* Category Badge */}
+              <div className="absolute top-4 right-4 z-10">
+                <span className="px-3 py-1 bg-white/80 backdrop-blur-sm text-[#9a3c0b] text-xs font-black rounded-full shadow-sm border border-white/50">
+                  {categoryLabelMap[service.category]}
+                </span>
               </div>
-              <h4 className="font-bold text-xl text-gray-800">
-                {service.name}
-              </h4>
-              <p className="text-sm text-gray-400 mt-1">
-                {categoryLabelMap[service.category]}
-              </p>
-              <div className="mt-4 px-4 py-1 bg-[#9a3c0b] text-white text-xs font-bold rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                จองเลย
+
+              <div className="h-48 w-full flex items-center justify-center overflow-hidden">
+                {service.image_url ? (
+                  <img
+                    src={service.image_url}
+                    alt={service.name}
+                    className="w-full h-full object-contain p-4 transform group-hover:scale-110 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="text-6xl transform group-hover:scale-110 transition-transform duration-300">
+                    {categoryIconMap[service.category] ?? "🐾"}
+                  </div>
+                )}
+              </div>
+              <div className="p-8 pt-0 flex flex-col items-center">
+                <h4 className="font-black text-xl text-black text-center">
+                  {service.name}
+                </h4>
+                <div className="mt-4 px-6 py-2 bg-white text-[#9a3c0b] text-xs font-black rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 shadow-lg">
+                  จองเลย
+                </div>
               </div>
             </div>
           </Link>
