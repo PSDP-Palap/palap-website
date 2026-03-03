@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createFileRoute } from "@tanstack/react-router";
 import supabase from "@/utils/supabase";
+import { Search } from 'lucide-react';
 
 // favorite icon asset for top-right of each card
 import favoriteIcon from "@/assets/3d659b7bdc33c87baf693bc75bf90986.jpg";
@@ -33,6 +34,7 @@ const MOCK_DESCRIPTIONS: { [key: string]: string } = {
 
 function RouteComponent() {
   const [services, setServices] = useState<Product[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // react-router instance for navigation
@@ -128,6 +130,16 @@ function RouteComponent() {
     return sum + (item?.price || 0) * qty;
   }, 0);
 
+  const filteredServices = services.filter((item) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+
+    return (
+      item.name.toLowerCase().includes(query) ||
+      item.description.toLowerCase().includes(query)
+    );
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center">
@@ -170,9 +182,28 @@ function RouteComponent() {
           />
         </div>
 
+        <div className="mb-8 bg-white rounded-xl border border-orange-200 p-2 shadow-sm flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1 px-2">
+            <Search className="w-5 h-5 text-gray-500" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              type="text"
+              placeholder="Search products"
+              className="w-full bg-transparent text-sm text-gray-700 placeholder:text-gray-400 outline-none"
+            />
+          </div>
+          <button
+            type="button"
+            className="bg-[#A74607] hover:bg-[#923c05] text-white text-xs font-black uppercase tracking-wide px-5 py-2 rounded-lg transition-colors"
+          >
+            Search
+          </button>
+        </div>
+
         {/* Grid of Services */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((item, idx) => {
+          {filteredServices.map((item, idx) => {
             const qty = cartItems[item.id] || 0;
             const isSelected = qty > 0;
             return (
@@ -233,6 +264,12 @@ function RouteComponent() {
             );
           })}
         </div>
+
+        {filteredServices.length === 0 && (
+          <div className="mt-6 text-center text-sm font-semibold text-[#4A2600]/70">
+            No products found for "{searchQuery}".
+          </div>
+        )}
       </main>
 
       {/* Footer Summary Bar */}
