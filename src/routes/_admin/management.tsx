@@ -37,34 +37,36 @@ function AdminManagementLayout() {
   return (
     <main className="min-h-screen bg-gray-50 pt-16 pb-16">
       <div className="container mx-auto px-4">
-        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
-          <div>
-            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-              Admin Dashboard
-            </h1>
-            <p className="text-gray-600 mt-2 text-lg">
-              ระบบจัดการหลังบ้านสำหรับผู้ดูแลระบบ
-            </p>
-          </div>
-
+        <header className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center gap-6 md:gap-10 mb-10">
           {profile && (
-            <div className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-              <div className="text-right">
-                <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">
+            <div className="flex items-center gap-4 shrink-0 md:pr-10 md:border-r border-gray-100">
+              <div className="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center shrink-0 shadow-sm overflow-hidden border border-orange-100">
+                <img
+                  src="/logo.png"
+                  alt="Palap Logo"
+                  className="w-12 h-12 object-contain"
+                />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-orange-600 uppercase tracking-[0.2em] mb-1">
                   Admin Access
                 </p>
-                <p className="font-bold text-gray-800 text-lg">
+                <p className="font-bold text-gray-800 text-lg leading-tight">
                   {profile.full_name}
                 </p>
                 <p className="text-xs text-gray-400">{profile.email}</p>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-                <span className="text-xl font-bold text-orange-600">
-                  {profile.full_name.charAt(0)}
-                </span>
-              </div>
             </div>
           )}
+
+          <div className="flex-1">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+              Management System
+            </h1>
+            <p className="text-gray-500 mt-1 text-lg">
+              ระบบจัดการหลังบ้านสำหรับผู้ดูแลระบบ
+            </p>
+          </div>
         </header>
 
         <div className="flex flex-col lg:flex-row gap-8">
