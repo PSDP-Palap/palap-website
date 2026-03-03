@@ -1,5 +1,5 @@
-// Navbar.tsx
 import { Link, useRouter } from "@tanstack/react-router";
+
 import { useUserStore } from "@/stores/useUserStore";
 
 const Navbar = () => {
@@ -21,7 +21,7 @@ const Navbar = () => {
   const isFreelance = profile?.role === "freelance";
 
   return (
-    <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl bg-white rounded-full drop-shadow-xl z-[100] pointer-events-auto">
+    <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl bg-white rounded-full drop-shadow-xl z-100 pointer-events-auto">
       <div className="flex justify-between items-center py-4 px-8">
         <div className="flex items-center gap-2">
           <span>

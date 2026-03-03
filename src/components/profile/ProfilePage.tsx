@@ -1,16 +1,13 @@
 import { Link } from "@tanstack/react-router";
 
+import Loading from "@/components/shared/Loading";
 import { useUserStore } from "@/stores/useUserStore";
 
 const ProfilePage = () => {
   const { profile, isLoading } = useUserStore();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#9a3c0b]"></div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (!profile) {

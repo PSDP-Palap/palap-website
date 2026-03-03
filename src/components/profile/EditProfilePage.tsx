@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
-import { useUserStore } from "@/stores/useUserStore";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+
+import Loading from "@/components/shared/Loading";
+import { useUserStore } from "@/stores/useUserStore";
 
 const EditProfilePage = () => {
   const router = useRouter();
@@ -10,7 +12,7 @@ const EditProfilePage = () => {
   const [formData, setFormData] = useState({
     full_name: "",
     phone_number: "",
-    address: "",
+    address: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -19,22 +21,20 @@ const EditProfilePage = () => {
       setFormData({
         full_name: profile.full_name || "",
         phone_number: profile.phone_number || "",
-        address: profile.address || "",
+        address: profile.address || ""
       });
     }
   }, [profile]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#9a3c0b]"></div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (!profile) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -48,7 +48,10 @@ const EditProfilePage = () => {
       const { error } = await updateProfile(formData);
 
       if (error) {
-        toast.error(typeof error === "string" ? error : "Failed to update profile", { id: loadingToast });
+        toast.error(
+          typeof error === "string" ? error : "Failed to update profile",
+          { id: loadingToast }
+        );
       } else {
         toast.success("Profile updated successfully!", { id: loadingToast });
         setTimeout(() => {
@@ -69,7 +72,10 @@ const EditProfilePage = () => {
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
           <div className="bg-[#9a3c0b] py-6 px-8 text-white flex justify-between items-center">
             <h1 className="text-2xl font-bold">Edit Profile</h1>
-            <Link to="/profile" className="text-sm bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full transition-colors">
+            <Link
+              to="/profile"
+              className="text-sm bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full transition-colors"
+            >
               Cancel
             </Link>
           </div>
@@ -101,7 +107,9 @@ const EditProfilePage = () => {
                   disabled
                   className="w-full px-4 py-3 rounded-2xl border border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed"
                 />
-                <p className="text-[10px] text-gray-400 mt-1 ml-2">Email cannot be changed</p>
+                <p className="text-[10px] text-gray-400 mt-1 ml-2">
+                  Email cannot be changed
+                </p>
               </div>
 
               <div>

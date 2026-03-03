@@ -2,9 +2,14 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 
+import Loading from "@/components/shared/Loading";
+
 import { routeTree } from "./routeTree.gen";
 
-const router = createRouter({ routeTree });
+const router = createRouter({
+  routeTree,
+  defaultPendingComponent: () => <Loading />
+});
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;

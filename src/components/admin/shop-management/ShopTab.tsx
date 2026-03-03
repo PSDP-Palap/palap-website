@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import Loading from "@/components/shared/Loading";
@@ -8,73 +8,35 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip";
-import { useServiceStore } from "@/stores/useServiceStore";
-import type { Service, ServiceCategory } from "@/types/service";
+import { useProductStore } from "@/stores/useProductStore";
+import type { Product } from "@/types/product";
 
-import { AddServiceDialog } from "./AddServiceDialog";
-import { ServiceManagementDialog } from "./ServiceManagementDialog";
+import { AddProductDialog } from "./AddProductDialog";
+import { ProductManagementDialog } from "./ProductManagementDialog";
 
-export const ServiceTab = () => {
+export const ShopTab = () => {
   const {
-    services,
-    loadServices,
-    createService,
-    updateService,
-    deleteService
-  } = useServiceStore();
+    products,
+    isLoading,
+    loadProducts,
+    createProduct,
+    updateProduct,
+    deleteProduct
+  } = useProductStore();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const fetchServices = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      await loadServices();
-    } catch (error) {
-      console.error("Error fetching services:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [loadServices]);
-
   useEffect(() => {
-    fetchServices();
-  }, [fetchServices]);
+    loadProducts();
+  }, [loadProducts]);
 
-  const filteredServices = services.filter(
-    (s) =>
-      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.service_id.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProducts = products.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.product_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const categoryLabel = (category: ServiceCategory) => {
-    switch (category) {
-      case "DELIVERY":
-        return "รับ-ส่ง";
-      case "SHOPPING":
-        return "ซื้อของ";
-      case "CARE":
-        return "ดูแล";
-      default:
-        return category;
-    }
-  };
-
-  const getCategoryBadge = (category: ServiceCategory) => {
-    switch (category) {
-      case "DELIVERY":
-        return "bg-blue-100 text-blue-700 border-blue-200";
-      case "SHOPPING":
-        return "bg-purple-100 text-purple-700 border-purple-200";
-      case "CARE":
-        return "bg-green-100 text-green-700 border-green-200";
-      default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
 
   if (isLoading) {
     return (
@@ -89,9 +51,9 @@ export const ServiceTab = () => {
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden relative flex flex-col h-full">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold text-gray-800">Services</h2>
+            <h2 className="text-xl font-bold text-gray-800">Shop Products</h2>
             <button
-              onClick={() => fetchServices()}
+              onClick={() => loadProducts()}
               disabled={isLoading}
               className="p-2 text-gray-500 hover:text-[#A6411C] hover:bg-orange-50 rounded-xl transition-all disabled:opacity-50"
               title="รีเฟรชข้อมูล"
@@ -131,7 +93,7 @@ export const ServiceTab = () => {
             </div>
             <input
               type="text"
-              placeholder="ค้นหาชื่อ, หมวดหมู่, ID..."
+              placeholder="ค้นหาชื่อสินค้า, ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#A6411C] focus:bg-white transition-all"
@@ -145,21 +107,19 @@ export const ServiceTab = () => {
               <tr className="bg-gray-50 text-gray-600 text-sm">
                 <th className="px-6 py-4 font-semibold">ID</th>
                 <th className="px-6 py-4 font-semibold">Image</th>
-                <th className="px-6 py-4 font-semibold">Service Name</th>
+                <th className="px-6 py-4 font-semibold">Product Name</th>
                 <th className="px-6 py-4 font-semibold text-right">Price</th>
-                <th className="px-6 py-4 font-semibold text-left pl-24">
-                  Category
-                </th>
+                <th className="px-6 py-4 font-semibold text-right">Qty</th>
                 <th className="px-6 py-4 font-semibold text-center">
                   Management
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredServices.length > 0 ? (
-                filteredServices.map((service) => (
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
                   <tr
-                    key={service.service_id}
+                    key={product.product_id}
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="px-6 py-4 text-sm font-mono text-gray-500">
@@ -168,24 +128,24 @@ export const ServiceTab = () => {
                           <span
                             className="cursor-pointer hover:text-[#A6411C] transition-colors"
                             onClick={() => {
-                              navigator.clipboard.writeText(service.service_id);
+                              navigator.clipboard.writeText(product.product_id);
                               toast.success("คัดลอก ID เรียบร้อยแล้ว");
                             }}
                           >
-                            {service.service_id.split("-")[0]}...
+                            {product.product_id.split("-")[0]}...
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>{service.service_id}</p>
+                          <p>{product.product_id}</p>
                         </TooltipContent>
                       </Tooltip>
                     </td>
                     <td className="px-6 py-4">
                       <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center overflow-hidden border border-orange-100">
-                        {service.image_url ? (
+                        {product.image_url ? (
                           <img
-                            src={service.image_url}
-                            alt={service.name}
+                            src={product.image_url}
+                            alt={product.name}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -197,23 +157,17 @@ export const ServiceTab = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-800">
-                      {service.name}
+                      {product.name}
                     </td>
                     <td className="px-6 py-4 text-sm font-bold text-right text-[#A6411C]">
-                      {service.price.toLocaleString()} ฿
+                      {product.price.toLocaleString()} ฿
                     </td>
-                    <td className="px-6 py-4 pl-24">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold border ${getCategoryBadge(
-                          service.category
-                        )}`}
-                      >
-                        {categoryLabel(service.category)}
-                      </span>
+                    <td className="px-6 py-4 text-sm text-right text-gray-600">
+                      {product.qty.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
-                        onClick={() => setSelectedService(service)}
+                        onClick={() => setSelectedProduct(product)}
                         className="px-4 py-2 bg-gray-50 text-gray-600 hover:bg-orange-50 hover:text-[#A6411C] border border-gray-100 rounded-xl text-xs font-bold transition-all"
                       >
                         Manage
@@ -229,7 +183,7 @@ export const ServiceTab = () => {
                   >
                     {searchTerm
                       ? "ไม่พบข้อมูลที่ตรงกับการค้นหา"
-                      : "ไม่พบข้อมูลบริการ"}
+                      : "ไม่พบข้อมูลสินค้า"}
                   </td>
                 </tr>
               )}
@@ -242,7 +196,7 @@ export const ServiceTab = () => {
           <button
             onClick={() => setIsAddDialogOpen(true)}
             className="bg-white text-[#A6411C] p-4 rounded-full shadow-2xl hover:bg-orange-50 transition-all flex items-center gap-2 group hover:scale-110 active:scale-95 border border-orange-100"
-            title="เพิ่มบริการใหม่"
+            title="เพิ่มสินค้าใหม่"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -259,24 +213,24 @@ export const ServiceTab = () => {
               />
             </svg>
             <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap text-sm font-semibold">
-              เพิ่มบริการใหม่
+              เพิ่มสินค้าใหม่
             </span>
           </button>
         </div>
 
-        <ServiceManagementDialog
-          key={selectedService?.service_id || "new"}
-          isOpen={!!selectedService}
-          service={selectedService}
-          onClose={() => setSelectedService(null)}
-          onUpdate={updateService}
-          onDelete={deleteService}
+        <ProductManagementDialog
+          key={selectedProduct?.product_id || "new"}
+          isOpen={!!selectedProduct}
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onUpdate={updateProduct}
+          onDelete={deleteProduct}
         />
 
-        <AddServiceDialog
+        <AddProductDialog
           isOpen={isAddDialogOpen}
           onClose={() => setIsAddDialogOpen(false)}
-          onSuccess={createService}
+          onSuccess={createProduct}
         />
       </div>
     </TooltipProvider>
