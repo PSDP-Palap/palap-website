@@ -1,8 +1,10 @@
 import { useEffect } from "react";
+import { useRouter } from "@tanstack/react-router";
 
 import { useProductStore } from "@/stores/useProductStore";
 
 const RecommendSection = () => {
+  const router = useRouter();
   const { products, loadProducts, isLoading } = useProductStore();
 
   useEffect(() => {
@@ -25,8 +27,14 @@ const RecommendSection = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product) => (
           <div
-            className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-orange-50"
+            className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-orange-50 cursor-pointer"
             key={product.product_id}
+            onClick={() => {
+              router.navigate({
+                to: "/product/$id",
+                params: { id: String(product.product_id) },
+              });
+            }}
           >
             <div className="relative h-48 overflow-hidden">
               <img
@@ -60,6 +68,13 @@ const RecommendSection = () => {
               <button
                 className="w-full mt-4 py-3 rounded-2xl bg-orange-50 text-[#9a3c0b] font-bold text-sm hover:bg-[#9a3c0b] hover:text-white transition-all duration-300 active:scale-95 disabled:opacity-50"
                 disabled={product.qty === 0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.navigate({
+                    to: "/product/$id",
+                    params: { id: String(product.product_id) },
+                  });
+                }}
               >
                 ซื้อเลย!
               </button>
