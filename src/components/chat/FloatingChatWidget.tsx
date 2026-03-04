@@ -1,6 +1,6 @@
 import { useRouter, useRouterState } from "@tanstack/react-router";
 import { MessageCircle, Search, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useUserStore } from "@/stores/useUserStore";
 import supabase from "@/utils/supabase";
@@ -21,20 +21,6 @@ type ConversationItem = {
   serviceName: string;
 };
 
-type StoredMockRoom = {
-  roomId: string;
-  serviceId: string;
-  customerId: string;
-  freelancerId: string;
-  customerName: string;
-  customerAvatarUrl: string | null;
-  freelancerName: string;
-  freelancerAvatarUrl: string | null;
-  serviceName: string;
-  lastMessage: string;
-  lastAt: string;
-};
-
 const formatTime = (isoDate: string) => {
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) return "";
@@ -48,30 +34,154 @@ const formatTime = (isoDate: string) => {
 
 const isSystemMessage = (message: string | null | undefined) => {
   if (!message) return false;
-  return message.startsWith("[SYSTEM_HIRE_REQUEST]") || message.startsWith("[SYSTEM_HIRE_ACCEPTED]");
+  return (
+    message.startsWith("[SYSTEM_HIRE_REQUEST]") ||
+    message.startsWith("[SYSTEM_HIRE_ACCEPTED]") ||
+    message.startsWith("[SYSTEM_DELIVERY_ORDER_ACCEPTED]") ||
+    message.startsWith("[SYSTEM_DELIVERY_ROOM_CREATED]") ||
+    message.startsWith("[SYSTEM_DELIVERY_DONE]")
+  );
 };
 
 const cleanPreviewMessage = (message: string | null | undefined) => {
   if (!message) return "No message yet";
+  if (message.startsWith("[CHAT_IMAGE]")) return "📷 Image";
   return message
     .replace("[SYSTEM_HIRE_REQUEST]", "")
     .replace("[SYSTEM_HIRE_ACCEPTED]", "")
+    .replace("[SYSTEM_DELIVERY_ORDER_ACCEPTED]", "")
+    .replace("[SYSTEM_DELIVERY_ROOM_CREATED]", "")
+    .replace("[SYSTEM_DELIVERY_DONE]", "")
     .trim() || "No message yet";
 };
 
 function FloatingChatWidget() {
   const router = useRouter();
-  const pathname = useRouterState({
-    select: (state) => state.location.pathname,
+  const locationState = useRouterState({
+    select: (state) => ({
+      pathname: state.location.pathname,
+      hash: state.location.hash,
+    }),
   });
+  const pathname = locationState.pathname;
+  const hash = locationState.hash || "";
   const { profile, session, isInitialized } = useUserStore();
   const userId = profile?.id || session?.user?.id || null;
   const isCheckoutFooterPage = pathname === "/product";
+  const isPaymentConfirmPage = pathname === "/payment/confirm";
+  const isActiveChatPage = pathname.startsWith("/service/") && hash.startsWith("#chat");
+  const rootRef = useRef<HTMLDivElement | null>(null);
 
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.innerWidth >= 768;
+  });
+  const [floatingPosition, setFloatingPosition] = useState({
+    bottom: 24,
+    right: 24,
+  });
+
+  const getBasePosition = () => {
+    if (isCheckoutFooterPage) {
+      return {
+        bottom: 12,
+        right: isDesktop ? 32 : 24,
+      };
+    }
+
+    if (isPaymentConfirmPage) {
+      return {
+        bottom: 96,
+        right: isDesktop ? 24 : 16,
+      };
+    }
+
+    return {
+      bottom: isDesktop ? 24 : 96,
+      right: isDesktop ? 24 : 16,
+    };
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.removeItem("mock_service_chat_rooms");
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const onResize = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const recalculatePosition = () => {
+      const base = getBasePosition();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const bubbleWidth = 56;
+      const bubbleLeft = viewportWidth - base.right - bubbleWidth;
+      const bubbleRight = viewportWidth - base.right;
+
+      let nextBottom = base.bottom;
+
+      const floatingWidgets = Array.from(
+        document.querySelectorAll("[data-floating-widget][data-floating-corner='bottom-right']")
+      ) as HTMLElement[];
+
+      floatingWidgets.forEach((widget) => {
+        if (!rootRef.current) return;
+        if (widget === rootRef.current || rootRef.current.contains(widget)) return;
+
+        const rect = widget.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return;
+        if (rect.bottom <= 0 || rect.top >= viewportHeight) return;
+
+        const overlapsHorizontally = rect.right >= bubbleLeft - 8 && rect.left <= bubbleRight + 8;
+        if (!overlapsHorizontally) return;
+
+        const requiredBottom = Math.max(0, viewportHeight - rect.top + 12);
+        nextBottom = Math.max(nextBottom, requiredBottom);
+      });
+
+      setFloatingPosition({
+        bottom: nextBottom,
+        right: base.right,
+      });
+    };
+
+    recalculatePosition();
+
+    const observer = new MutationObserver(() => {
+      recalculatePosition();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class", "style"],
+    });
+
+    window.addEventListener("resize", recalculatePosition);
+    window.addEventListener("scroll", recalculatePosition, true);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", recalculatePosition);
+      window.removeEventListener("scroll", recalculatePosition, true);
+    };
+  }, [pathname, isCheckoutFooterPage, isPaymentConfirmPage, isDesktop, open]);
 
   useEffect(() => {
     if (!userId || !isInitialized) return;
@@ -111,6 +221,18 @@ function FloatingChatWidget() {
               .order("created_at", { ascending: false })
           : { data: [] as any[] };
 
+        const roomFlags = new Map<string, { hasRequest: boolean; hasAccepted: boolean; hasDeliveryAccepted: boolean }>();
+        (messageRows ?? []).forEach((row: any) => {
+          const key = String(row.room_id);
+          const current = roomFlags.get(key) || { hasRequest: false, hasAccepted: false, hasDeliveryAccepted: false };
+          const text = String(row.message || "");
+          roomFlags.set(key, {
+            hasRequest: current.hasRequest || text.startsWith("[SYSTEM_HIRE_REQUEST]"),
+            hasAccepted: current.hasAccepted || text.startsWith("[SYSTEM_HIRE_ACCEPTED]"),
+            hasDeliveryAccepted: current.hasDeliveryAccepted || text.startsWith("[SYSTEM_DELIVERY_ORDER_ACCEPTED]"),
+          });
+        });
+
         const latestMessageByRoom = new Map<string, { message: string; created_at: string }>();
         (messageRows ?? []).forEach((row: any) => {
           const key = String(row.room_id);
@@ -128,7 +250,7 @@ function FloatingChatWidget() {
             ? supabase.from("profiles").select("id, full_name, email, avatar_url, image_url, photo_url").in("id", partnerIds)
             : Promise.resolve({ data: [] as any[] }),
           serviceIds.length > 0
-            ? supabase.from("services").select("service_id, id, name").in("service_id", serviceIds)
+            ? supabase.from("services").select("service_id, name").in("service_id", serviceIds)
             : Promise.resolve({ data: [] as any[] }),
         ]);
 
@@ -145,7 +267,7 @@ function FloatingChatWidget() {
         );
 
         const serviceMap = new Map(
-          (serviceRows ?? []).map((item: any) => [String(item.service_id ?? item.id), item.name || "Service"])
+          (serviceRows ?? []).map((item: any) => [String(item.service_id), item.name || "Service"])
         );
 
         const mapped: ConversationItem[] = roomRows.map((item: any) => {
@@ -174,49 +296,15 @@ function FloatingChatWidget() {
             lastAt: latest?.created_at || item.last_message_at || new Date().toISOString(),
             serviceName: serviceMap.get(serviceId) || "Service",
           };
+        }).filter((item) => {
+          const flags = roomFlags.get(item.roomId);
+          if (!flags) return true;
+          if (flags.hasRequest && !flags.hasAccepted && !flags.hasDeliveryAccepted) return false;
+          return true;
         });
 
-        let mockConversations: ConversationItem[] = [];
-        if (typeof window !== "undefined") {
-          try {
-            const raw = window.localStorage.getItem("mock_service_chat_rooms");
-            const parsed = raw ? JSON.parse(raw) : [];
-            const rows: StoredMockRoom[] = Array.isArray(parsed) ? parsed : [];
-
-            mockConversations = rows
-              .filter((item) =>
-                String(item.customerId) === String(userId) ||
-                String(item.freelancerId) === String(userId)
-              )
-              .map((item) => {
-                const partnerId = String(item.customerId) === String(userId)
-                  ? String(item.freelancerId)
-                  : String(item.customerId);
-                const isUserCustomer = String(item.customerId) === String(userId);
-
-                return {
-                  key: String(item.roomId),
-                  roomId: String(item.roomId),
-                  serviceId: String(item.serviceId),
-                  partnerId,
-                  partnerName: isUserCustomer ? item.freelancerName : item.customerName,
-                  partnerAvatarUrl: isUserCustomer ? item.freelancerAvatarUrl : item.customerAvatarUrl,
-                  customerName: item.customerName,
-                  customerAvatarUrl: item.customerAvatarUrl,
-                  freelancerName: item.freelancerName,
-                  freelancerAvatarUrl: item.freelancerAvatarUrl,
-                  lastMessage: cleanPreviewMessage(item.lastMessage),
-                  lastAt: item.lastAt || new Date().toISOString(),
-                  serviceName: item.serviceName || "Service",
-                };
-              });
-          } catch {
-            mockConversations = [];
-          }
-        }
-
         const mergedMap = new Map<string, ConversationItem>();
-        [...mapped, ...mockConversations]
+        mapped
           .sort((a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime())
           .forEach((item) => {
             if (!mergedMap.has(item.roomId)) {
@@ -233,6 +321,10 @@ function FloatingChatWidget() {
     };
 
     loadConversations();
+
+    const pollingTimer = window.setInterval(() => {
+      loadConversations();
+    }, 4000);
 
     const channel = supabase
       .channel(`floating-chat-${userId}`)
@@ -259,6 +351,7 @@ function FloatingChatWidget() {
 
     return () => {
       active = false;
+      window.clearInterval(pollingTimer);
       window.removeEventListener("service-chat-updated", handleExternalChatUpdate);
       supabase.removeChannel(channel);
     };
@@ -277,11 +370,19 @@ function FloatingChatWidget() {
   }, [conversations, search]);
 
   if (!userId || !isInitialized) return null;
+  if (isActiveChatPage) return null;
 
   return (
-    <div className={isCheckoutFooterPage
-      ? "fixed bottom-[112px] right-6 md:right-8 z-[80]"
-      : "fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[80]"}>
+    <div
+      ref={rootRef}
+      data-floating-widget
+      data-floating-corner="bottom-right"
+      className="fixed z-[80]"
+      style={{
+        bottom: `${floatingPosition.bottom}px`,
+        right: `${floatingPosition.right}px`,
+      }}
+    >
       {open && (
         <div className="w-[360px] max-w-[calc(100vw-2rem)] max-h-[70vh] bg-[#F9E6D8] text-[#4A2600] rounded-2xl border border-orange-200 shadow-2xl mb-3 overflow-hidden">
           <div className="px-4 py-4 border-b border-orange-200 bg-[#FF914D] flex items-center justify-between">
@@ -321,7 +422,7 @@ function FloatingChatWidget() {
                   router.navigate({
                     to: "/service/$id",
                     params: { id: chat.serviceId },
-                    hash: "chat",
+                    hash: `chat:${encodeURIComponent(chat.roomId)}`,
                   });
                 }}
                 className="w-full text-left px-4 py-3 hover:bg-orange-100/60 transition-colors flex items-center gap-3 border-b border-orange-100"
