@@ -6,60 +6,21 @@ import { useUserStore } from "@/stores/useUserStore";
 import supabase from "@/utils/supabase";
 import "leaflet/dist/leaflet.css";
 
+import type {
+  DashboardTab,
+  FreelanceConversation,
+  DeliveryOrderItem,
+  PendingHireRequestItem,
+  OngoingServiceJobItem,
+  LocationField
+} from "@/types/freelance";
+
 export const Route = createFileRoute("/_freelance/freelance")({
   component: RouteComponent
 });
 
-type LocationField = "pickup" | "destination";
-
 type MapCenterTrackerProps = {
   onCenterChange: (lat: number, lng: number) => void;
-};
-
-type DashboardTab = "Dashboard" | "My Jobs" | "Messages" | "Earning" | "Account Setting";
-
-type FreelanceConversation = {
-  roomId: string;
-  serviceId: string;
-  customerId: string;
-  customerName: string;
-  customerAvatarUrl: string | null;
-  serviceName: string;
-  lastMessage: string;
-  lastAt: string;
-};
-
-type DeliveryOrderItem = {
-  orderId: string;
-  serviceId: string;
-  customerId: string;
-  customerName: string;
-  productName: string;
-  pickupLabel: string;
-  destinationLabel: string;
-  price: number;
-  status: string;
-  createdAt: string;
-};
-
-type PendingHireRequestItem = {
-  roomId: string;
-  serviceId: string;
-  customerId: string;
-  customerName: string;
-  serviceName: string;
-  requestedAt: string;
-};
-
-type OngoingServiceJobItem = {
-  roomId: string;
-  serviceId: string;
-  customerId: string;
-  customerName: string;
-  serviceName: string;
-  acceptedAt: string;
-  lastAt: string;
-  price: number;
 };
 
 const ORDER_COMPLETED_STATUS_SET = new Set(["completed", "done", "delivered", "success", "finished", "closed"]);

@@ -4,7 +4,10 @@ import { useUserStore } from "@/stores/useUserStore";
 import { useServiceStore } from "@/stores/useServiceStore";
 import type { Service, ServiceCategory } from "@/types/service";
 
-type ServiceFormState = Omit<Service, "service_id">;
+type ServiceFormState = Omit<Service, "service_id" | "id"> & {
+  id?: string;
+  service_id?: string;
+};
 
 const emptyForm: ServiceFormState = {
   name: "",
@@ -43,8 +46,9 @@ const AdminDashboard = () => {
   };
 
   const handleEdit = (service: Service) => {
-    const { service_id, ...rest } = service;
-    setEditingId(service_id);
+    const targetId = service.service_id || service.id || null;
+    const { service_id, id, ...rest } = service;
+    setEditingId(targetId);
     setForm(rest);
   };
 
@@ -54,15 +58,16 @@ const AdminDashboard = () => {
     if (!form.name.trim()) return;
 
     if (editingId) {
-      updateService(editingId, form);
+      updateService(editingId, form as any);
     } else {
-      createService(form);
+      createService(form as any);
     }
 
     resetForm();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id?: string) => {
+    if (!id) return;
     if (window.confirm("ลบบริการนี้หรือไม่ ?")) {
       deleteService(id);
       if (editingId === id) {
@@ -79,6 +84,8 @@ const AdminDashboard = () => {
         return "ซื้อของ";
       case "CARE":
         return "ดูแล";
+      case "DELIVERY_SESSION":
+        return "ออเดอร์";
       default:
         return category;
     }
@@ -128,11 +135,11 @@ const AdminDashboard = () => {
               <tbody>
                 {services.map((service) => (
                   <tr
-                    key={service.service_id}
+                    key={service.service_id || service.id}
                     className="border-b last:border-0 hover:bg-orange-50/40"
                   >
                     <td className="py-2 px-2 align-top text-xs text-gray-500">
-                      {service.service_id}
+                      {service.service_id || service.id}
                     </td>
                     <td className="py-2 px-2 align-top font-semibold">
                       {service.name}
@@ -164,7 +171,7 @@ const AdminDashboard = () => {
                       <button
                         type="button"
                         className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700 hover:bg-red-200"
-                        onClick={() => handleDelete(service.service_id)}
+                        onClick={() => handleDelete(service.service_id || service.id)}
                       >
                         ลบ
                       </button>
@@ -240,6 +247,7 @@ const AdminDashboard = () => {
                     <option value="DELIVERY">รับ-ส่ง</option>
                     <option value="SHOPPING">ซื้อของ</option>
                     <option value="CARE">ดูแล</option>
+                    <option value="DELIVERY_SESSION">ออเดอร์</option>
                   </select>
                 </div>
               </div>
@@ -251,7 +259,7 @@ const AdminDashboard = () => {
                 <input
                   type="text"
                   name="pickup_address"
-                  value={form.pickup_address}
+                  value={form.pickup_address || ""}
                   onChange={handleChange}
                   className="w-full border rounded-lg px-3 py-2"
                   placeholder="เช่น บ้านลูกค้า, คอนโด, จุดนัดรับ"
@@ -263,7 +271,7 @@ const AdminDashboard = () => {
                 <input
                   type="text"
                   name="dest_address"
-                  value={form.dest_address}
+                  value={form.dest_address || ""}
                   onChange={handleChange}
                   className="w-full border rounded-lg px-3 py-2"
                   placeholder="เช่น โรงพยาบาลสัตว์, ร้านอาบน้ำตัดขน"

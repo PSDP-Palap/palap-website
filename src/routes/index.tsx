@@ -27,16 +27,18 @@ function RouteComponent() {
   // Otherwise, show regular Home Page
   return (
     <main className="relative pb-16 bg-[#FFF2EC]">
-      <img src="home_header.png" alt="home_header" className="w-full" />
-
-      <div className="container m-auto">
+      <div className="relative">
+        <img src="home_header.png" alt="home_header" className="w-full" />
         <HeaderSection />
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4">
         <ServiceSection />
       </div>
 
       <BannerSection />
 
-      <div className="container m-auto">
+      <div className="max-w-6xl mx-auto px-4">
         <RecommendSection />
       </div>
     </main>

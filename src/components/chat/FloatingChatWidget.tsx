@@ -4,22 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useUserStore } from "@/stores/useUserStore";
 import supabase from "@/utils/supabase";
-
-type ConversationItem = {
-  key: string;
-  roomId: string;
-  serviceId: string;
-  partnerId: string;
-  partnerName: string;
-  partnerAvatarUrl: string | null;
-  customerName: string;
-  customerAvatarUrl: string | null;
-  freelancerName: string;
-  freelancerAvatarUrl: string | null;
-  lastMessage: string;
-  lastAt: string;
-  serviceName: string;
-};
+import type { ConversationItem } from "@/types/chat";
 
 const formatTime = (isoDate: string) => {
   const date = new Date(isoDate);

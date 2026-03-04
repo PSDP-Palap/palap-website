@@ -7,13 +7,15 @@ import type { ServiceCategory } from "@/types/service";
 const categoryIconMap: Record<ServiceCategory, string> = {
   SHOPPING: "🍲",
   DELIVERY: "🚐",
-  CARE: "🦮"
+  CARE: "🦮",
+  DELIVERY_SESSION: "📦"
 };
 
 const categoryLabelMap: Record<ServiceCategory, string> = {
   SHOPPING: "ซื้อของ",
   DELIVERY: "รับ-ส่ง",
-  CARE: "ดูแลสัตว์เลี้ยง"
+  CARE: "ดูแลสัตว์เลี้ยง",
+  DELIVERY_SESSION: "ออเดอร์"
 };
 
 const ServiceSection = () => {
@@ -35,7 +37,7 @@ const ServiceSection = () => {
           </p>
         </div>
         <Link
-          to="/product"
+          to="/service"
           className="text-[#9a3c0b] font-bold underline underline-offset-4 hover:text-orange-600 transition-colors"
         >
           ดูทั้งหมด
@@ -45,23 +47,45 @@ const ServiceSection = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
         {services.slice(0, 3).map((service) => (
           <Link
-            to="/product/$id"
-            params={{ id: service.service_id }}
+            to="/service/$id"
+            params={{ id: service.service_id || service.id || "" }}
             key={service.service_id}
             className="group"
           >
-            <div className="flex flex-col bg-white hover:bg-orange-50 justify-center items-center p-10 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-orange-50">
-              <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
-                {categoryIconMap[service.category] ?? "🐾"}
+            <div
+              className="flex flex-col p-0 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-orange-100 overflow-hidden group relative"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(255, 155, 69, 0.3) 0%, rgba(255, 155, 69, 1) 100%)"
+              }}
+            >
+              {/* Category Badge */}
+              <div className="absolute top-4 right-4 z-10">
+                <span className="px-3 py-1 bg-white/80 backdrop-blur-sm text-[#9a3c0b] text-xs font-black rounded-full shadow-sm border border-white/50">
+                  {categoryLabelMap[service.category]}
+                </span>
               </div>
-              <h4 className="font-bold text-xl text-gray-800">
-                {service.name}
-              </h4>
-              <p className="text-sm text-gray-400 mt-1">
-                {categoryLabelMap[service.category]}
-              </p>
-              <div className="mt-4 px-4 py-1 bg-[#9a3c0b] text-white text-xs font-bold rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                จองเลย
+
+              <div className="h-48 w-full flex items-center justify-center overflow-hidden">
+                {service.image_url ? (
+                  <img
+                    src={service.image_url}
+                    alt={service.name}
+                    className="w-full h-full object-contain p-4 transform group-hover:scale-110 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="text-6xl transform group-hover:scale-110 transition-transform duration-300">
+                    {categoryIconMap[service.category] ?? "🐾"}
+                  </div>
+                )}
+              </div>
+              <div className="p-8 pt-0 flex flex-col items-center">
+                <h4 className="font-black text-xl text-black text-center">
+                  {service.name}
+                </h4>
+                <div className="mt-4 px-6 py-2 bg-white text-[#9a3c0b] text-xs font-black rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 shadow-lg">
+                  จองเลย
+                </div>
               </div>
             </div>
           </Link>
@@ -76,8 +100,8 @@ const ServiceSection = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-        <div className="h-64 flex justify-between bg-linear-to-r from-orange-400 to-amber-400 rounded-[2.5rem] overflow-hidden shadow-lg group">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="h-64 flex justify-between bg-linear-to-r from-orange-400 to-amber-400 rounded-2xl overflow-hidden shadow-lg group">
           <div className="flex flex-col justify-center pl-10 z-10">
             <h2 className="text-3xl font-black text-white leading-tight">
               สัตว์เลี้ยงคุณยิ้ม
@@ -100,7 +124,7 @@ const ServiceSection = () => {
           </div>
         </div>
 
-        <div className="h-64 flex justify-between bg-[#9a3c0b] rounded-[2.5rem] overflow-hidden shadow-lg group">
+        <div className="h-64 flex justify-between bg-[#9a3c0b] rounded-2xl overflow-hidden shadow-lg group">
           <div className="relative w-1/2">
             <img
               src="./parrot-eating.png"

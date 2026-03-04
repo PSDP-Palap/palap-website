@@ -1,37 +1,24 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 
 import supabase from "@/utils/supabase";
-
-interface ServiceItem {
-  id: string;
-  name: string;
-  price: number;
-  category?: string | null;
-  pickup_address?: string | null;
-  dest_address?: string | null;
-  description?: string | null;
-  image_url?: string | null;
-  creator_id?: string | null;
-  creator_name?: string | null;
-  creator_avatar_url?: string | null;
-}
+import { ServiceCard } from "@/components/service/ServiceCard";
+import type { Service } from "@/types/service";
 
 const DEFAULT_DESCRIPTION = "Reliable and professional pet service tailored for your needs.";
 const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1200&auto=format&fit=crop";
 
-export const Route = createFileRoute("/_authenticated/service/")({
+export const Route = createFileRoute("/service/")({
   component: ServicePage,
 });
 
 function ServicePage() {
-  const [services, setServices] = useState<ServiceItem[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isFetchingRef = useRef(false);
-  const router = useRouter();
 
   const withTimeout = async <T,>(factory: () => Promise<T>, timeoutMs = 12000): Promise<T> => {
     return new Promise<T>((resolve, reject) => {
@@ -73,7 +60,7 @@ function ServicePage() {
 
       if (error) throw error;
 
-      const mapped: ServiceItem[] = (data ?? []).map((item: any) => ({
+      const mapped: Service[] = (data ?? []).map((item: any) => ({
         id: String(item.service_id ?? item.id ?? ""),
         name: item.name ?? "Unnamed Service",
         price: Number(item.price ?? 0),
@@ -220,58 +207,12 @@ function ServicePage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredServices.map((service) => (
-            <div key={service.id} className="relative h-full">
-              <div
-                onClick={() =>
-                  router.navigate({
-                    to: "/service/$id",
-                    params: { id: service.id },
-                  })
-                }
-                className="bg-white rounded-2xl p-5 shadow-sm transition-all cursor-pointer border-2 h-full flex flex-col group border-transparent hover:border-orange-200 hover:shadow-md"
-              >
-                <div className="w-full h-44 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 mb-4">
-                  <img
-                    src={service.image_url || DEFAULT_IMAGE}
-                    alt={service.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-
-                <h3 className="font-bold text-2xl text-[#4A2600] leading-tight mb-2">{service.name}</h3>
-                <p className="text-base text-gray-700 line-clamp-3 leading-relaxed flex-grow">
-                  {service.description || DEFAULT_DESCRIPTION}
-                </p>
-
-                <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-500 font-bold uppercase">Category</p>
-                    <p className="text-sm font-black text-[#4A2600]">{service.category || "General"}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <span className="text-sm font-black text-orange-600">฿{service.price}</span>
-                    <div
-                      className="w-9 h-9 rounded-full bg-orange-100 border border-orange-200 overflow-hidden flex items-center justify-center text-xs font-black text-[#4A2600]"
-                      title={service.creator_name || "Freelance user"}
-                    >
-                      {service.creator_avatar_url ? (
-                        <img
-                          src={service.creator_avatar_url}
-                          alt={service.creator_name || "Freelance user"}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        (service.creator_name || "F").charAt(0).toUpperCase()
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <span className="mt-4 text-[12px] font-bold uppercase tracking-wide text-gray-500 group-hover:text-orange-600 transition-colors">
-                  View Service →
-                </span>
-              </div>
-            </div>
+            <ServiceCard
+              key={service.id}
+              service={service}
+              defaultImage={DEFAULT_IMAGE}
+              defaultDescription={DEFAULT_DESCRIPTION}
+            />
           ))}
         </div>
 

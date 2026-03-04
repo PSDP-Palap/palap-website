@@ -3,25 +3,7 @@ import { useEffect, useState } from "react";
 
 import { useUserStore } from "@/stores/useUserStore";
 import supabase from "@/utils/supabase";
-
-type Address = {
-  id: string;
-  name?: string | null;
-  address_detail?: string | null;
-};
-
-type TrackingView = {
-  orderId: string;
-  serviceId: string | null;
-  roomId: string | null;
-  status: string;
-  updatedAt: string;
-  freelanceName: string;
-  freelanceId: string | null;
-  productName: string;
-  pickupAddress: Address | null;
-  destinationAddress: Address | null;
-};
+import type { DeliveryTracking } from "@/types/payment";
 
 const ORDER_COMPLETED_STATUS_SET = new Set(["completed", "done", "delivered", "success", "finished", "closed"]);
 const DELIVERY_DONE_PREFIX = "[SYSTEM_DELIVERY_DONE]";
@@ -53,7 +35,7 @@ function GlobalOrderTrackingWidget() {
 
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
   const [ongoingOrderIds, setOngoingOrderIds] = useState<string[]>([]);
-  const [tracking, setTracking] = useState<TrackingView | null>(null);
+  const [tracking, setTracking] = useState<DeliveryTracking | null>(null);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [searchOrderId, setSearchOrderId] = useState("");
@@ -210,9 +192,12 @@ function GlobalOrderTrackingWidget() {
         serviceId,
         roomId: roomRow?.id ? String(roomRow.id) : null,
         status: nextStatus,
+        createdAt: orderRow.created_at,
         updatedAt: doneAt || String(orderRow.updated_at || orderRow.created_at || new Date().toISOString()),
+        price: Number(orderRow.price ?? 0),
         freelanceName,
         freelanceId,
+        freelanceAvatarUrl: freelanceProfile?.avatar_url || freelanceProfile?.image_url || freelanceProfile?.photo_url || null,
         productName: productRow?.name || "Product",
         pickupAddress: pickupAddressId ? (addressMap.get(pickupAddressId) ?? null) : null,
         destinationAddress: destinationAddressId ? (addressMap.get(destinationAddressId) ?? null) : null,

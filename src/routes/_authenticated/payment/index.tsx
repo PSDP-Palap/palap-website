@@ -1,51 +1,20 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, useMapEvents } from "react-leaflet";
 
+import { DateTimeSection } from "@/components/payment/DateTimeSection";
+import { LocationSection } from "@/components/payment/LocationSection";
+import { OrderItemsList } from "@/components/payment/OrderItemsList";
+import { PriceSummarySide } from "@/components/payment/PriceSummarySide";
 import { useCartStore } from "@/stores/useCartStore";
 import { useUserStore } from "@/stores/useUserStore";
 import supabase from "@/utils/supabase";
-import "leaflet/dist/leaflet.css";
+import type { Product } from "@/types/product";
+import type { SavedAddressSnapshot } from "@/types/payment";
 
 export const Route = createFileRoute("/_authenticated/payment/")({
   component: RouteComponent,
 });
-
-type Product = {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  qty?: number;
-  image_url?: string | null;
-};
-
-type SavedAddressSnapshot = {
-  id: string;
-  name: string;
-  detail: string;
-  lat: string;
-  lng: string;
-};
-
-type MapCenterTrackerProps = {
-  onCenterChange: (lat: number, lng: number) => void;
-};
-
-function MapCenterTracker({ onCenterChange }: MapCenterTrackerProps) {
-  const map = useMapEvents({
-    moveend: () => {
-      const center = map.getCenter();
-      onCenterChange(center.lat, center.lng);
-    },
-    zoomend: () => {
-      const center = map.getCenter();
-      onCenterChange(center.lat, center.lng);
-    },
-  });
-
-  return null;
-}
 
 function RouteComponent() {
   const router = useRouter();
@@ -64,8 +33,12 @@ function RouteComponent() {
   );
   const [locationLat, setLocationLat] = useState("13.7563");
   const [locationLng, setLocationLng] = useState("100.5018");
-  const [destinationAddressId, setDestinationAddressId] = useState<string | null>(null);
-  const [savedAddress, setSavedAddress] = useState<SavedAddressSnapshot | null>(null);
+  const [destinationAddressId, setDestinationAddressId] = useState<
+    string | null
+  >(null);
+  const [savedAddress, setSavedAddress] = useState<SavedAddressSnapshot | null>(
+    null
+  );
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [savingLocation, setSavingLocation] = useState(false);
   const [proceedingToPayment, setProceedingToPayment] = useState(false);
@@ -81,13 +54,6 @@ function RouteComponent() {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : null;
   };
-
-  const getSinglePointBounds = (lat: number, lng: number) => ({
-    left: lng - 0.02,
-    right: lng + 0.02,
-    top: lat + 0.02,
-    bottom: lat - 0.02,
-  });
 
   useEffect(() => {
     if (hasHydrated) return;
@@ -117,9 +83,7 @@ function RouteComponent() {
 
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from("products")
-          .select("*");
+        const { data, error } = await supabase.from("products").select("*");
 
         if (error) throw error;
 
@@ -132,7 +96,7 @@ function RouteComponent() {
             description: item.description,
             price: Number(item.price ?? 0),
             qty: item.qty,
-            image_url: item.image_url,
+            image_url: item.image_url
           }))
           .filter((item) => item.id && selectedSet.has(item.id));
 
@@ -163,7 +127,9 @@ function RouteComponent() {
 
         if (customerError) throw customerError;
 
-        const addressId = customerRow?.address_id ? String(customerRow.address_id) : null;
+        const addressId = customerRow?.address_id
+          ? String(customerRow.address_id)
+          : null;
         if (!addressId) {
           setDestinationAddressId(null);
           setSavedAddress(null);
@@ -184,7 +150,7 @@ function RouteComponent() {
           name: addressRow.name || "Location Main",
           detail: addressRow.address_detail || "",
           lat: addressRow.lat != null ? String(addressRow.lat) : "13.7563",
-          lng: addressRow.lng != null ? String(addressRow.lng) : "100.5018",
+          lng: addressRow.lng != null ? String(addressRow.lng) : "100.5018"
         };
 
         setDestinationAddressId(snapshot.id);
@@ -211,7 +177,7 @@ function RouteComponent() {
       name: locationName.trim() || "Location Main",
       address_detail: locationDetail.trim() || null,
       lat: toNumber(locationLat),
-      lng: toNumber(locationLng),
+      lng: toNumber(locationLng)
     };
 
     let nextAddressId = destinationAddressId;
@@ -224,16 +190,17 @@ function RouteComponent() {
 
       if (updateAddressError) throw updateAddressError;
     } else {
-      const { data: insertedAddress, error: insertAddressError } = await supabase
-        .from("addresses")
-        .insert([
-          {
-            ...payload,
-            profile_id: currentUserId,
-          },
-        ])
-        .select("id")
-        .single();
+      const { data: insertedAddress, error: insertAddressError } =
+        await supabase
+          .from("addresses")
+          .insert([
+            {
+              ...payload,
+              profile_id: currentUserId
+            }
+          ])
+          .select("id")
+          .single();
 
       if (insertAddressError) throw insertAddressError;
       nextAddressId = insertedAddress?.id ? String(insertedAddress.id) : null;
@@ -250,8 +217,8 @@ function RouteComponent() {
         {
           id: currentUserId,
           address_id: nextAddressId,
-          updated_at: new Date().toISOString(),
-        },
+          updated_at: new Date().toISOString()
+        }
       ]);
 
     if (upsertCustomerError) throw upsertCustomerError;
@@ -261,7 +228,7 @@ function RouteComponent() {
       name: payload.name,
       detail: payload.address_detail ?? "",
       lat: payload.lat != null ? String(payload.lat) : "13.7563",
-      lng: payload.lng != null ? String(payload.lng) : "100.5018",
+      lng: payload.lng != null ? String(payload.lng) : "100.5018"
     });
 
     return nextAddressId;
@@ -283,7 +250,10 @@ function RouteComponent() {
     }
   };
 
-  const resolveAddressFromCoordinates = async (latitude: number, longitude: number) => {
+  const resolveAddressFromCoordinates = async (
+    latitude: number,
+    longitude: number
+  ) => {
     try {
       setResolvingAddress(true);
 
@@ -291,8 +261,8 @@ function RouteComponent() {
         `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`,
         {
           headers: {
-            Accept: "application/json",
-          },
+            Accept: "application/json"
+          }
         }
       );
 
@@ -336,11 +306,13 @@ function RouteComponent() {
       },
       () => {
         setDetectingLocation(false);
-        setLocationError("Unable to get your current location. Please allow location permission.");
+        setLocationError(
+          "Unable to get your current location. Please allow location permission."
+        );
       },
       {
         enableHighAccuracy: true,
-        timeout: 15000,
+        timeout: 15000
       }
     );
   };
@@ -377,7 +349,9 @@ function RouteComponent() {
 
       router.navigate({ to: "/payment/confirm" });
     } catch (err: any) {
-      setLocationError(err?.message || "Failed to save destination before payment.");
+      setLocationError(
+        err?.message || "Failed to save destination before payment."
+      );
     } finally {
       setProceedingToPayment(false);
     }
@@ -393,7 +367,7 @@ function RouteComponent() {
           imageUrl: product.image_url || null,
           quantity,
           unitPrice: product.price,
-          subtotal: product.price * quantity,
+          subtotal: product.price * quantity
         };
       })
       .filter((row) => row.quantity > 0);
@@ -405,24 +379,23 @@ function RouteComponent() {
   const total = subtotal + tax;
   const lat = toNumber(locationLat) ?? 13.7563;
   const lng = toNumber(locationLng) ?? 100.5018;
-  const mapBounds = getSinglePointBounds(lat, lng);
   const mapLeafletBounds: [[number, number], [number, number]] = [
-    [mapBounds.bottom, mapBounds.left],
-    [mapBounds.top, mapBounds.right],
+    [lat - 0.02, lng - 0.02],
+    [lat + 0.02, lng + 0.02]
   ];
-  const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${mapBounds.left}%2C${mapBounds.bottom}%2C${mapBounds.right}%2C${mapBounds.top}&layer=mapnik&marker=${lat}%2C${lng}`;
-  const openStreetUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=15/${lat}/${lng}`;
+  const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.02}%2C${lat - 0.02}%2C${lng + 0.02}%2C${lat + 0.02}&layer=mapnik&marker=${lat}%2C${lng}`;
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
   const today = new Date();
   const displayDate = today.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
-    day: "numeric",
+    day: "numeric"
   });
   const displayTime = today.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
-    hour12: true,
+    hour12: true
   });
 
   if (!isCartReady || loading) {
@@ -438,267 +411,64 @@ function RouteComponent() {
       <main className="max-w-5xl mx-auto px-4">
         <div className="bg-[#FF914D] rounded-xl px-6 py-5 mb-4 text-white">
           <h1 className="text-3xl font-black">Order Summary</h1>
-          <p className="text-sm text-orange-100 font-semibold">Review your booking details</p>
+          <p className="text-sm text-orange-100 font-semibold">
+            Review your booking details
+          </p>
         </div>
 
         <div className="bg-orange-100/70 rounded-xl p-4 md:p-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2 space-y-4">
-              <section className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                <h2 className="text-lg font-black text-[#4A2600] mb-3">Service Details</h2>
+              <OrderItemsList
+                orderRows={orderRows}
+                setCartQuantity={setCartQuantity}
+                removeCartItem={removeCartItem}
+              />
 
-                {orderRows.length === 0 ? (
-                  <p className="text-sm text-gray-500">No selected product. Please select an item first.</p>
-                ) : (
-                  <div className="space-y-2 max-h-[255px] overflow-y-auto pr-1">
-                    {orderRows.map((row) => (
-                      <div key={row.id} className="flex items-center justify-between text-sm border-b border-gray-100 pb-2 gap-3">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <img
-                            src={row.imageUrl || "https://via.placeholder.com/48"}
-                            alt={row.name}
-                            className="w-10 h-10 rounded-md object-cover border border-gray-100 bg-white"
-                          />
-                          <div className="min-w-0">
-                            <p className="font-bold text-[#4A2600] truncate">{row.name}</p>
-                            <p className="text-gray-500">{row.quantity} x ฿{row.unitPrice.toFixed(2)}</p>
-                          </div>
-                        </div>
+              <DateTimeSection
+                displayDate={displayDate}
+                displayTime={displayTime}
+              />
 
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => setCartQuantity(row.id, row.quantity - 1)}
-                              className="w-7 h-7 rounded-md bg-gray-100 text-[#4A2600] font-black hover:bg-gray-200"
-                            >
-                              -
-                            </button>
-                            <span className="min-w-6 text-center font-bold text-[#4A2600]">{row.quantity}</span>
-                            <button
-                              type="button"
-                              onClick={() => setCartQuantity(row.id, row.quantity + 1)}
-                              className="w-7 h-7 rounded-md bg-gray-100 text-[#4A2600] font-black hover:bg-gray-200"
-                            >
-                              +
-                            </button>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => removeCartItem(row.id)}
-                            className="px-2 py-1 rounded-md bg-red-50 text-red-600 font-black text-[10px] uppercase hover:bg-red-100"
-                          >
-                            Remove
-                          </button>
-
-                          <p className="font-black text-[#4A2600] min-w-[78px] text-right">฿{row.subtotal.toFixed(2)}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              <section className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                <h2 className="text-lg font-black text-[#4A2600] mb-3">Date & Time</h2>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <p className="text-gray-500">Date</p>
-                    <p className="font-semibold text-[#4A2600]">{displayDate}</p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-gray-500">Time</p>
-                    <p className="font-semibold text-[#4A2600]">{displayTime}</p>
-                  </div>
-                </div>
-              </section>
-
-              <section className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-black text-[#4A2600]">Location</h2>
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingLocation((v) => !v)}
-                    className="text-xs font-black uppercase text-orange-600 hover:text-orange-700"
-                  >
-                    {isEditingLocation ? "Close" : "Edit"}
-                  </button>
-                </div>
-
-                {isEditingLocation ? (
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={useCurrentLocation}
-                        disabled={detectingLocation || resolvingAddress}
-                        className="px-3 py-1.5 rounded-md bg-orange-100 text-orange-700 font-black text-xs uppercase hover:bg-orange-200 disabled:bg-gray-100 disabled:text-gray-400"
-                      >
-                        {detectingLocation ? "Detecting..." : "Use My Current Location"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={useSavedAddress}
-                        disabled={!savedAddress || savingLocation || detectingLocation || resolvingAddress}
-                        className="px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 font-black text-xs uppercase hover:bg-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
-                      >
-                        Use Saved Address
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsMapExpanded((prev) => !prev)}
-                        className="px-3 py-1.5 rounded-md bg-orange-50 text-orange-700 font-black text-xs uppercase hover:bg-orange-100"
-                      >
-                        {isMapExpanded ? "Collapse Map" : "Expand Map"}
-                      </button>
-                      {resolvingAddress && (
-                        <p className="text-xs font-semibold text-gray-500">Resolving address...</p>
-                      )}
-                    </div>
-
-                    <input
-                      value={locationName}
-                      onChange={(e) => setLocationName(e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                      placeholder="Location Name"
-                    />
-                    <textarea
-                      value={locationDetail}
-                      onChange={(e) => setLocationDetail(e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm h-20 resize-none"
-                      placeholder="Details of location"
-                    />
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        value={locationLat}
-                        onChange={(e) => setLocationLat(e.target.value)}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                        placeholder="Latitude"
-                      />
-                      <input
-                        value={locationLng}
-                        onChange={(e) => setLocationLng(e.target.value)}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                        placeholder="Longitude"
-                      />
-                    </div>
-                    <div className={`rounded-md overflow-hidden border border-gray-200 relative ${isMapExpanded ? "h-[420px]" : "h-44"}`}>
-                      <MapContainer
-                        bounds={mapLeafletBounds}
-                        className="w-full h-full z-0"
-                      >
-                        <TileLayer
-                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        <MapCenterTracker onCenterChange={updateLocationFromMapCenter} />
-                      </MapContainer>
-
-                      <div className="absolute inset-0 z-[1000] pointer-events-none flex items-center justify-center">
-                        <div className="relative w-14 h-14 flex items-center justify-center">
-                          <div className="absolute top-1/2 left-0 right-0 h-px bg-black/20" />
-                          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-black/20" />
-                          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-2 w-4 h-1.5 rounded-full bg-black/20 blur-[1px]" />
-                          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow" />
-                          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-white/90" />
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-xs font-semibold text-gray-500">
-                      Drag or zoom the map. The center pin is your selected destination.
-                    </p>
-                    <a href={openStreetUrl} target="_blank" rel="noreferrer" className="inline-block text-xs font-black uppercase text-orange-600 hover:text-orange-700">
-                      Open in OpenStreetMap
-                    </a>
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const nextLat = toNumber(locationLat);
-                          const nextLng = toNumber(locationLng);
-                          if (nextLat == null || nextLng == null) return;
-                          resolveAddressFromCoordinates(nextLat, nextLng);
-                        }}
-                        disabled={resolvingAddress}
-                        className="px-3 py-1.5 rounded-md bg-orange-50 text-orange-700 font-black text-xs uppercase hover:bg-orange-100 disabled:bg-gray-100 disabled:text-gray-400"
-                      >
-                        {resolvingAddress ? "Resolving..." : "Use Pin Address"}
-                      </button>
-                    </div>
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={saveLocation}
-                        disabled={savingLocation}
-                        className="px-4 py-1.5 rounded-md bg-[#A03F00] text-white font-black text-xs uppercase disabled:bg-gray-300 disabled:text-gray-500"
-                      >
-                        {savingLocation ? "Saving..." : "Save"}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-sm font-bold text-[#4A2600]">{locationName}</p>
-                    <p className="text-xs text-gray-600 mt-1">{locationDetail}</p>
-                    <div className="rounded-md overflow-hidden border border-gray-200 mt-3">
-                      <iframe title="Destination location" src={mapSrc} className="w-full h-44" loading="lazy" />
-                    </div>
-                    <a href={openStreetUrl} target="_blank" rel="noreferrer" className="inline-block mt-2 text-xs font-black uppercase text-orange-600 hover:text-orange-700">
-                      Open in OpenStreetMap
-                    </a>
-                  </div>
-                )}
-
-                {locationError && (
-                  <p className="text-xs font-semibold text-red-600 mt-2">{locationError}</p>
-                )}
-              </section>
+              <LocationSection
+                isEditingLocation={isEditingLocation}
+                setIsEditingLocation={setIsEditingLocation}
+                useCurrentLocation={useCurrentLocation}
+                useSavedAddress={useSavedAddress}
+                detectingLocation={detectingLocation}
+                resolvingAddress={resolvingAddress}
+                savingLocation={savingLocation}
+                savedAddress={savedAddress}
+                isMapExpanded={isMapExpanded}
+                setIsMapExpanded={setIsMapExpanded}
+                locationName={locationName}
+                setLocationName={setLocationName}
+                locationDetail={locationDetail}
+                setLocationDetail={setLocationDetail}
+                locationLat={locationLat}
+                setLocationLat={setLocationLat}
+                locationLng={locationLng}
+                setLocationLng={setLocationLng}
+                mapLeafletBounds={mapLeafletBounds}
+                updateLocationFromMapCenter={updateLocationFromMapCenter}
+                googleMapsUrl={googleMapsUrl}
+                resolveAddressFromCoordinates={resolveAddressFromCoordinates}
+                toNumber={toNumber}
+                saveLocation={saveLocation}
+                locationError={locationError}
+                mapSrc={mapSrc}
+              />
             </div>
 
-            <aside className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm h-fit">
-              <h2 className="text-lg font-black text-[#4A2600] mb-3">Price Summary</h2>
-              <div className="space-y-2 text-sm border-b border-gray-100 pb-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-gray-600">Items</p>
-                  <p className="font-semibold text-[#4A2600]">{totalItems}</p>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-gray-600">Service</p>
-                  <p className="font-semibold text-[#4A2600]">฿{subtotal.toFixed(2)}</p>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-gray-600">Tax</p>
-                  <p className="font-semibold text-[#4A2600]">฿{tax.toFixed(2)}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-3 mb-4">
-                <p className="font-black text-[#4A2600]">Total</p>
-                <p className="text-xl font-black text-[#4A2600]">฿{total.toFixed(2)}</p>
-              </div>
-
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  disabled={orderRows.length === 0 || proceedingToPayment}
-                  onClick={proceedToPayment}
-                  className={`w-full py-2 rounded-md text-sm font-black ${
-                    orderRows.length === 0 || proceedingToPayment
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-[#A03F00] text-white hover:bg-[#8a3600]"
-                  }`}
-                >
-                  {proceedingToPayment ? "Preparing Payment..." : "Proceed to Payment"}
-                </button>
-
-                <Link
-                  to="/product"
-                  className="block w-full py-2 rounded-md text-sm font-bold text-center bg-gray-100 text-gray-700 hover:bg-gray-200"
-                >
-                  Back to Products
-                </Link>
-              </div>
-            </aside>
+            <PriceSummarySide
+              totalItems={totalItems}
+              subtotal={subtotal}
+              tax={tax}
+              total={total}
+              proceedingToPayment={proceedingToPayment}
+              proceedToPayment={proceedToPayment}
+              orderRowsCount={orderRows.length}
+            />
           </div>
         </div>
       </main>
