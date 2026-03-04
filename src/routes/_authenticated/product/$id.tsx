@@ -9,11 +9,36 @@ export const Route = createFileRoute("/_authenticated/product/$id")({
   component: RouteComponent
 });
 
+const PRODUCT_WITH_PICKUP_SELECT = `
+  *,
+  pickup_address:addresses (
+    id,
+    name,
+    address_detail,
+    lat,
+    lng
+  )
+`;
+
+const normalizeValue = (value: unknown) => {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+};
+
 function RouteComponent() {
   const { id } = Route.useParams();
   const router = useRouter();
 
   const [product, setProduct] = useState<any | null>(null);
+  const [pickupAddress, setPickupAddress] = useState<{
+    id?: string;
+    name?: string | null;
+    address_detail?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+  } | null>(null);
+  const [pickupLookupHint, setPickupLookupHint] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,7 +79,7 @@ function RouteComponent() {
         const byProductId = await withTimeout(
           supabase
             .from("products")
-            .select("*")
+            .select(PRODUCT_WITH_PICKUP_SELECT)
             .eq("product_id", id)
             .maybeSingle()
         );
@@ -68,7 +93,7 @@ function RouteComponent() {
           const byId = await withTimeout(
             supabase
               .from("products")
-              .select("*")
+              .select(PRODUCT_WITH_PICKUP_SELECT)
               .eq("id", id)
               .maybeSingle()
           );
@@ -83,9 +108,80 @@ function RouteComponent() {
         }
 
         setProduct(foundProduct);
+
+        const relationPickupAddress = foundProduct.pickup_address ?? null;
+        if (relationPickupAddress) {
+          setPickupAddress(relationPickupAddress);
+          setPickupLookupHint(null);
+          return;
+        }
+
+        const pickupAddressId = normalizeValue(
+          foundProduct.pickup_address_id ??
+          foundProduct.pickupAddressId ??
+          foundProduct.address_id ??
+          foundProduct.pickup_address_uuid ??
+          null
+        );
+
+        if (!pickupAddressId) {
+          const pickupText = normalizeValue(
+            foundProduct.pickup_address ??
+            foundProduct.pickup_location ??
+            foundProduct.pickup_address_name ??
+            foundProduct.pickup_address_detail ??
+            null
+          );
+
+          if (!pickupText) {
+            setPickupLookupHint(null);
+            setPickupAddress(null);
+            return;
+          }
+
+          const { data: addressByText, error: addressByTextError } = await withTimeout(
+            supabase
+              .from("addresses")
+              .select("id, name, address_detail, lat, lng")
+              .or(`name.ilike.%${pickupText}%,address_detail.ilike.%${pickupText}%`)
+              .limit(1)
+              .maybeSingle()
+          );
+
+          if (!isActive) return;
+          if (addressByTextError || !addressByText) {
+            setPickupLookupHint(`No linked address id on this product (value: ${pickupText}).`);
+            setPickupAddress(null);
+            return;
+          }
+
+          setPickupLookupHint(null);
+          setPickupAddress(addressByText);
+          return;
+        }
+
+        const { data: addressRow, error: addressError } = await withTimeout(
+          supabase
+            .from("addresses")
+            .select("id, name, address_detail, lat, lng")
+            .eq("id", pickupAddressId)
+            .maybeSingle()
+        );
+
+        if (!isActive) return;
+        if (addressError || !addressRow) {
+          setPickupLookupHint(`Linked pickup_address_id not found in addresses: ${pickupAddressId}`);
+          setPickupAddress(null);
+          return;
+        }
+
+        setPickupLookupHint(null);
+        setPickupAddress(addressRow ?? null);
       } catch (err: any) {
         if (!isActive) return;
         setProduct(null);
+        setPickupAddress(null);
+        setPickupLookupHint(null);
         setError(err.message || "Failed to load product");
       } finally {
         if (!isActive) return;
@@ -161,6 +257,25 @@ function RouteComponent() {
               <div className="rounded-xl border border-gray-100 p-4">
                 <p className="text-sm font-bold text-gray-500 mb-2">Description</p>
                 <p className="text-sm text-gray-700 leading-relaxed">{product.description || "No description available"}</p>
+              </div>
+
+              <div className="rounded-xl border border-orange-100 bg-orange-50 p-4">
+                <p className="text-sm font-bold text-orange-700 mb-2">Pickup Address</p>
+
+                {pickupAddress ? (
+                  <div className="space-y-1 text-sm text-[#4A2600]">
+                    <p className="font-semibold">{pickupAddress.name || "Pickup point"}</p>
+                    <p>{pickupAddress.address_detail || "No address detail"}</p>
+                    {(pickupAddress.lat != null && pickupAddress.lng != null) && (
+                      <p className="text-xs text-orange-900/70">Lat: {pickupAddress.lat}, Lng: {pickupAddress.lng}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-600">No pickup address linked to this product.</p>
+                    {pickupLookupHint && <p className="text-xs text-red-600">{pickupLookupHint}</p>}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between rounded-xl border border-orange-100 p-4 bg-white">
