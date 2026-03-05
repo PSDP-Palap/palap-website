@@ -9,6 +9,7 @@ import { useOrderStore } from "@/stores/useOrderStore";
 import supabase from "@/utils/supabase";
 import type { Product } from "@/types/product";
 import { PaymentSummary } from "@/components/payment/PaymentSummary";
+import Loading from "@/components/shared/Loading";
 
 export const Route = createFileRoute("/_authenticated/checkout")({
   component: CheckoutComponent,
@@ -285,11 +286,7 @@ function CheckoutComponent() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center">
-        <p className="text-[#D35400] font-bold">Reviewing your order...</p>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (

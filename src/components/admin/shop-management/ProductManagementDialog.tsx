@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import Loading from "@/components/shared/Loading";
 
 import MapPicker from "@/components/shared/MapPicker";
 import { useProductStore } from "@/stores/useProductStore";
@@ -225,10 +226,10 @@ export const ProductManagementDialog = ({
                   </div>
                 )}
 
-                {isSubmitting && selectedFile && (
+                {isSubmitting && (
                   <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center">
                     <div className="flex flex-col items-center gap-2">
-                      <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                      <Loading fullScreen={false} size={40} />
                       <span className="text-xs font-bold text-orange-600">
                         กำลังอัพโหลด...
                       </span>

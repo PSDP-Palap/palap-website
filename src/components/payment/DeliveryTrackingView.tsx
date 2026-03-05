@@ -1,6 +1,7 @@
 import type { DeliveryTracking } from "@/types/payment";
 
 import { DeliveryTrackingWidget } from "./DeliveryTrackingWidget";
+import Loading from "@/components/shared/Loading";
 
 interface DeliveryTrackingViewProps {
   activeOrderId: string;
@@ -80,7 +81,8 @@ export function DeliveryTrackingView({
 
           {(trackingLoading || !trackingData) && !trackingError && (
             <div className="rounded-xl border border-orange-100 bg-orange-50 p-5">
-              <p className="text-sm font-semibold text-[#4A2600]">
+              <Loading fullScreen={false} size={60} />
+              <p className="text-sm font-semibold text-[#4A2600] text-center mt-2">
                 Loading delivery details...
               </p>
             </div>

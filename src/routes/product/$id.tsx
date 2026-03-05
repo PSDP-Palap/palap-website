@@ -5,6 +5,7 @@ import supabase from "@/utils/supabase";
 import { useCartStore } from "@/stores/useCartStore";
 import { ProductDetailView } from "@/components/product/ProductDetailView";
 import { withTimeout } from "@/utils/helpers";
+import Loading from "@/components/shared/Loading";
 
 const PRODUCT_WITH_PICKUP_SELECT = `
   *,
@@ -108,10 +109,7 @@ export const Route = createFileRoute("/product/$id")({
   ),
   pendingComponent: () => (
     <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-24">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-[#D35400] border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-[#D35400] font-bold animate-pulse">Loading Products...</p>
-      </div>
+      <Loading fullScreen={false} size={150} />
     </div>
   ),
 });

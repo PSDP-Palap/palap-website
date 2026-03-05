@@ -57,7 +57,7 @@ export const useUserStore = create<UserState>((set, get) => ({
           .from("profiles")
           .select("*")
           .eq("id", session.user.id)
-          .single();
+          .maybeSingle();
 
         let address = null;
         if (profile?.role === "customer") {
@@ -65,7 +65,7 @@ export const useUserStore = create<UserState>((set, get) => ({
             .from("customers")
             .select("address")
             .eq("id", session.user.id)
-            .single();
+            .maybeSingle();
           address = customer?.address;
         }
 
@@ -126,7 +126,8 @@ export const useUserStore = create<UserState>((set, get) => ({
           const { data: profile } = await supabase
             .from("profiles")
             .select("*")
-            .single();
+            .eq("id", session.user.id)
+            .maybeSingle();
 
           let address = null;
           if (profile?.role === "customer") {
@@ -134,7 +135,7 @@ export const useUserStore = create<UserState>((set, get) => ({
               .from("customers")
               .select("address")
               .eq("id", profile.id)
-              .single();
+              .maybeSingle();
             address = customer?.address;
           }
 
@@ -197,7 +198,8 @@ export const useUserStore = create<UserState>((set, get) => ({
             const { data: profile } = await supabase
               .from("profiles")
               .select("*")
-              .single();
+              .eq("id", session.user.id)
+              .maybeSingle();
 
             let address = null;
             if (profile?.role === "customer") {
@@ -205,7 +207,7 @@ export const useUserStore = create<UserState>((set, get) => ({
                 .from("customers")
                 .select("address")
                 .eq("id", profile.id)
-                .single();
+                .maybeSingle();
               address = customer?.address;
             }
 

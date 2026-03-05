@@ -6,10 +6,12 @@ import { ServiceChat } from "@/components/service/ServiceChat";
 import { useUserStore } from "@/stores/useUserStore";
 import type { ChatRoomListItem } from "@/types/service";
 import { cleanPreviewMessage, withTimeout } from "@/utils/helpers";
-import supabase from "@/utils/supabase";
+import supabase, { isUuidLike } from "@/utils/supabase";
+import Loading from "@/components/shared/Loading";
 
 export const Route = createFileRoute("/_authenticated/chat/$id")({
-  component: ChatRouteComponent
+  component: ChatRouteComponent,
+  pendingComponent: () => <Loading />
 });
 
 const CHAT_IMAGE_PREFIX = "[CHAT_IMAGE]";
@@ -352,11 +354,13 @@ function ChatRouteComponent() {
                 ? freelancerId
                 : customerId;
             })
-            .filter(Boolean);
+            .filter((id) => id && isUuidLike(String(id)));
 
           const [{ data: profiles }, { data: latestMessages }] =
             await Promise.all([
-              supabase.from("profiles").select("*").in("id", partnerIds),
+              partnerIds.length > 0
+                ? supabase.from("profiles").select("*").in("id", partnerIds)
+                : Promise.resolve({ data: [] as any[] }),
               supabase
                 .from("chat_messages")
                 .select("room_id, message, created_at, sender_id")
@@ -382,7 +386,7 @@ function ChatRouteComponent() {
           const extraPartnerIds = Array.from(latestNonSelfSenderByRoom.values());
           if (extraPartnerIds.length > 0) {
             const missingPartnerIds = extraPartnerIds.filter(
-              (id) => !pMap.has(String(id))
+              (id) => id && isUuidLike(String(id)) && !pMap.has(String(id))
             );
 
             if (missingPartnerIds.length > 0) {
@@ -764,7 +768,6 @@ function ChatRouteComponent() {
       messagesContainerRef={messagesContainerRef}
       chatLoading={chatLoading}
       messages={messages}
-      currentUserId={currentUserId}
       isCurrentUserFreelancerInRoom={isCurrentUserFreelancerInRoom}
       extractImageUrl={extractImageUrl}
       chatError={chatError}

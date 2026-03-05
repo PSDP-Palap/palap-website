@@ -8,6 +8,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import type { DeliveryTracking } from "@/types/payment";
 import { getOrderIdFromSystemMessage, isCompletedOrderStatus } from "@/utils/helpers";
 import supabase, { isUuidLike } from "@/utils/supabase";
+import Loading from "@/components/shared/Loading";
 
 const WAITING_STATUS_SET = new Set([
   "",
@@ -523,7 +524,8 @@ function GlobalOrderTrackingWidget() {
           <div className="p-4 space-y-3 max-h-[52vh] overflow-y-auto text-left">
             {!tracking && loading ? (
               <div className="p-4 text-center">
-                <p className="text-sm font-bold text-orange-700 animate-pulse">
+                <Loading fullScreen={false} size={60} />
+                <p className="text-sm font-bold text-orange-700 mt-2">
                   Loading tracking...
                 </p>
               </div>

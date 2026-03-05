@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import supabase from "@/utils/supabase";
 import { ServiceCard } from "@/components/service/ServiceCard";
 import type { Service } from "@/types/service";
+import Loading from "@/components/shared/Loading";
 
 const DEFAULT_DESCRIPTION = "Reliable and professional pet service tailored for your needs.";
 const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1200&auto=format&fit=crop";
@@ -61,11 +62,8 @@ export const Route = createFileRoute("/service/")({
     </div>
   ),
   pendingComponent: () => (
-    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-[#D35400] border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-[#D35400] font-bold animate-pulse">Loading Services...</p>
-      </div>
+    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-24">
+      <Loading fullScreen={false} size={150} />
     </div>
   )
 });

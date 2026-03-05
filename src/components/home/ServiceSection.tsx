@@ -26,7 +26,7 @@ const ServiceSection = () => {
   }, [loadServices]);
 
   return (
-    <section className="flex flex-col gap-8 py-12">
+    <section id="services" className="flex flex-col gap-8 py-12 scroll-mt-24">
       <div className="flex justify-between items-end px-2">
         <div>
           <h3 className="text-3xl font-black text-[#9a3c0b] uppercase">
@@ -111,7 +111,10 @@ const ServiceSection = () => {
             <p className="text-white/80 text-sm mt-2 mb-6">
               บริการด้วยใจ เพื่อเพื่อนสี่ขาของคุณ
             </p>
-            <button className="bg-white text-orange-500 font-bold py-3 px-8 rounded-full shadow-md hover:bg-orange-50 transition-all w-fit">
+            <button
+              onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
+              className="bg-white text-orange-500 font-bold py-3 px-8 rounded-full shadow-md hover:bg-orange-50 transition-all w-fit"
+            >
               ลองเลย
             </button>
           </div>

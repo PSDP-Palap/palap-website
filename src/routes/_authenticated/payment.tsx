@@ -1,32 +1,43 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createFileRoute, useRouter, useRouterState } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, useCallback, useRef, type ChangeEvent } from "react";
+import {
+  createFileRoute,
+  useRouter,
+  useRouterState
+} from "@tanstack/react-router";
+import {
+  type ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import toast from "react-hot-toast";
 
-import { useCartStore } from "@/stores/useCartStore";
-import { useUserStore } from "@/stores/useUserStore";
-import { useOrderStore } from "@/stores/useOrderStore";
-import supabase from "@/utils/supabase";
 import cashIcon from "@/assets/1048961_97602-OL0FQH-995-removebg-preview.png";
 import cardIcon from "@/assets/2606579_5915-removebg-preview.png";
 import qrIcon from "@/assets/59539192_scan_me_qr_code-removebg-preview.png";
-
-import type { PaymentMethod, DeliveryTracking } from "@/types/payment";
-import type { Product } from "@/types/product";
-import { PaymentMethodSelector } from "@/components/payment/PaymentMethodSelector";
 import { CardDetailsForm } from "@/components/payment/CardDetailsForm";
-import { QrPaymentForm } from "@/components/payment/QrPaymentForm";
 import { CashPaymentForm } from "@/components/payment/CashPaymentForm";
-import { PaymentSummary } from "@/components/payment/PaymentSummary";
 import { DeliveryTrackingView } from "@/components/payment/DeliveryTrackingView";
+import { PaymentMethodSelector } from "@/components/payment/PaymentMethodSelector";
+import { PaymentSummary } from "@/components/payment/PaymentSummary";
+import { QrPaymentForm } from "@/components/payment/QrPaymentForm";
+import Loading from "@/components/shared/Loading";
+import { useCartStore } from "@/stores/useCartStore";
+import { useOrderStore } from "@/stores/useOrderStore";
+import { useUserStore } from "@/stores/useUserStore";
+import type { DeliveryTracking, PaymentMethod } from "@/types/payment";
+import type { Product } from "@/types/product";
 import {
   getOrderIdFromSystemMessage,
-  toNumber,
   isCompletedOrderStatus,
+  toNumber
 } from "@/utils/helpers";
+import supabase from "@/utils/supabase";
 
 export const Route = createFileRoute("/_authenticated/payment")({
-  component: RouteComponent,
+  component: RouteComponent
 });
 
 const DEFAULT_MAP_CENTER = { lat: 13.7563, lng: 100.5018 };
@@ -50,7 +61,8 @@ type OrderHistoryItem = {
   isCompleted: boolean;
 };
 
-const getTrackingStorageKey = (userId: string) => `active_tracking_order_id:${userId}`;
+const getTrackingStorageKey = (userId: string) =>
+  `active_tracking_order_id:${userId}`;
 
 function RouteComponent() {
   const router = useRouter();
@@ -71,7 +83,9 @@ function RouteComponent() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [trackingLoading, setTrackingLoading] = useState(false);
   const [trackingError, setTrackingError] = useState<string | null>(null);
-  const [trackingData, setTrackingData] = useState<DeliveryTracking | null>(null);
+  const [trackingData, setTrackingData] = useState<DeliveryTracking | null>(
+    null
+  );
   const [orderHistory, setOrderHistory] = useState<OrderHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [showDeliveredNotice, setShowDeliveredNotice] = useState(false);
@@ -89,7 +103,9 @@ function RouteComponent() {
   const lastLoadedOrderIdRef = useRef<string | null>(null);
   const previousTrackingStatusRef = useRef<string | null>(null);
   const completedRedirectScheduledRef = useRef(false);
-  const normalizedHash = String(hash || "").replace(/^#/, "").toLowerCase();
+  const normalizedHash = String(hash || "")
+    .replace(/^#/, "")
+    .toLowerCase();
   const forceHistoryView = normalizedHash === "order-history";
   const isCartReady = hasHydrated || cartHydrationTimedOut;
 
@@ -118,8 +134,10 @@ function RouteComponent() {
             id: String(item.product_id ?? item.id ?? ""),
             name: item.name,
             price: Number(item.price ?? 0),
-            pickup_address_id: item.pickup_address_id ? String(item.pickup_address_id) : null,
-            image_url: item.image_url ? String(item.image_url) : null,
+            pickup_address_id: item.pickup_address_id
+              ? String(item.pickup_address_id)
+              : null,
+            image_url: item.image_url ? String(item.image_url) : null
           }))
           .filter((item) => item.id && selectedSet.has(item.id));
         setProducts(normalized as Product[]);
@@ -159,21 +177,30 @@ function RouteComponent() {
     setQrSlipName(file.name);
     setSubmitError(null);
     const reader = new FileReader();
-    reader.onload = () => { if (typeof reader.result === "string") setQrSlipPreview(reader.result); };
+    reader.onload = () => {
+      if (typeof reader.result === "string") setQrSlipPreview(reader.result);
+    };
     reader.readAsDataURL(file);
   };
 
-  const canProceedCard = /^\d{4}\s\d{4}\s\d{4}\s\d{4}$/.test(cardNumber) && cardholderName.trim().length >= 2 && /^(0[1-9]|1[0-2])\/\d{2}$/.test(cardExpiry) && /^\d{3,4}$/.test(cardCvv);
+  const canProceedCard =
+    /^\d{4}\s\d{4}\s\d{4}\s\d{4}$/.test(cardNumber) &&
+    cardholderName.trim().length >= 2 &&
+    /^(0[1-9]|1[0-2])\/\d{2}$/.test(cardExpiry) &&
+    /^\d{3,4}$/.test(cardCvv);
   const canProceedQr = !!qrSlipName;
   const canProceedCash = cashSubmitted;
-  const canProceedByMethod = paymentMethod === "card" ? canProceedCard : paymentMethod === "qr" ? canProceedQr : canProceedCash;
+  const canProceedByMethod =
+    paymentMethod === "card"
+      ? canProceedCard
+      : paymentMethod === "qr"
+        ? canProceedQr
+        : canProceedCash;
 
   const proceedDisabled = subtotal <= 0 || !canProceedByMethod;
   const hasCheckoutItems = useMemo(
     () =>
-      Object.values(cartItems).some(
-        (quantity) => Number(quantity || 0) > 0
-      ),
+      Object.values(cartItems).some((quantity) => Number(quantity || 0) > 0),
     [cartItems]
   );
 
@@ -218,7 +245,9 @@ function RouteComponent() {
           .map((row) => String(row?.order_id || ""))
           .filter(Boolean);
         const productIds = Array.from(
-          new Set(rows.map((row) => String(row?.product_id || "")).filter(Boolean))
+          new Set(
+            rows.map((row) => String(row?.product_id || "")).filter(Boolean)
+          )
         );
 
         const [{ data: productRows }, { data: doneRows }] = await Promise.all([
@@ -349,78 +378,140 @@ function RouteComponent() {
     [currentUserId]
   );
 
-  const loadTracking = useCallback(async (orderId: string, options?: { background?: boolean }) => {
-    const isBackground = options?.background ?? false;
-    if (!isBackground && lastLoadedOrderIdRef.current === orderId && trackingData) return;
-    try {
-      if (!isBackground) {
-        setTrackingLoading(true);
-        setTrackingError(null);
+  const loadTracking = useCallback(
+    async (orderId: string, options?: { background?: boolean }) => {
+      const isBackground = options?.background ?? false;
+      if (
+        !isBackground &&
+        lastLoadedOrderIdRef.current === orderId &&
+        trackingData
+      )
+        return;
+      try {
+        if (!isBackground) {
+          setTrackingLoading(true);
+          setTrackingError(null);
+        }
+        const { data: orderRow, error: orderError } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("order_id", orderId)
+          .maybeSingle();
+        if (orderError) throw orderError;
+        if (!orderRow) throw new Error("Order not found");
+
+        const pickupAddressId = orderRow.pickup_address_id
+          ? String(orderRow.pickup_address_id)
+          : null;
+        const destinationAddressId = orderRow.destination_address_id
+          ? String(orderRow.destination_address_id)
+          : null;
+        const addressIds = [pickupAddressId, destinationAddressId].filter(
+          Boolean
+        ) as string[];
+        const { data: addressRows } =
+          addressIds.length > 0
+            ? await supabase.from("addresses").select("*").in("id", addressIds)
+            : { data: [] as any[] };
+        const addressMap = new Map(
+          (addressRows ?? []).map((item: any) => [String(item.id), item])
+        );
+
+        const { data: productRow } = orderRow.product_id
+          ? await supabase
+              .from("products")
+              .select("*")
+              .eq("product_id", orderRow.product_id)
+              .maybeSingle()
+          : { data: null as any };
+        const freelanceId = orderRow.freelance_id
+          ? String(orderRow.freelance_id)
+          : null;
+        const { data: freelanceProfile } = freelanceId
+          ? await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", freelanceId)
+              .maybeSingle()
+          : { data: null as any };
+
+        const { data: chatRoomRow } = await supabase
+          .from("chat_rooms")
+          .select("id")
+          .eq("order_id", orderId)
+          .maybeSingle();
+        const { data: doneMarkerRow } = await supabase
+          .from("chat_messages")
+          .select("id")
+          .eq("order_id", orderId)
+          .like("message", `${DELIVERY_DONE_PREFIX} ORDER:%`)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const rawStatus = String(orderRow.status || "").toLowerCase();
+        const hasAssignedFreelancer = !!freelanceId;
+        const normalizedStatus =
+          isCompletedOrderStatus(rawStatus) || !!doneMarkerRow
+            ? "delivered"
+            : hasAssignedFreelancer && WAITING_STATUS_SET.has(rawStatus)
+              ? "serving"
+              : rawStatus || (hasAssignedFreelancer ? "serving" : "waiting");
+
+        const tracking: DeliveryTracking = {
+          orderId: String(orderRow.order_id),
+          serviceId: orderRow.service_id,
+          roomId: chatRoomRow?.id ? String(chatRoomRow.id) : null,
+          status: normalizedStatus,
+          createdAt: orderRow.created_at,
+          updatedAt: orderRow.updated_at,
+          price: Number(orderRow.price ?? 0),
+          productName: productRow?.name || "Product",
+          pickupAddress: pickupAddressId
+            ? (addressMap.get(pickupAddressId) ?? null)
+            : null,
+          destinationAddress: destinationAddressId
+            ? (addressMap.get(destinationAddressId) ?? null)
+            : null,
+          freelanceName:
+            freelanceProfile?.full_name ||
+            freelanceProfile?.email ||
+            (freelanceId ? "Freelancer" : "Waiting..."),
+          freelanceId,
+          freelanceAvatarUrl: freelanceProfile?.avatar_url || null
+        };
+        setTrackingData(tracking);
+        lastLoadedOrderIdRef.current = orderId;
+      } catch (err: any) {
+        if (!isBackground) setTrackingError(err.message);
+      } finally {
+        if (!isBackground) setTrackingLoading(false);
       }
-      const { data: orderRow, error: orderError } = await supabase.from("orders").select("*").eq("order_id", orderId).maybeSingle();
-      if (orderError) throw orderError;
-      if (!orderRow) throw new Error("Order not found");
-
-      const pickupAddressId = orderRow.pickup_address_id ? String(orderRow.pickup_address_id) : null;
-      const destinationAddressId = orderRow.destination_address_id ? String(orderRow.destination_address_id) : null;
-      const addressIds = [pickupAddressId, destinationAddressId].filter(Boolean) as string[];
-      const { data: addressRows } = addressIds.length > 0 ? await supabase.from("addresses").select("*").in("id", addressIds) : { data: [] as any[] };
-      const addressMap = new Map((addressRows ?? []).map((item: any) => [String(item.id), item]));
-
-      const { data: productRow } = orderRow.product_id ? await supabase.from("products").select("*").eq("product_id", orderRow.product_id).maybeSingle() : { data: null as any };
-      const freelanceId = orderRow.freelance_id ? String(orderRow.freelance_id) : null;
-      const { data: freelanceProfile } = freelanceId ? await supabase.from("profiles").select("*").eq("id", freelanceId).maybeSingle() : { data: null as any };
-      
-      const { data: chatRoomRow } = await supabase.from("chat_rooms").select("id").eq("order_id", orderId).maybeSingle();
-      const { data: doneMarkerRow } = await supabase
-        .from("chat_messages")
-        .select("id")
-        .eq("order_id", orderId)
-        .like("message", `${DELIVERY_DONE_PREFIX} ORDER:%`)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const rawStatus = String(orderRow.status || "").toLowerCase();
-      const hasAssignedFreelancer = !!freelanceId;
-      const normalizedStatus =
-        isCompletedOrderStatus(rawStatus) || !!doneMarkerRow
-          ? "delivered"
-          : hasAssignedFreelancer && WAITING_STATUS_SET.has(rawStatus)
-            ? "serving"
-            : rawStatus || (hasAssignedFreelancer ? "serving" : "waiting");
-
-      const tracking: DeliveryTracking = {
-        orderId: String(orderRow.order_id),
-        serviceId: orderRow.service_id,
-        roomId: chatRoomRow?.id ? String(chatRoomRow.id) : null,
-        status: normalizedStatus,
-        createdAt: orderRow.created_at,
-        updatedAt: orderRow.updated_at,
-        price: Number(orderRow.price ?? 0),
-        productName: productRow?.name || "Product",
-        pickupAddress: pickupAddressId ? (addressMap.get(pickupAddressId) ?? null) : null,
-        destinationAddress: destinationAddressId ? (addressMap.get(destinationAddressId) ?? null) : null,
-        freelanceName: freelanceProfile?.full_name || freelanceProfile?.email || (freelanceId ? "Freelancer" : "Waiting..."),
-        freelanceId,
-        freelanceAvatarUrl: freelanceProfile?.avatar_url || null,
-      };
-      setTrackingData(tracking);
-      lastLoadedOrderIdRef.current = orderId;
-    } catch (err: any) {
-      if (!isBackground) setTrackingError(err.message);
-    } finally {
-      if (!isBackground) setTrackingLoading(false);
-    }
-  }, [trackingData]);
+    },
+    [trackingData]
+  );
 
   useEffect(() => {
     if (hasCheckoutItems) return;
     if (!activeOrderId) return;
     loadTracking(activeOrderId);
-    const channel = supabase.channel(`tracking-${activeOrderId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `order_id=eq.${activeOrderId}` }, () => loadTracking(activeOrderId, { background: true }))
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, () => loadTracking(activeOrderId, { background: true }))
+    const channel = supabase
+      .channel(`tracking-${activeOrderId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orders",
+          filter: `order_id=eq.${activeOrderId}`
+        },
+        () => loadTracking(activeOrderId, { background: true })
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "chat_messages" },
+        () => loadTracking(activeOrderId, { background: true })
+      )
       .subscribe();
 
     const pollingTimer = window.setInterval(() => {
@@ -479,10 +570,12 @@ function RouteComponent() {
     if (!currentUserId) return;
     const storageKey = getTrackingStorageKey(currentUserId);
     if (!activeOrderId) {
-      if (typeof window !== "undefined") window.localStorage.removeItem(storageKey);
+      if (typeof window !== "undefined")
+        window.localStorage.removeItem(storageKey);
       return;
     }
-    if (typeof window !== "undefined") window.localStorage.setItem(storageKey, activeOrderId);
+    if (typeof window !== "undefined")
+      window.localStorage.setItem(storageKey, activeOrderId);
   }, [currentUserId, activeOrderId]);
 
   useEffect(() => {
@@ -549,18 +642,14 @@ function RouteComponent() {
   ]);
 
   if (!isCartReady || loading) {
-    return (
-      <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-24">
-        <p className="text-[#D35400] font-bold">Loading payment page...</p>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (forceHistoryView) {
     return (
       <div className="min-h-screen bg-[#F9E6D8] pt-24 pb-10">
         <main className="max-w-6xl mx-auto px-4">
-          <div className="bg-gradient-to-r from-[#F2B594] to-[#FF7F32] rounded-xl px-8 py-6 mb-3 text-[#4A2600]">
+          <div className="bg-linear-to-r from-[#F2B594] to-[#FF7F32] rounded-xl px-8 py-6 mb-3 text-[#4A2600]">
             <h1 className="text-4xl font-black">Order History</h1>
             <p className="text-sm font-medium mt-2 text-[#4A2600]/80">
               Review and track your previous delivery orders
@@ -664,9 +753,17 @@ function RouteComponent() {
     const destinationLng = toNumber(trackingData.destinationAddress?.lng || "");
     const hasPickup = pickupLat != null && pickupLng != null;
     const hasDest = destinationLat != null && destinationLng != null;
-    const markerLat = hasPickup ? pickupLat : (hasDest ? destinationLat : DEFAULT_MAP_CENTER.lat);
-    const markerLng = hasPickup ? pickupLng : (hasDest ? destinationLng : DEFAULT_MAP_CENTER.lng);
-    const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${markerLng!-0.02}%2C${markerLat!-0.02}%2C${markerLng!+0.02}%2C${markerLat!+0.02}&layer=mapnik&marker=${markerLat}%2C${markerLng}`;
+    const markerLat = hasPickup
+      ? pickupLat
+      : hasDest
+        ? destinationLat
+        : DEFAULT_MAP_CENTER.lat;
+    const markerLng = hasPickup
+      ? pickupLng
+      : hasDest
+        ? destinationLng
+        : DEFAULT_MAP_CENTER.lng;
+    const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${markerLng! - 0.02}%2C${markerLat! - 0.02}%2C${markerLng! + 0.02}%2C${markerLat! + 0.02}&layer=mapnik&marker=${markerLat}%2C${markerLng}`;
 
     return (
       <DeliveryTrackingView
@@ -700,9 +797,11 @@ function RouteComponent() {
   return (
     <div className="min-h-screen bg-[#F9E6D8] pt-24 pb-10">
       <main className="max-w-6xl mx-auto px-4">
-        <div className="bg-gradient-to-r from-[#F2B594] to-[#FF7F32] rounded-xl px-8 py-6 mb-3 text-[#4A2600]">
+        <div className="bg-linear-to-r from-[#F2B594] to-[#FF7F32] rounded-xl px-8 py-6 mb-3 text-[#4A2600]">
           <h1 className="text-4xl font-black">Payment</h1>
-          <p className="text-sm font-medium mt-2 text-[#4A2600]/80">Choose your payment method</p>
+          <p className="text-sm font-medium mt-2 text-[#4A2600]/80">
+            Choose your payment method
+          </p>
         </div>
 
         <div className="bg-orange-100/70 rounded-xl p-4 md:p-5">
@@ -718,28 +817,41 @@ function RouteComponent() {
               />
               {paymentMethod === "card" && (
                 <CardDetailsForm
-                  cardNumber={cardNumber} setCardNumber={setCardNumber}
-                  cardholderName={cardholderName} setCardholderName={setCardholderName}
-                  cardExpiry={cardExpiry} setCardExpiry={setCardExpiry}
-                  cardCvv={cardCvv} setCardCvv={setCardCvv}
-                  formatCardNumber={formatCardNumber} formatExpiry={formatExpiry}
+                  cardNumber={cardNumber}
+                  setCardNumber={setCardNumber}
+                  cardholderName={cardholderName}
+                  setCardholderName={setCardholderName}
+                  cardExpiry={cardExpiry}
+                  setCardExpiry={setCardExpiry}
+                  cardCvv={cardCvv}
+                  setCardCvv={setCardCvv}
+                  formatCardNumber={formatCardNumber}
+                  formatExpiry={formatExpiry}
                   canProceedCard={canProceedCard}
                 />
               )}
               {paymentMethod === "qr" && (
                 <QrPaymentForm
-                  qrIcon={qrIcon} total={total}
-                  qrSlipName={qrSlipName} qrSlipPreview={qrSlipPreview}
+                  qrIcon={qrIcon}
+                  total={total}
+                  qrSlipName={qrSlipName}
+                  qrSlipPreview={qrSlipPreview}
                   handleQrSlipUpload={handleQrSlipUpload}
                 />
               )}
               {paymentMethod === "cash" && (
-                <CashPaymentForm setCashSubmitted={setCashSubmitted} setSubmitError={setSubmitError} />
+                <CashPaymentForm
+                  setCashSubmitted={setCashSubmitted}
+                  setSubmitError={setSubmitError}
+                />
               )}
             </div>
             <PaymentSummary
-              subtotal={subtotal} tax={tax} total={total}
-              isSubmitting={false} proceedDisabled={proceedDisabled}
+              subtotal={subtotal}
+              tax={tax}
+              total={total}
+              isSubmitting={false}
+              proceedDisabled={proceedDisabled}
               completePayment={proceedToCheckout}
               onBack={() => router.navigate({ to: "/order-summary" })}
               submitError={submitError}

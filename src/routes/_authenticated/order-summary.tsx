@@ -11,6 +11,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import type { SavedAddressSnapshot } from "@/types/payment";
 import type { Product } from "@/types/product";
 import supabase from "@/utils/supabase";
+import Loading from "@/components/shared/Loading";
 
 export const Route = createFileRoute("/_authenticated/order-summary")({
   component: RouteComponent
@@ -401,11 +402,7 @@ function RouteComponent() {
   });
 
   if (!isCartReady || loading) {
-    return (
-      <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-24">
-        <p className="text-[#D35400] font-bold">Loading order summary...</p>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (

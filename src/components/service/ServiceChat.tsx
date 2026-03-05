@@ -3,6 +3,8 @@ import { Send } from "lucide-react";
 import type { RefObject } from "react";
 
 import type { ChatMessage, ChatRoomListItem } from "@/types/service";
+import Loading from "@/components/shared/Loading";
+import { useUserStore } from "@/stores/useUserStore";
 
 interface ServiceChatProps {
   chatRoomSearch: string;
@@ -24,7 +26,6 @@ interface ServiceChatProps {
   messagesContainerRef: RefObject<HTMLDivElement | null>;
   chatLoading: boolean;
   messages: ChatMessage[];
-  currentUserId: string | null;
   isCurrentUserFreelancerInRoom: boolean;
   extractImageUrl: (msg: string | null | undefined) => string | null;
   chatError: string | null;
@@ -66,7 +67,6 @@ export function ServiceChat({
   messagesContainerRef,
   chatLoading,
   messages,
-  currentUserId,
   isCurrentUserFreelancerInRoom,
   extractImageUrl,
   chatError,
@@ -91,6 +91,8 @@ export function ServiceChat({
   onDeclineWork,
   workflowBusyAction = null
 }: ServiceChatProps) {
+  const { profile, session } = useUserStore();
+  const currentUserId = profile?.id || session?.user?.id || null;
   const formatMessageText = (rawMessage: string | null | undefined) => {
     const message = String(rawMessage || "");
     if (!message.startsWith("[SYSTEM_")) return message;
@@ -121,9 +123,7 @@ export function ServiceChat({
 
               <div className="space-y-2 overflow-y-auto min-h-0">
                 {loadingChatRoomList && (
-                  <p className="text-xs text-gray-500 px-1">
-                    Loading chat rooms...
-                  </p>
+                  <Loading fullScreen={false} size={60} />
                 )}
 
                 {!loadingChatRoomList && filteredChatRoomList.length === 0 && (
@@ -306,7 +306,7 @@ export function ServiceChat({
                 className="bg-[#F3F4F6] rounded-xl border border-orange-100 flex-1 min-h-0 p-3 md:p-4 overflow-y-auto space-y-3"
               >
                 {chatLoading && (
-                  <p className="text-sm text-gray-500">Loading chat...</p>
+                  <Loading fullScreen={false} size={80} />
                 )}
                 {!chatLoading && messages.length === 0 && (
                   <p className="text-sm text-gray-500">

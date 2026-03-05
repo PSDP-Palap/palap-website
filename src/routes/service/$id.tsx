@@ -1485,10 +1485,8 @@ function RouteComponent() {
         messagesContainerRef={messagesContainerRef}
         chatLoading={chatLoading}
         messages={messages}
-        currentUserId={currentUserId}
         isCurrentUserFreelancerInRoom={isCurrentUserFreelancerInRoom}
-        extractImageUrl={extractImageUrl}
-        chatError={chatError}
+        extractImageUrl={extractImageUrl}        chatError={chatError}
         imageInputRef={imageInputRef}
         onImageSelected={onImageSelected}
         onPickImage={onPickImage}

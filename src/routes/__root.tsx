@@ -14,9 +14,10 @@ export const Route = createRootRoute({
 });
 
 function RootLayout() {
-  const { isLoading, initialize } = useUserStore();
+  const { isLoading, initialize, profile } = useUserStore();
   const location = useLocation();
   const isManagement = location.pathname.startsWith("/management");
+  const isAdmin = profile?.role === "admin";
 
   useEffect(() => {
     initialize();
@@ -33,8 +34,12 @@ function RootLayout() {
       <main>
         <Outlet />
       </main>
-      <GlobalOrderTrackingWidget />
-      <FloatingChatWidget />
+      {!isManagement && !isAdmin && (
+        <>
+          <GlobalOrderTrackingWidget />
+          <FloatingChatWidget />
+        </>
+      )}
       <TanStackRouterDevtools />
     </>
   );

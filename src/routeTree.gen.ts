@@ -28,6 +28,12 @@ import { Route as AuthenticatedFreelanceSignUpRouteImport } from './routes/_auth
 import { Route as AuthenticatedEditProfileRouteImport } from './routes/_authenticated/edit-profile'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AdminManagementRouteImport } from './routes/_admin/management'
+import { Route as FreelanceFreelanceIndexRouteImport } from './routes/_freelance/freelance/index'
+import { Route as FreelanceFreelanceMessagesRouteImport } from './routes/_freelance/freelance/messages'
+import { Route as FreelanceFreelanceJobsRouteImport } from './routes/_freelance/freelance/jobs'
+import { Route as FreelanceFreelanceEarningRouteImport } from './routes/_freelance/freelance/earning'
+import { Route as FreelanceFreelanceDashboardRouteImport } from './routes/_freelance/freelance/dashboard'
+import { Route as FreelanceFreelanceAccountRouteImport } from './routes/_freelance/freelance/account'
 import { Route as AuthenticatedOrderHistoryOrderIdRouteImport } from './routes/_authenticated/order-history/$orderId'
 import { Route as AuthenticatedChatIdRouteImport } from './routes/_authenticated/chat/$id'
 import { Route as AdminManagementShopRouteImport } from './routes/_admin/management/shop'
@@ -130,6 +136,40 @@ const AdminManagementRoute = AdminManagementRouteImport.update({
   path: '/management',
   getParentRoute: () => AdminRoute,
 } as any)
+const FreelanceFreelanceIndexRoute = FreelanceFreelanceIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FreelanceFreelanceRoute,
+} as any)
+const FreelanceFreelanceMessagesRoute =
+  FreelanceFreelanceMessagesRouteImport.update({
+    id: '/messages',
+    path: '/messages',
+    getParentRoute: () => FreelanceFreelanceRoute,
+  } as any)
+const FreelanceFreelanceJobsRoute = FreelanceFreelanceJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => FreelanceFreelanceRoute,
+} as any)
+const FreelanceFreelanceEarningRoute =
+  FreelanceFreelanceEarningRouteImport.update({
+    id: '/earning',
+    path: '/earning',
+    getParentRoute: () => FreelanceFreelanceRoute,
+  } as any)
+const FreelanceFreelanceDashboardRoute =
+  FreelanceFreelanceDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => FreelanceFreelanceRoute,
+  } as any)
+const FreelanceFreelanceAccountRoute =
+  FreelanceFreelanceAccountRouteImport.update({
+    id: '/account',
+    path: '/account',
+    getParentRoute: () => FreelanceFreelanceRoute,
+  } as any)
 const AuthenticatedOrderHistoryOrderIdRoute =
   AuthenticatedOrderHistoryOrderIdRouteImport.update({
     id: '/order-history/$orderId',
@@ -177,7 +217,7 @@ export interface FileRoutesByFullPath {
   '/order-summary': typeof AuthenticatedOrderSummaryRoute
   '/payment': typeof AuthenticatedPaymentRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/freelance': typeof FreelanceFreelanceRoute
+  '/freelance': typeof FreelanceFreelanceRouteWithChildren
   '/sign-in': typeof GuestSignInRoute
   '/sign-up': typeof GuestSignUpRoute
   '/product/$id': typeof ProductIdRoute
@@ -191,6 +231,12 @@ export interface FileRoutesByFullPath {
   '/management/shop': typeof AdminManagementShopRoute
   '/chat/$id': typeof AuthenticatedChatIdRoute
   '/order-history/$orderId': typeof AuthenticatedOrderHistoryOrderIdRoute
+  '/freelance/account': typeof FreelanceFreelanceAccountRoute
+  '/freelance/dashboard': typeof FreelanceFreelanceDashboardRoute
+  '/freelance/earning': typeof FreelanceFreelanceEarningRoute
+  '/freelance/jobs': typeof FreelanceFreelanceJobsRoute
+  '/freelance/messages': typeof FreelanceFreelanceMessagesRoute
+  '/freelance/': typeof FreelanceFreelanceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -201,7 +247,6 @@ export interface FileRoutesByTo {
   '/order-summary': typeof AuthenticatedOrderSummaryRoute
   '/payment': typeof AuthenticatedPaymentRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/freelance': typeof FreelanceFreelanceRoute
   '/sign-in': typeof GuestSignInRoute
   '/sign-up': typeof GuestSignUpRoute
   '/product/$id': typeof ProductIdRoute
@@ -215,6 +260,12 @@ export interface FileRoutesByTo {
   '/management/shop': typeof AdminManagementShopRoute
   '/chat/$id': typeof AuthenticatedChatIdRoute
   '/order-history/$orderId': typeof AuthenticatedOrderHistoryOrderIdRoute
+  '/freelance/account': typeof FreelanceFreelanceAccountRoute
+  '/freelance/dashboard': typeof FreelanceFreelanceDashboardRoute
+  '/freelance/earning': typeof FreelanceFreelanceEarningRoute
+  '/freelance/jobs': typeof FreelanceFreelanceJobsRoute
+  '/freelance/messages': typeof FreelanceFreelanceMessagesRoute
+  '/freelance': typeof FreelanceFreelanceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -230,7 +281,7 @@ export interface FileRoutesById {
   '/_authenticated/order-summary': typeof AuthenticatedOrderSummaryRoute
   '/_authenticated/payment': typeof AuthenticatedPaymentRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
-  '/_freelance/freelance': typeof FreelanceFreelanceRoute
+  '/_freelance/freelance': typeof FreelanceFreelanceRouteWithChildren
   '/_guest/sign-in': typeof GuestSignInRoute
   '/_guest/sign-up': typeof GuestSignUpRoute
   '/product/$id': typeof ProductIdRoute
@@ -244,6 +295,12 @@ export interface FileRoutesById {
   '/_admin/management/shop': typeof AdminManagementShopRoute
   '/_authenticated/chat/$id': typeof AuthenticatedChatIdRoute
   '/_authenticated/order-history/$orderId': typeof AuthenticatedOrderHistoryOrderIdRoute
+  '/_freelance/freelance/account': typeof FreelanceFreelanceAccountRoute
+  '/_freelance/freelance/dashboard': typeof FreelanceFreelanceDashboardRoute
+  '/_freelance/freelance/earning': typeof FreelanceFreelanceEarningRoute
+  '/_freelance/freelance/jobs': typeof FreelanceFreelanceJobsRoute
+  '/_freelance/freelance/messages': typeof FreelanceFreelanceMessagesRoute
+  '/_freelance/freelance/': typeof FreelanceFreelanceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -270,6 +327,12 @@ export interface FileRouteTypes {
     | '/management/shop'
     | '/chat/$id'
     | '/order-history/$orderId'
+    | '/freelance/account'
+    | '/freelance/dashboard'
+    | '/freelance/earning'
+    | '/freelance/jobs'
+    | '/freelance/messages'
+    | '/freelance/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -280,7 +343,6 @@ export interface FileRouteTypes {
     | '/order-summary'
     | '/payment'
     | '/profile'
-    | '/freelance'
     | '/sign-in'
     | '/sign-up'
     | '/product/$id'
@@ -294,6 +356,12 @@ export interface FileRouteTypes {
     | '/management/shop'
     | '/chat/$id'
     | '/order-history/$orderId'
+    | '/freelance/account'
+    | '/freelance/dashboard'
+    | '/freelance/earning'
+    | '/freelance/jobs'
+    | '/freelance/messages'
+    | '/freelance'
   id:
     | '__root__'
     | '/'
@@ -322,6 +390,12 @@ export interface FileRouteTypes {
     | '/_admin/management/shop'
     | '/_authenticated/chat/$id'
     | '/_authenticated/order-history/$orderId'
+    | '/_freelance/freelance/account'
+    | '/_freelance/freelance/dashboard'
+    | '/_freelance/freelance/earning'
+    | '/_freelance/freelance/jobs'
+    | '/_freelance/freelance/messages'
+    | '/_freelance/freelance/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -471,6 +545,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminManagementRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_freelance/freelance/': {
+      id: '/_freelance/freelance/'
+      path: '/'
+      fullPath: '/freelance/'
+      preLoaderRoute: typeof FreelanceFreelanceIndexRouteImport
+      parentRoute: typeof FreelanceFreelanceRoute
+    }
+    '/_freelance/freelance/messages': {
+      id: '/_freelance/freelance/messages'
+      path: '/messages'
+      fullPath: '/freelance/messages'
+      preLoaderRoute: typeof FreelanceFreelanceMessagesRouteImport
+      parentRoute: typeof FreelanceFreelanceRoute
+    }
+    '/_freelance/freelance/jobs': {
+      id: '/_freelance/freelance/jobs'
+      path: '/jobs'
+      fullPath: '/freelance/jobs'
+      preLoaderRoute: typeof FreelanceFreelanceJobsRouteImport
+      parentRoute: typeof FreelanceFreelanceRoute
+    }
+    '/_freelance/freelance/earning': {
+      id: '/_freelance/freelance/earning'
+      path: '/earning'
+      fullPath: '/freelance/earning'
+      preLoaderRoute: typeof FreelanceFreelanceEarningRouteImport
+      parentRoute: typeof FreelanceFreelanceRoute
+    }
+    '/_freelance/freelance/dashboard': {
+      id: '/_freelance/freelance/dashboard'
+      path: '/dashboard'
+      fullPath: '/freelance/dashboard'
+      preLoaderRoute: typeof FreelanceFreelanceDashboardRouteImport
+      parentRoute: typeof FreelanceFreelanceRoute
+    }
+    '/_freelance/freelance/account': {
+      id: '/_freelance/freelance/account'
+      path: '/account'
+      fullPath: '/freelance/account'
+      preLoaderRoute: typeof FreelanceFreelanceAccountRouteImport
+      parentRoute: typeof FreelanceFreelanceRoute
+    }
     '/_authenticated/order-history/$orderId': {
       id: '/_authenticated/order-history/$orderId'
       path: '/order-history/$orderId'
@@ -579,12 +695,33 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface FreelanceFreelanceRouteChildren {
+  FreelanceFreelanceAccountRoute: typeof FreelanceFreelanceAccountRoute
+  FreelanceFreelanceDashboardRoute: typeof FreelanceFreelanceDashboardRoute
+  FreelanceFreelanceEarningRoute: typeof FreelanceFreelanceEarningRoute
+  FreelanceFreelanceJobsRoute: typeof FreelanceFreelanceJobsRoute
+  FreelanceFreelanceMessagesRoute: typeof FreelanceFreelanceMessagesRoute
+  FreelanceFreelanceIndexRoute: typeof FreelanceFreelanceIndexRoute
+}
+
+const FreelanceFreelanceRouteChildren: FreelanceFreelanceRouteChildren = {
+  FreelanceFreelanceAccountRoute: FreelanceFreelanceAccountRoute,
+  FreelanceFreelanceDashboardRoute: FreelanceFreelanceDashboardRoute,
+  FreelanceFreelanceEarningRoute: FreelanceFreelanceEarningRoute,
+  FreelanceFreelanceJobsRoute: FreelanceFreelanceJobsRoute,
+  FreelanceFreelanceMessagesRoute: FreelanceFreelanceMessagesRoute,
+  FreelanceFreelanceIndexRoute: FreelanceFreelanceIndexRoute,
+}
+
+const FreelanceFreelanceRouteWithChildren =
+  FreelanceFreelanceRoute._addFileChildren(FreelanceFreelanceRouteChildren)
+
 interface FreelanceRouteChildren {
-  FreelanceFreelanceRoute: typeof FreelanceFreelanceRoute
+  FreelanceFreelanceRoute: typeof FreelanceFreelanceRouteWithChildren
 }
 
 const FreelanceRouteChildren: FreelanceRouteChildren = {
-  FreelanceFreelanceRoute: FreelanceFreelanceRoute,
+  FreelanceFreelanceRoute: FreelanceFreelanceRouteWithChildren,
 }
 
 const FreelanceRouteWithChildren = FreelanceRoute._addFileChildren(

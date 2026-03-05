@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { Service, PendingHireRoomView } from "@/types/service";
+import Loading from "@/components/shared/Loading";
 
 interface ServiceDetailViewProps {
   service: Service;
@@ -221,7 +222,7 @@ export function ServiceDetailView({
                     Hire Requests
                   </p>
 
-                  {requestLoading && <p className="text-sm text-gray-600">Loading requests...</p>}
+                  {requestLoading && <Loading fullScreen={false} size={40} />}
 
                   {!requestLoading && pendingHireRequests.length === 0 && (
                     <p className="text-sm text-gray-600">No pending requests right now.</p>

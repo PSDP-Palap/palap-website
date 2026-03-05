@@ -8,6 +8,7 @@ import { useCartStore } from "@/stores/useCartStore";
 import { ProductCard } from "@/components/product/ProductCard";
 import { CartFooter } from "@/components/product/CartFooter";
 import type { Product } from "@/types/product";
+import Loading from "@/components/shared/Loading";
 
 export const Route = createFileRoute("/product/")({
   loader: async () => {
@@ -53,13 +54,8 @@ export const Route = createFileRoute("/product/")({
     </div>
   ),
   pendingComponent: () => (
-    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-[#D35400] border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-[#D35400] font-bold animate-pulse">
-          Loading Products...
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-24">
+      <Loading fullScreen={false} size={150} />
     </div>
   )
 });
