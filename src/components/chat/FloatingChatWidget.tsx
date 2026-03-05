@@ -54,13 +54,18 @@ const FloatingChatWidget = () => {
   const rootRef = useRef<HTMLDivElement>(null);
 
   const isCheckoutFooterPage = pathname === "/order-summary" || pathname === "/payment";
-  const isActiveChatPage = pathname.startsWith("/chat/");
+  const activeChatPrefix = useMemo(() => {
+    if (pathname.startsWith("/freelance/chat/")) return "/freelance/chat/";
+    if (pathname.startsWith("/chat/")) return "/chat/";
+    return null;
+  }, [pathname]);
+  const isActiveChatPage = Boolean(activeChatPrefix);
   const activeChatRoomId = useMemo(() => {
-    if (!isActiveChatPage) return null;
-    const raw = pathname.split("/chat/")[1] || "";
+    if (!activeChatPrefix) return null;
+    const raw = pathname.slice(activeChatPrefix.length);
     const roomId = decodeURIComponent(raw.split("/")[0] || "").trim();
     return roomId || null;
-  }, [pathname, isActiveChatPage]);
+  }, [pathname, activeChatPrefix]);
 
   const readStorageKey = useMemo(
     () => `floating_chat_read_at:${String(userId || "")}`,
@@ -391,7 +396,58 @@ const FloatingChatWidget = () => {
           }
         });
 
-        const profileRows = resolvedProfileRows;
+        const fallbackPartnerIds = new Set<string>();
+        roomRows.forEach((room: any) => {
+          const orderRow = orderMap.get(String(room?.order_id || ""));
+          const customerId =
+            resolveCustomerId(room) || resolveOrderCustomerId(orderRow);
+          const freelancerId =
+            resolveFreelancerId(room) || resolveOrderFreelancerId(orderRow);
+          const senderFallbackId = latestNonSelfSenderByRoom.get(String(room.id));
+
+          [customerId, freelancerId, senderFallbackId].forEach((value) => {
+            const id = String(value || "");
+            if (!id || id === String(userId)) return;
+            fallbackPartnerIds.add(id);
+          });
+        });
+
+        let profileRows = resolvedProfileRows;
+        const missingPartnerIds = Array.from(fallbackPartnerIds).filter(
+          (id) => !profileRows.some((profile: any) => String(profile?.id || "") === id)
+        );
+
+        if (missingPartnerIds.length > 0) {
+          const extraProfileResult = await withTimeout(
+            supabase.from("profiles").select("*").in("id", missingPartnerIds),
+            12000
+          );
+
+          if (extraProfileResult.error) {
+            const uuidOnlyPartnerIds = missingPartnerIds.filter((id) =>
+              isUuidLike(String(id || ""))
+            );
+
+            if (uuidOnlyPartnerIds.length > 0) {
+              const uuidProfileResult = await withTimeout(
+                supabase.from("profiles").select("*").in("id", uuidOnlyPartnerIds),
+                12000
+              );
+
+              if (!uuidProfileResult.error) {
+                profileRows = [
+                  ...profileRows,
+                  ...(((uuidProfileResult.data as any[]) ?? []).filter(Boolean) as any[]),
+                ];
+              }
+            }
+          } else {
+            profileRows = [
+              ...profileRows,
+              ...(((extraProfileResult.data as any[]) ?? []).filter(Boolean) as any[]),
+            ];
+          }
+        }
 
         if (!active) return;
 
@@ -617,6 +673,14 @@ const FloatingChatWidget = () => {
                     onClick={() => {
                       markRoomAsRead(item.roomId, item.lastAt);
                       setOpen(false);
+                      if (profile?.role === "freelance") {
+                        router.navigate({
+                          to: "/chat/$id",
+                          params: { id: item.roomId },
+                        });
+                        return;
+                      }
+
                       router.navigate({
                         to: "/chat/$id",
                         params: { id: item.roomId },

@@ -58,6 +58,12 @@ export const cleanPreviewMessage = (message: string | null | undefined): string 
     .replace("[SYSTEM_DELIVERY_ORDER_ACCEPTED]", "")
     .replace("[SYSTEM_DELIVERY_ROOM_CREATED]", "")
     .replace("[SYSTEM_DELIVERY_DONE]", "")
+    .replace("[SYSTEM_WORK_PRICE_AGREED]", "")
+    .replace("[SYSTEM_WORK_PAYMENT_HELD]", "")
+    .replace("[SYSTEM_WORK_SUBMITTED]", "")
+    .replace("[SYSTEM_WORK_REVISION_REQUESTED]", "")
+    .replace("[SYSTEM_WORK_APPROVED]", "")
+    .replace("[SYSTEM_WORK_RELEASED]", "")
     .trim() || "No message yet";
 };
 
@@ -69,6 +75,12 @@ export const isSystemMessage = (message: string | null | undefined): boolean => 
     message.startsWith("[SYSTEM_HIRE_DECLINED]") ||
     message.startsWith("[SYSTEM_DELIVERY_ORDER_ACCEPTED]") ||
     message.startsWith("[SYSTEM_DELIVERY_ROOM_CREATED]") ||
-    message.startsWith("[SYSTEM_DELIVERY_DONE]")
+    message.startsWith("[SYSTEM_DELIVERY_DONE]") ||
+    message.startsWith("[SYSTEM_WORK_PRICE_AGREED]") ||
+    message.startsWith("[SYSTEM_WORK_PAYMENT_HELD]") ||
+    message.startsWith("[SYSTEM_WORK_SUBMITTED]") ||
+    message.startsWith("[SYSTEM_WORK_REVISION_REQUESTED]") ||
+    message.startsWith("[SYSTEM_WORK_APPROVED]") ||
+    message.startsWith("[SYSTEM_WORK_RELEASED]")
   );
 };

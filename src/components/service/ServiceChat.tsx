@@ -36,6 +36,18 @@ interface ServiceChatProps {
   chatInput: string;
   setChatInput: (val: string) => void;
   sendMessage: (override?: string) => Promise<void>;
+  workflowEnabled?: boolean;
+  workflowStatusText?: string;
+  workflowAgreedPrice?: number | null;
+  canPayAndStartWork?: boolean;
+  canSubmitWork?: boolean;
+  canApproveWork?: boolean;
+  canDeclineWork?: boolean;
+  onPayAndStartWork?: () => Promise<void>;
+  onSubmitWork?: () => Promise<void>;
+  onApproveWork?: () => Promise<void>;
+  onDeclineWork?: () => Promise<void>;
+  workflowBusyAction?: "pay" | "submit" | "approve" | "decline" | null;
 }
 
 export function ServiceChat({
@@ -65,8 +77,31 @@ export function ServiceChat({
   sendingImage,
   chatInput,
   setChatInput,
-  sendMessage
+  sendMessage,
+  workflowEnabled = false,
+  workflowStatusText,
+  workflowAgreedPrice = null,
+  canPayAndStartWork = false,
+  canSubmitWork = false,
+  canApproveWork = false,
+  canDeclineWork = false,
+  onPayAndStartWork,
+  onSubmitWork,
+  onApproveWork,
+  onDeclineWork,
+  workflowBusyAction = null
 }: ServiceChatProps) {
+  const formatMessageText = (rawMessage: string | null | undefined) => {
+    const message = String(rawMessage || "");
+    if (!message.startsWith("[SYSTEM_")) return message;
+
+    return message
+      .replace(/^\[[^\]]+\]\s*/i, "")
+      .replace(/\b(SERVICE|PRICE|CUSTOMER|FREELANCER):[^\s]+/gi, "")
+      .replace(/\s{2,}/g, " ")
+      .trim() || "System update";
+  };
+
   return (
     <div className="min-h-screen bg-[#F9E6D8] pt-24 pb-6 md:pb-8">
       <main className="max-w-6xl mx-auto px-4">
@@ -192,6 +227,80 @@ export function ServiceChat({
                 </div>
               </header>
 
+              {workflowEnabled && (
+                <div className="mb-2 md:mb-3 rounded-xl border border-orange-200 bg-white px-3 py-2.5 shrink-0">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-black uppercase tracking-wide text-orange-700/80">
+                        Work Approval Flow
+                      </p>
+                      <p className="text-xs text-gray-600 mt-0.5 break-words">
+                        {workflowStatusText || "Track work progress, review, and release payment."}
+                      </p>
+                      {workflowAgreedPrice !== null && (
+                        <p className="text-xs text-[#4A2600] font-bold mt-1">
+                          Agreed price: ฿ {Number(workflowAgreedPrice || 0).toFixed(2)}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {canPayAndStartWork && onPayAndStartWork && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onPayAndStartWork();
+                          }}
+                          disabled={workflowBusyAction !== null}
+                          className="px-3 py-1.5 rounded-md bg-[#A03F00] text-white text-xs font-black disabled:bg-gray-300"
+                        >
+                          {workflowBusyAction === "pay" ? "Processing..." : "Pay & Start Work"}
+                        </button>
+                      )}
+
+                      {canSubmitWork && onSubmitWork && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onSubmitWork();
+                          }}
+                          disabled={workflowBusyAction !== null}
+                          className="px-3 py-1.5 rounded-md bg-blue-600 text-white text-xs font-black disabled:bg-gray-300"
+                        >
+                          {workflowBusyAction === "submit" ? "Submitting..." : "Submit Work"}
+                        </button>
+                      )}
+
+                      {canApproveWork && onApproveWork && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onApproveWork();
+                          }}
+                          disabled={workflowBusyAction !== null}
+                          className="px-3 py-1.5 rounded-md bg-green-600 text-white text-xs font-black disabled:bg-gray-300"
+                        >
+                          {workflowBusyAction === "approve" ? "Approving..." : "Approve Work"}
+                        </button>
+                      )}
+
+                      {canDeclineWork && onDeclineWork && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onDeclineWork();
+                          }}
+                          disabled={workflowBusyAction !== null}
+                          className="px-3 py-1.5 rounded-md bg-red-600 text-white text-xs font-black disabled:bg-gray-300"
+                        >
+                          {workflowBusyAction === "decline" ? "Sending..." : "Request Revision"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div
                 ref={messagesContainerRef}
                 className="bg-[#F3F4F6] rounded-xl border border-orange-100 flex-1 min-h-0 p-3 md:p-4 overflow-y-auto space-y-3"
@@ -226,7 +335,7 @@ export function ServiceChat({
                           />
                         ) : (
                           <p className="whitespace-pre-wrap break-all">
-                            {message.message}
+                            {formatMessageText(message.message)}
                           </p>
                         )}
                         <p className="text-[10px] mt-1 opacity-70">

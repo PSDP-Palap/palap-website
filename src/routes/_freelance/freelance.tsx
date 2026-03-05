@@ -48,6 +48,7 @@ const ORDER_COMPLETE_STATUS_CANDIDATES = [
   "closed"
 ];
 const DELIVERY_DONE_PREFIX = "[SYSTEM_DELIVERY_DONE]";
+const WORK_RELEASED_PREFIX = "[SYSTEM_WORK_RELEASED]";
 
 const isInvalidEnumValueError = (error: any) => {
   const message = String(error?.message || "").toLowerCase();
@@ -61,6 +62,11 @@ const isCompletedOrderStatus = (status: string | null | undefined) => {
 
 const getOrderIdFromDeliveryDoneMessage = (message: string) => {
   const match = message.match(/ORDER:([^\s]+)/i);
+  return match?.[1] ? String(match[1]) : "";
+};
+
+const getTaggedValue = (message: string, tag: string) => {
+  const match = String(message || "").match(new RegExp(`${tag}:([^\\s]+)`, "i"));
   return match?.[1] ? String(match[1]) : "";
 };
 
@@ -1024,6 +1030,7 @@ function RouteComponent() {
       setClosedDeliverySessionOrderIds((prev) =>
         prev.includes(order.orderId) ? prev : [...prev, order.orderId]
       );
+      setOrdersRealtimeVersion((value) => value + 1);
       setMyDeliveryOrders((prev) =>
         prev.filter((item) => String(item.orderId) !== String(order.orderId))
       );
@@ -1310,23 +1317,29 @@ function RouteComponent() {
           const hasRequest = rows.some((row: any) =>
             String(row.message || "").startsWith("[SYSTEM_HIRE_REQUEST]")
           );
+          const hasDeliveryAccepted = rows.some((row: any) =>
+            String(row.message || "").startsWith("[SYSTEM_DELIVERY_ORDER_ACCEPTED]")
+          );
+          const hasDeliveryRoomCreated = rows.some((row: any) =>
+            String(row.message || "").startsWith("[SYSTEM_DELIVERY_ROOM_CREATED]")
+          );
           const acceptedMessage = rows.find((row: any) => {
             const message = String(row.message || "");
-            return (
-              message.startsWith("[SYSTEM_HIRE_ACCEPTED]") ||
-              message.startsWith("[SYSTEM_DELIVERY_ORDER_ACCEPTED]")
-            );
+            return message.startsWith("[SYSTEM_HIRE_ACCEPTED]");
           });
           const hasDone = rows.some((row: any) =>
             String(row.message || "").startsWith("[SYSTEM_DELIVERY_DONE]")
           );
+          const isDeliveryFlow =
+            hasDeliveryAccepted || hasDeliveryRoomCreated || hasDone;
 
           if (hasRequest && !acceptedMessage) return null;
-          if (hasDone) return null;
+          if (isDeliveryFlow) return null;
 
           const serviceId = String(room.order_id || "");
           const serviceRow = serviceMap.get(serviceId) as any;
           const category = String(serviceRow?.category || "").toUpperCase();
+          if (!serviceRow) return null;
           if (category === "DELIVERY_SESSION") return null;
 
           return {
@@ -1718,50 +1731,152 @@ function RouteComponent() {
       try {
         setLoadingEarning(true);
 
-        const { data: orderRows, error } = await supabase
-          .from("orders")
-          .select("order_id, price, status")
-          .eq("freelance_id", currentUserId)
-          .limit(500);
+        const assigneeColumns = ["freelance_id", "freelancer_id"];
+        const mergedOrderMap = new Map<string, any>();
 
-        if (error || !orderRows) {
-          const fallbackIncome = services.reduce(
-            (sum, item) => sum + (Number(item?.price) || 0),
-            0
-          );
+        for (const assigneeColumn of assigneeColumns) {
+          const { data, error } = await supabase
+            .from("orders")
+            .select("order_id, price, status")
+            .eq(assigneeColumn, currentUserId)
+            .limit(500);
+
+          if (error) {
+            if (isColumnMissingError(error)) {
+              continue;
+            }
+            throw error;
+          }
+
+          ((data as any[]) ?? []).forEach((row: any) => {
+            const orderId = String(row?.order_id || "");
+            if (!orderId) return;
+            mergedOrderMap.set(orderId, row);
+          });
+        }
+
+        const orderRows = Array.from(mergedOrderMap.values());
+        if (orderRows.length === 0) {
           setEarningSummary({
-            totalIncome: fallbackIncome,
-            totalOrders: services.length,
-            completedOrders: services.length,
+            totalIncome: 0,
+            totalOrders: 0,
+            completedOrders: 0,
             pendingOrders: 0
           });
           return;
         }
 
+        const orderIds = orderRows
+          .map((row) => String(row?.order_id || ""))
+          .filter(Boolean);
+        const orderIdSet = new Set(orderIds);
+        const doneOrderSet = new Set<string>();
+
+        const markerByOrderResult = await supabase
+          .from("chat_messages")
+          .select("order_id, message")
+          .in("order_id", orderIds)
+          .like("message", `${DELIVERY_DONE_PREFIX} ORDER:%`)
+          .limit(1000);
+
+        if (markerByOrderResult.error) {
+          if (!isColumnMissingError(markerByOrderResult.error)) {
+            throw markerByOrderResult.error;
+          }
+
+          const markerFallbackResult = await supabase
+            .from("chat_messages")
+            .select("message")
+            .like("message", `${DELIVERY_DONE_PREFIX} ORDER:%`)
+            .limit(2000);
+
+          if (markerFallbackResult.error) {
+            if (!isColumnMissingError(markerFallbackResult.error)) {
+              throw markerFallbackResult.error;
+            }
+          } else {
+            ((markerFallbackResult.data as any[]) ?? []).forEach((row: any) => {
+              const markerOrderId = getOrderIdFromDeliveryDoneMessage(
+                String(row?.message || "")
+              );
+              if (!markerOrderId || !orderIdSet.has(markerOrderId)) return;
+              doneOrderSet.add(markerOrderId);
+            });
+          }
+        } else {
+          ((markerByOrderResult.data as any[]) ?? []).forEach((row: any) => {
+            const markerOrderId = String(
+              row?.order_id || getOrderIdFromDeliveryDoneMessage(String(row?.message || ""))
+            );
+            if (!markerOrderId) return;
+            doneOrderSet.add(markerOrderId);
+          });
+        }
+
         const completedStatuses = ORDER_COMPLETED_STATUS_SET;
-        const completedOrders = (orderRows as any[]).filter((row) =>
-          completedStatuses.has(String(row?.status || "").toLowerCase())
-        );
-        const totalIncome = completedOrders.reduce(
+        const completedOrders = orderRows.filter((row) => {
+          const orderId = String(row?.order_id || "");
+          const completedByStatus = completedStatuses.has(
+            String(row?.status || "").toLowerCase()
+          );
+          return completedByStatus || doneOrderSet.has(orderId);
+        });
+        const completedOrderIncome = completedOrders.reduce(
           (sum, row) => sum + (Number(row?.price) || 0),
           0
         );
 
+        let serviceReleasedIncome = 0;
+        let serviceReleasedCount = 0;
+
+        const serviceReleasedResult = await supabase
+          .from("chat_messages")
+          .select("message")
+          .like("message", `${WORK_RELEASED_PREFIX} SERVICE:%`)
+          .limit(3000);
+
+        if (serviceReleasedResult.error) {
+          if (!isColumnMissingError(serviceReleasedResult.error)) {
+            throw serviceReleasedResult.error;
+          }
+        } else {
+          const releasedByServiceId = new Map<string, number>();
+
+          ((serviceReleasedResult.data as any[]) ?? []).forEach((row: any) => {
+            const message = String(row?.message || "");
+            const freelancerId = getTaggedValue(message, "FREELANCER");
+            if (String(freelancerId) !== String(currentUserId)) return;
+
+            const serviceId = getTaggedValue(message, "SERVICE");
+            if (!serviceId) return;
+
+            const price = Number(getTaggedValue(message, "PRICE"));
+            const safePrice = Number.isFinite(price) ? price : 0;
+            releasedByServiceId.set(serviceId, safePrice);
+          });
+
+          serviceReleasedCount = releasedByServiceId.size;
+          serviceReleasedIncome = Array.from(releasedByServiceId.values()).reduce(
+            (sum, value) => sum + value,
+            0
+          );
+        }
+
+        const totalIncome = completedOrderIncome + serviceReleasedIncome;
+        const completedCount = completedOrders.length + serviceReleasedCount;
+        const totalCount = orderRows.length + serviceReleasedCount;
+
         setEarningSummary({
           totalIncome,
-          totalOrders: orderRows.length,
-          completedOrders: completedOrders.length,
-          pendingOrders: Math.max(orderRows.length - completedOrders.length, 0)
+          totalOrders: totalCount,
+          completedOrders: completedCount,
+          pendingOrders: Math.max(totalCount - completedCount, 0)
         });
       } catch {
-        const fallbackIncome = services.reduce(
-          (sum, item) => sum + (Number(item?.price) || 0),
-          0
-        );
         setEarningSummary({
-          totalIncome: fallbackIncome,
-          totalOrders: services.length,
-          completedOrders: services.length,
+          totalIncome: 0,
+          totalOrders: 0,
+          completedOrders: 0,
           pendingOrders: 0
         });
       } finally {
@@ -1770,7 +1885,7 @@ function RouteComponent() {
     };
 
     loadEarningSummary();
-  }, [currentUserId, services, ordersRealtimeVersion]);
+  }, [currentUserId, services, ordersRealtimeVersion, chatsRealtimeVersion]);
 
   const createMyService = async (event: React.FormEvent) => {
     event.preventDefault();

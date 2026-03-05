@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { ServiceChat } from "@/components/service/ServiceChat";
@@ -24,6 +24,12 @@ const SYSTEM_REQUEST_PREFIX = "[SYSTEM_HIRE_REQUEST]";
 const SYSTEM_ACCEPT_PREFIX = "[SYSTEM_HIRE_ACCEPTED]";
 const SYSTEM_DECLINE_PREFIX = "[SYSTEM_HIRE_DECLINED]";
 const CHAT_IMAGE_PREFIX = "[CHAT_IMAGE]";
+const SYSTEM_WORK_PRICE_PREFIX = "[SYSTEM_WORK_PRICE_AGREED]";
+const SYSTEM_WORK_PAYMENT_HELD_PREFIX = "[SYSTEM_WORK_PAYMENT_HELD]";
+const SYSTEM_WORK_SUBMITTED_PREFIX = "[SYSTEM_WORK_SUBMITTED]";
+const SYSTEM_WORK_REVISION_PREFIX = "[SYSTEM_WORK_REVISION_REQUESTED]";
+const SYSTEM_WORK_APPROVED_PREFIX = "[SYSTEM_WORK_APPROVED]";
+const SYSTEM_WORK_RELEASED_PREFIX = "[SYSTEM_WORK_RELEASED]";
 
 const getRoleValue = (value: any) => {
   if (typeof value === "string") return value;
@@ -47,6 +53,14 @@ const stripSystemPrefix = (message: string | null | undefined) =>
     .replace(SYSTEM_REQUEST_PREFIX, "")
     .replace(SYSTEM_ACCEPT_PREFIX, "")
     .replace(SYSTEM_DECLINE_PREFIX, "")
+    .replace(SYSTEM_WORK_PRICE_PREFIX, "")
+    .replace(SYSTEM_WORK_PAYMENT_HELD_PREFIX, "")
+    .replace(SYSTEM_WORK_SUBMITTED_PREFIX, "")
+    .replace(SYSTEM_WORK_REVISION_PREFIX, "")
+    .replace(SYSTEM_WORK_APPROVED_PREFIX, "")
+    .replace(SYSTEM_WORK_RELEASED_PREFIX, "")
+    .replace(/\b(SERVICE|PRICE|CUSTOMER|FREELANCER):[^\s]+/gi, "")
+    .replace(/\s{2,}/g, " ")
     .trim();
 const toImageMessage = (url: string) => `${CHAT_IMAGE_PREFIX} ${url}`;
 const isImageMessage = (message: string | null | undefined) =>
@@ -82,6 +96,17 @@ const deriveHireStateFromMessages = (rows: any[]) => {
     accepted: nextState === "accepted",
     requestMessage
   };
+};
+
+const getTagValue = (message: string, tag: string) => {
+  const match = String(message || "").match(new RegExp(`${tag}:([^\\s]+)`, "i"));
+  return match?.[1] ? String(match[1]) : "";
+};
+
+const getPriceFromMessage = (message: string) => {
+  const raw = getTagValue(message, "PRICE");
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : 0;
 };
 
 function RouteComponent() {
@@ -143,6 +168,12 @@ function RouteComponent() {
   const [decliningRequestRoomId, setDecliningRequestRoomId] = useState<
     string | null
   >(null);
+  const [workflowBusyAction, setWorkflowBusyAction] = useState<
+    "pay" | "submit" | "approve" | "decline" | null
+  >(null);
+  const [chatCounterpartProfile, setChatCounterpartProfile] = useState<any>(
+    null
+  );
 
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -929,16 +960,261 @@ function RouteComponent() {
     ? String(currentUserId) === String(activeRoomParticipants.freelancer)
     : false;
 
+  const activeChatRoomId = roomId || hashRoomId;
+  const activeChatRoomItem = useMemo(
+    () =>
+      chatRoomList.find(
+        (item) => String(item.roomId) === String(activeChatRoomId || "")
+      ) || null,
+    [chatRoomList, activeChatRoomId]
+  );
+
+  useEffect(() => {
+    const loadCounterpartProfile = async () => {
+      if (!currentUserId) {
+        setChatCounterpartProfile(null);
+        return;
+      }
+
+      const pair = getParticipantPair();
+      const counterpartId = String(pair?.other || "");
+      if (!counterpartId) {
+        setChatCounterpartProfile(null);
+        return;
+      }
+
+      const { data: profileRow } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", counterpartId)
+        .maybeSingle();
+
+      setChatCounterpartProfile(profileRow || null);
+    };
+
+    loadCounterpartProfile();
+  }, [currentUserId, getParticipantPair]);
+
+  const serviceWorkflow = useMemo(() => {
+    const hasHireAccepted = messages.some((row: any) =>
+      String(row?.message || "").startsWith(SYSTEM_ACCEPT_PREFIX)
+    );
+
+    const enabled =
+      !isDeliverySessionService &&
+      hasHireAccepted &&
+      !!activeRoomParticipants?.customer &&
+      !!activeRoomParticipants?.freelancer;
+
+    if (!enabled) {
+      return {
+        enabled: false,
+        agreedPrice: null as number | null,
+        statusText: "",
+        canPayAndStartWork: false,
+        canSubmitWork: false,
+        canApproveWork: false,
+        canDeclineWork: false
+      };
+    }
+
+    let agreedPrice = Number(service?.price || 0);
+    let paymentHeldAt = 0;
+    let latestSubmittedAt = 0;
+    let latestRevisionAt = 0;
+    let latestApprovedAt = 0;
+    let latestReleasedAt = 0;
+
+    (messages as any[]).forEach((row: any) => {
+      const message = String(row?.message || "");
+      const createdAt = Date.parse(String(row?.created_at || ""));
+      const ts = Number.isFinite(createdAt) ? createdAt : 0;
+
+      if (message.startsWith(SYSTEM_WORK_PRICE_PREFIX)) {
+        const parsedPrice = getPriceFromMessage(message);
+        if (parsedPrice > 0) {
+          agreedPrice = parsedPrice;
+        }
+      }
+      if (message.startsWith(SYSTEM_WORK_PAYMENT_HELD_PREFIX)) {
+        paymentHeldAt = Math.max(paymentHeldAt, ts);
+      }
+      if (message.startsWith(SYSTEM_WORK_SUBMITTED_PREFIX)) {
+        latestSubmittedAt = Math.max(latestSubmittedAt, ts);
+      }
+      if (message.startsWith(SYSTEM_WORK_REVISION_PREFIX)) {
+        latestRevisionAt = Math.max(latestRevisionAt, ts);
+      }
+      if (message.startsWith(SYSTEM_WORK_APPROVED_PREFIX)) {
+        latestApprovedAt = Math.max(latestApprovedAt, ts);
+      }
+      if (message.startsWith(SYSTEM_WORK_RELEASED_PREFIX)) {
+        latestReleasedAt = Math.max(latestReleasedAt, ts);
+      }
+    });
+
+    const paymentHeld = paymentHeldAt > 0;
+    const isReleased = latestReleasedAt > 0;
+    const latestReviewAt = Math.max(
+      latestRevisionAt,
+      latestApprovedAt,
+      latestReleasedAt
+    );
+    const awaitingCustomerReview =
+      latestSubmittedAt > 0 && latestSubmittedAt > latestReviewAt;
+
+    let statusText = "Customer should pay and start this work.";
+    if (paymentHeld && !awaitingCustomerReview && !isReleased) {
+      statusText = "Payment is held. Freelancer can submit work for review.";
+    }
+    if (awaitingCustomerReview && !isReleased) {
+      statusText =
+        "Work submitted. Waiting for customer approval or revision request.";
+    }
+    if (latestRevisionAt > latestSubmittedAt && !isReleased) {
+      statusText =
+        "Customer requested revision. Freelancer should submit an updated result.";
+    }
+    if (isReleased) {
+      statusText = "Work approved. Payment released to freelancer earning.";
+    }
+
+    return {
+      enabled,
+      agreedPrice,
+      statusText,
+      canPayAndStartWork:
+        !isCurrentUserFreelancerInRoom && !paymentHeld && !isReleased,
+      canSubmitWork:
+        isCurrentUserFreelancerInRoom &&
+        paymentHeld &&
+        !isReleased &&
+        !awaitingCustomerReview,
+      canApproveWork:
+        !isCurrentUserFreelancerInRoom &&
+        paymentHeld &&
+        !isReleased &&
+        awaitingCustomerReview,
+      canDeclineWork:
+        !isCurrentUserFreelancerInRoom &&
+        paymentHeld &&
+        !isReleased &&
+        awaitingCustomerReview
+    };
+  }, [
+    messages,
+    service,
+    isDeliverySessionService,
+    activeRoomParticipants,
+    isCurrentUserFreelancerInRoom
+  ]);
+
+  const sendWorkflowMessage = useCallback(
+    async (message: string) => {
+      await sendMessage(message);
+      window.dispatchEvent(new Event("service-chat-updated"));
+    },
+    [sendMessage]
+  );
+
+  const payAndStartWork = useCallback(async () => {
+    if (!serviceWorkflow.enabled || !activeRoomParticipants) return;
+
+    const agreedPrice = Number(serviceWorkflow.agreedPrice || 0);
+    if (agreedPrice <= 0) {
+      setChatError("Agreed price must be greater than 0.");
+      return;
+    }
+
+    try {
+      setWorkflowBusyAction("pay");
+      const serviceId = String(id);
+      const customerId = String(activeRoomParticipants.customer || "");
+      const freelancerId = String(activeRoomParticipants.freelancer || "");
+      const agreedText = agreedPrice.toFixed(2);
+
+      await sendWorkflowMessage(
+        `${SYSTEM_WORK_PRICE_PREFIX} SERVICE:${serviceId} PRICE:${agreedText}`
+      );
+      await sendWorkflowMessage(
+        `${SYSTEM_WORK_PAYMENT_HELD_PREFIX} SERVICE:${serviceId} PRICE:${agreedText} CUSTOMER:${customerId} FREELANCER:${freelancerId} Payment held and work started.`
+      );
+    } finally {
+      setWorkflowBusyAction(null);
+    }
+  }, [serviceWorkflow, activeRoomParticipants, id, sendWorkflowMessage]);
+
+  const submitWork = useCallback(async () => {
+    if (!serviceWorkflow.enabled || !currentUserId) return;
+
+    try {
+      setWorkflowBusyAction("submit");
+      await sendWorkflowMessage(
+        `${SYSTEM_WORK_SUBMITTED_PREFIX} SERVICE:${id} FREELANCER:${currentUserId} Submitted work for customer review.`
+      );
+    } finally {
+      setWorkflowBusyAction(null);
+    }
+  }, [serviceWorkflow, currentUserId, id, sendWorkflowMessage]);
+
+  const requestRevision = useCallback(async () => {
+    if (!serviceWorkflow.enabled || !currentUserId) return;
+
+    try {
+      setWorkflowBusyAction("decline");
+      await sendWorkflowMessage(
+        `${SYSTEM_WORK_REVISION_PREFIX} SERVICE:${id} CUSTOMER:${currentUserId} Customer requested revision. Please continue and submit again.`
+      );
+    } finally {
+      setWorkflowBusyAction(null);
+    }
+  }, [serviceWorkflow, currentUserId, id, sendWorkflowMessage]);
+
+  const approveWork = useCallback(async () => {
+    if (!serviceWorkflow.enabled || !currentUserId || !activeRoomParticipants)
+      return;
+
+    const agreedPrice = Number(serviceWorkflow.agreedPrice || 0);
+    if (agreedPrice <= 0) {
+      setChatError("Agreed price must be greater than 0.");
+      return;
+    }
+
+    try {
+      setWorkflowBusyAction("approve");
+      const serviceId = String(id);
+      const customerId = String(activeRoomParticipants.customer || "");
+      const freelancerId = String(activeRoomParticipants.freelancer || "");
+      const agreedText = agreedPrice.toFixed(2);
+
+      await sendWorkflowMessage(
+        `${SYSTEM_WORK_APPROVED_PREFIX} SERVICE:${serviceId} CUSTOMER:${currentUserId} Work approved by customer.`
+      );
+      await sendWorkflowMessage(
+        `${SYSTEM_WORK_RELEASED_PREFIX} SERVICE:${serviceId} PRICE:${agreedText} CUSTOMER:${customerId} FREELANCER:${freelancerId} Payment released to freelancer earning.`
+      );
+    } finally {
+      setWorkflowBusyAction(null);
+    }
+  }, [serviceWorkflow, currentUserId, activeRoomParticipants, id, sendWorkflowMessage]);
+
   const chatCounterpart = getParticipantPair();
   const chatCounterpartAvatar =
-    chatCounterpart?.myRole === "customer"
+    chatCounterpartProfile?.avatar_url ||
+    chatCounterpartProfile?.image_url ||
+    chatCounterpartProfile?.photo_url ||
+    activeChatRoomItem?.partnerAvatarUrl ||
+    (chatCounterpart?.myRole === "customer"
       ? creator?.avatar_url || creator?.image_url || creator?.photo_url || null
-      : null;
+      : null);
 
   const chatCounterpartName =
-    chatCounterpart?.myRole === "customer"
+    chatCounterpartProfile?.full_name ||
+    chatCounterpartProfile?.email ||
+    activeChatRoomItem?.partnerName ||
+    (chatCounterpart?.myRole === "customer"
       ? creator?.full_name || creator?.email || "Freelancer"
-      : "Customer";
+      : "Customer");
 
   if (loading) {
     return (
@@ -1001,6 +1277,18 @@ function RouteComponent() {
         chatInput={chatInput}
         setChatInput={setChatInput}
         sendMessage={sendMessage}
+        workflowEnabled={serviceWorkflow.enabled}
+        workflowStatusText={serviceWorkflow.statusText}
+        workflowAgreedPrice={serviceWorkflow.agreedPrice}
+        canPayAndStartWork={serviceWorkflow.canPayAndStartWork}
+        canSubmitWork={serviceWorkflow.canSubmitWork}
+        canApproveWork={serviceWorkflow.canApproveWork}
+        canDeclineWork={serviceWorkflow.canDeclineWork}
+        onPayAndStartWork={payAndStartWork}
+        onSubmitWork={submitWork}
+        onApproveWork={approveWork}
+        onDeclineWork={requestRevision}
+        workflowBusyAction={workflowBusyAction}
       />
     );
   }

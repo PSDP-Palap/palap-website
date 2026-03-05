@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ServiceChat } from "@/components/service/ServiceChat";
 import { useUserStore } from "@/stores/useUserStore";
@@ -13,6 +13,16 @@ export const Route = createFileRoute("/_authenticated/chat/$id")({
 });
 
 const CHAT_IMAGE_PREFIX = "[CHAT_IMAGE]";
+const SYSTEM_HIRE_ACCEPTED_PREFIX = "[SYSTEM_HIRE_ACCEPTED]";
+const SYSTEM_DELIVERY_ACCEPTED_PREFIX = "[SYSTEM_DELIVERY_ORDER_ACCEPTED]";
+const SYSTEM_DELIVERY_CREATED_PREFIX = "[SYSTEM_DELIVERY_ROOM_CREATED]";
+const SYSTEM_DELIVERY_DONE_PREFIX = "[SYSTEM_DELIVERY_DONE]";
+const SYSTEM_WORK_PRICE_PREFIX = "[SYSTEM_WORK_PRICE_AGREED]";
+const SYSTEM_WORK_PAYMENT_HELD_PREFIX = "[SYSTEM_WORK_PAYMENT_HELD]";
+const SYSTEM_WORK_SUBMITTED_PREFIX = "[SYSTEM_WORK_SUBMITTED]";
+const SYSTEM_WORK_REVISION_PREFIX = "[SYSTEM_WORK_REVISION_REQUESTED]";
+const SYSTEM_WORK_APPROVED_PREFIX = "[SYSTEM_WORK_APPROVED]";
+const SYSTEM_WORK_RELEASED_PREFIX = "[SYSTEM_WORK_RELEASED]";
 
 const resolveCustomerId = (room: any) =>
   String(room?.customer_id ?? room?.user_id ?? "");
@@ -65,6 +75,15 @@ function ChatRouteComponent() {
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   const [otherParticipant, setOtherParticipant] = useState<any>(null);
+  const [serviceMeta, setServiceMeta] = useState<{
+    serviceId: string;
+    name: string;
+    category: string;
+    price: number;
+  } | null>(null);
+  const [workflowBusyAction, setWorkflowBusyAction] = useState<
+    "pay" | "submit" | "approve" | "decline" | null
+  >(null);
 
   const extractImageUrl = (message: string | null | undefined) =>
     typeof message === "string" && message.startsWith(CHAT_IMAGE_PREFIX)
@@ -75,6 +94,17 @@ function ChatRouteComponent() {
     typeof message === "string" && message.startsWith(CHAT_IMAGE_PREFIX);
 
   const toImageMessage = (url: string) => `${CHAT_IMAGE_PREFIX} ${url}`;
+
+  const getTagValue = (message: string, tag: string) => {
+    const match = message.match(new RegExp(`${tag}:([^\\s]+)`, "i"));
+    return match?.[1] ? String(match[1]) : "";
+  };
+
+  const getPriceFromMessage = (message: string) => {
+    const raw = getTagValue(message, "PRICE");
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : 0;
+  };
 
   const loadRoomInfo = useCallback(async () => {
     if (!roomId || !currentUserId) return;
@@ -91,6 +121,7 @@ function ChatRouteComponent() {
       if (!room) throw new Error("Chat room not found");
 
       setOrderId(room.order_id);
+      const roomOrderId = String(room.order_id || "");
       let customerId = resolveCustomerId(room);
       let freelancerId = resolveFreelancerId(room);
 
@@ -111,6 +142,27 @@ function ChatRouteComponent() {
         customer: customerId,
         freelancer: freelancerId
       });
+
+      if (roomOrderId) {
+        const { data: serviceRow } = await supabase
+          .from("services")
+          .select("service_id, name, category, price")
+          .eq("service_id", roomOrderId)
+          .maybeSingle();
+
+        if (serviceRow) {
+          setServiceMeta({
+            serviceId: String((serviceRow as any).service_id || roomOrderId),
+            name: String((serviceRow as any).name || "Service"),
+            category: String((serviceRow as any).category || ""),
+            price: Number((serviceRow as any).price || 0)
+          });
+        } else {
+          setServiceMeta(null);
+        }
+      } else {
+        setServiceMeta(null);
+      }
 
       const otherId =
         String(customerId) === String(currentUserId)
@@ -494,6 +546,196 @@ function ChatRouteComponent() {
     ? String(currentUserId) === String(activeRoomParticipants.freelancer)
     : false;
 
+  const serviceWorkflow = useMemo(() => {
+    const hasHireAccepted = messages.some((row: any) =>
+      String(row?.message || "").startsWith(SYSTEM_HIRE_ACCEPTED_PREFIX)
+    );
+    const isDeliveryFlow = messages.some((row: any) => {
+      const message = String(row?.message || "");
+      return (
+        message.startsWith(SYSTEM_DELIVERY_ACCEPTED_PREFIX) ||
+        message.startsWith(SYSTEM_DELIVERY_CREATED_PREFIX) ||
+        message.startsWith(SYSTEM_DELIVERY_DONE_PREFIX)
+      );
+    });
+    const isDeliverySession =
+      String(serviceMeta?.category || "").toUpperCase() === "DELIVERY_SESSION";
+
+    const enabled =
+      !!serviceMeta &&
+      !isDeliveryFlow &&
+      !isDeliverySession &&
+      hasHireAccepted;
+
+    if (!enabled) {
+      return {
+        enabled: false,
+        agreedPrice: null as number | null,
+        statusText: "",
+        canPayAndStartWork: false,
+        canSubmitWork: false,
+        canApproveWork: false,
+        canDeclineWork: false
+      };
+    }
+
+    let agreedPrice = Number(serviceMeta?.price || 0);
+    let paymentHeldAt = 0;
+    let latestSubmittedAt = 0;
+    let latestRevisionAt = 0;
+    let latestApprovedAt = 0;
+    let latestReleasedAt = 0;
+
+    (messages as any[]).forEach((row: any) => {
+      const message = String(row?.message || "");
+      const createdAt = Date.parse(String(row?.created_at || ""));
+      const ts = Number.isFinite(createdAt) ? createdAt : 0;
+
+      if (message.startsWith(SYSTEM_WORK_PRICE_PREFIX)) {
+        const parsedPrice = getPriceFromMessage(message);
+        if (parsedPrice > 0) {
+          agreedPrice = parsedPrice;
+        }
+      }
+      if (message.startsWith(SYSTEM_WORK_PAYMENT_HELD_PREFIX)) {
+        paymentHeldAt = Math.max(paymentHeldAt, ts);
+      }
+      if (message.startsWith(SYSTEM_WORK_SUBMITTED_PREFIX)) {
+        latestSubmittedAt = Math.max(latestSubmittedAt, ts);
+      }
+      if (message.startsWith(SYSTEM_WORK_REVISION_PREFIX)) {
+        latestRevisionAt = Math.max(latestRevisionAt, ts);
+      }
+      if (message.startsWith(SYSTEM_WORK_APPROVED_PREFIX)) {
+        latestApprovedAt = Math.max(latestApprovedAt, ts);
+      }
+      if (message.startsWith(SYSTEM_WORK_RELEASED_PREFIX)) {
+        latestReleasedAt = Math.max(latestReleasedAt, ts);
+      }
+    });
+
+    const paymentHeld = paymentHeldAt > 0;
+    const isReleased = latestReleasedAt > 0;
+    const latestReviewAt = Math.max(latestRevisionAt, latestApprovedAt, latestReleasedAt);
+    const awaitingCustomerReview =
+      latestSubmittedAt > 0 && latestSubmittedAt > latestReviewAt;
+
+    let statusText = "Customer should pay and start this work.";
+    if (paymentHeld && !awaitingCustomerReview && !isReleased) {
+      statusText = "Payment is held. Freelancer can submit work for review.";
+    }
+    if (awaitingCustomerReview && !isReleased) {
+      statusText = "Work submitted. Waiting for customer approval or revision request.";
+    }
+    if (latestRevisionAt > latestSubmittedAt && !isReleased) {
+      statusText = "Customer requested revision. Freelancer should submit an updated result.";
+    }
+    if (isReleased) {
+      statusText = "Work approved. Payment released to freelancer earning.";
+    }
+
+    return {
+      enabled,
+      agreedPrice,
+      statusText,
+      canPayAndStartWork:
+        !isCurrentUserFreelancerInRoom && !paymentHeld && !isReleased,
+      canSubmitWork:
+        isCurrentUserFreelancerInRoom && paymentHeld && !isReleased && !awaitingCustomerReview,
+      canApproveWork:
+        !isCurrentUserFreelancerInRoom && paymentHeld && !isReleased && awaitingCustomerReview,
+      canDeclineWork:
+        !isCurrentUserFreelancerInRoom && paymentHeld && !isReleased && awaitingCustomerReview
+    };
+  }, [messages, serviceMeta, isCurrentUserFreelancerInRoom]);
+
+  const sendSystemWorkflowMessage = useCallback(
+    async (message: string) => {
+      await sendMessage(message);
+      window.dispatchEvent(new Event("service-chat-updated"));
+    },
+    [sendMessage]
+  );
+
+  const payAndStartWork = useCallback(async () => {
+    if (!serviceWorkflow.enabled || !serviceMeta || !activeRoomParticipants) return;
+    const agreedPrice = Number(serviceWorkflow.agreedPrice || 0);
+    if (agreedPrice <= 0) {
+      setChatError("Agreed price must be greater than 0.");
+      return;
+    }
+
+    try {
+      setWorkflowBusyAction("pay");
+      const serviceId = serviceMeta.serviceId;
+      const customerId = String(activeRoomParticipants.customer || "");
+      const freelancerId = String(activeRoomParticipants.freelancer || "");
+      const agreedText = agreedPrice.toFixed(2);
+
+      await sendSystemWorkflowMessage(
+        `${SYSTEM_WORK_PRICE_PREFIX} SERVICE:${serviceId} PRICE:${agreedText}`
+      );
+      await sendSystemWorkflowMessage(
+        `${SYSTEM_WORK_PAYMENT_HELD_PREFIX} SERVICE:${serviceId} PRICE:${agreedText} CUSTOMER:${customerId} FREELANCER:${freelancerId} Payment held and work started.`
+      );
+    } finally {
+      setWorkflowBusyAction(null);
+    }
+  }, [serviceWorkflow, serviceMeta, activeRoomParticipants, sendSystemWorkflowMessage]);
+
+  const submitWork = useCallback(async () => {
+    if (!serviceWorkflow.enabled || !serviceMeta || !currentUserId) return;
+
+    try {
+      setWorkflowBusyAction("submit");
+      await sendSystemWorkflowMessage(
+        `${SYSTEM_WORK_SUBMITTED_PREFIX} SERVICE:${serviceMeta.serviceId} FREELANCER:${currentUserId} Submitted work for customer review.`
+      );
+    } finally {
+      setWorkflowBusyAction(null);
+    }
+  }, [serviceWorkflow, serviceMeta, currentUserId, sendSystemWorkflowMessage]);
+
+  const requestRevision = useCallback(async () => {
+    if (!serviceWorkflow.enabled || !serviceMeta || !currentUserId) return;
+
+    try {
+      setWorkflowBusyAction("decline");
+      await sendSystemWorkflowMessage(
+        `${SYSTEM_WORK_REVISION_PREFIX} SERVICE:${serviceMeta.serviceId} CUSTOMER:${currentUserId} Customer requested revision. Please continue and submit again.`
+      );
+    } finally {
+      setWorkflowBusyAction(null);
+    }
+  }, [serviceWorkflow, serviceMeta, currentUserId, sendSystemWorkflowMessage]);
+
+  const approveWork = useCallback(async () => {
+    if (!serviceWorkflow.enabled || !serviceMeta || !currentUserId || !activeRoomParticipants) return;
+
+    const agreedPrice = Number(serviceWorkflow.agreedPrice || 0);
+    if (agreedPrice <= 0) {
+      setChatError("Agreed price must be greater than 0.");
+      return;
+    }
+
+    try {
+      setWorkflowBusyAction("approve");
+      const serviceId = serviceMeta.serviceId;
+      const customerId = String(activeRoomParticipants.customer || "");
+      const freelancerId = String(activeRoomParticipants.freelancer || "");
+      const agreedText = agreedPrice.toFixed(2);
+
+      await sendSystemWorkflowMessage(
+        `${SYSTEM_WORK_APPROVED_PREFIX} SERVICE:${serviceId} CUSTOMER:${currentUserId} Work approved by customer.`
+      );
+      await sendSystemWorkflowMessage(
+        `${SYSTEM_WORK_RELEASED_PREFIX} SERVICE:${serviceId} PRICE:${agreedText} CUSTOMER:${customerId} FREELANCER:${freelancerId} Payment released to freelancer earning.`
+      );
+    } finally {
+      setWorkflowBusyAction(null);
+    }
+  }, [serviceWorkflow, serviceMeta, currentUserId, activeRoomParticipants, sendSystemWorkflowMessage]);
+
   return (
     <ServiceChat
       chatRoomSearch={chatRoomSearch}
@@ -534,6 +776,18 @@ function ChatRouteComponent() {
       chatInput={chatInput}
       setChatInput={setChatInput}
       sendMessage={sendMessage}
+      workflowEnabled={serviceWorkflow.enabled}
+      workflowStatusText={serviceWorkflow.statusText}
+      workflowAgreedPrice={serviceWorkflow.agreedPrice}
+      canPayAndStartWork={serviceWorkflow.canPayAndStartWork}
+      canSubmitWork={serviceWorkflow.canSubmitWork}
+      canApproveWork={serviceWorkflow.canApproveWork}
+      canDeclineWork={serviceWorkflow.canDeclineWork}
+      onPayAndStartWork={payAndStartWork}
+      onSubmitWork={submitWork}
+      onApproveWork={approveWork}
+      onDeclineWork={requestRevision}
+      workflowBusyAction={workflowBusyAction}
       deleteChat={function (): Promise<void> {
         throw new Error("Function not implemented.");
       }}
