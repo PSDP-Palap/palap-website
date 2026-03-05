@@ -134,7 +134,7 @@ function RouteComponent() {
 
   const subtotal = useMemo(() => {
     return products.reduce((sum, product) => {
-      const quantity = cartItems[product.id] || 0;
+      const quantity = cartItems[product.id || ""] || 0;
       return sum + product.price * quantity;
     }, 0);
   }, [products, cartItems]);

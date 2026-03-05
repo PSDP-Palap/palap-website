@@ -1,5 +1,7 @@
+import { Address } from "./address";
+
 export interface Product {
-  id: string;
+  id?: string;
   product_id?: string;
   name: string;
   description?: string;
@@ -8,6 +10,7 @@ export interface Product {
   image_url: string | null;
   created_at?: string;
   pickup_address_id?: string | null;
+  pickup_address?: Address | null;
   service_id?: string | null;
 }
 

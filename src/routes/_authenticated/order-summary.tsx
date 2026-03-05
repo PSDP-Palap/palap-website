@@ -361,9 +361,10 @@ function RouteComponent() {
   const orderRows = useMemo(() => {
     return products
       .map((product) => {
-        const quantity = cartItems[product.id] || 0;
+        const productId = product.id || "";
+        const quantity = cartItems[productId] || 0;
         return {
-          id: product.id,
+          id: productId,
           name: product.name,
           imageUrl: product.image_url || null,
           quantity,

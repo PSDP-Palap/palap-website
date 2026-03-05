@@ -99,18 +99,10 @@ export const useUserStore = create<UserState>((set, get) => ({
     if (get().isInitialized) return;
 
     try {
-      console.log("[UserStore] Initializing auth state...");
-      // 1. Get initial session with a short timeout to prevent boot hang
+      // 1. Get initial session
       const {
-        data: { session },
-        error: sessionError
+        data: { session }
       } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error("[UserStore] getSession error during init:", sessionError);
-      }
-      
-      console.log("[UserStore] Initial session check complete. Has session:", !!session);
       set({ session });
 
       // 2. If session exists, fetch profile
@@ -119,7 +111,6 @@ export const useUserStore = create<UserState>((set, get) => ({
 
         // If admin, skip profile fetch and use session data
         if (roleFromMeta === "admin") {
-          console.log("[UserStore] Admin detected, skipping profile fetch");
           set({
             profile: {
               id: session.user.id,
@@ -132,23 +123,17 @@ export const useUserStore = create<UserState>((set, get) => ({
             } as Profile
           });
         } else {
-          console.log("[UserStore] Fetching profile for user:", session.user.id);
-          const { data: profile, error: pError } = await supabase
+          const { data: profile } = await supabase
             .from("profiles")
             .select("*")
-            .eq("id", session.user.id)
             .single();
-
-          if (pError) {
-            console.error("[UserStore] Profile fetch error:", pError);
-          }
 
           let address = null;
           if (profile?.role === "customer") {
             const { data: customer } = await supabase
               .from("customers")
               .select("address")
-              .eq("id", session.user.id)
+              .eq("id", profile.id)
               .single();
             address = customer?.address;
           }
@@ -162,8 +147,6 @@ export const useUserStore = create<UserState>((set, get) => ({
               }
             });
           } else {
-            console.warn("[UserStore] Profile not found, using fallback");
-            // Fallback if profile doesn't exist yet
             set({
               profile: {
                 id: session.user.id,
@@ -214,7 +197,6 @@ export const useUserStore = create<UserState>((set, get) => ({
             const { data: profile } = await supabase
               .from("profiles")
               .select("*")
-              .eq("id", session.user.id)
               .single();
 
             let address = null;
@@ -222,7 +204,7 @@ export const useUserStore = create<UserState>((set, get) => ({
               const { data: customer } = await supabase
                 .from("customers")
                 .select("address")
-                .eq("id", session.user.id)
+                .eq("id", profile.id)
                 .single();
               address = customer?.address;
             }

@@ -12,14 +12,16 @@ type ServiceState = {
     partial: Partial<Omit<Service, "service_id">>
   ) => Promise<void>;
   deleteService: (serviceId: string) => Promise<void>;
-};
+  uploadServiceImage: (file: File) => Promise<string>;
+  };
 
-export const useServiceStore = create<ServiceState>((set) => ({
+  export const useServiceStore = create<ServiceState>((set) => ({
   services: [],
   loadServices: async () => {
     const { data, error } = await supabase
       .from("services")
-      .select("*");
+      .select("*")
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error("Failed to load services from Supabase", error);
@@ -28,7 +30,7 @@ export const useServiceStore = create<ServiceState>((set) => ({
 
     set({ services: (data as Service[]) ?? [] });
   },
-  createService: async (service: Omit<Service, "service_id">) => {
+  createService: async (service) => {
     const { data, error } = await supabase
       .from("services")
       .insert([service])
@@ -40,13 +42,12 @@ export const useServiceStore = create<ServiceState>((set) => ({
     }
 
     if (data) {
-      set((state) => ({ services: [...state.services, data[0] as Service] }));
+      set((state) => ({
+        services: [data[0] as Service, ...state.services]
+      }));
     }
   },
-  updateService: async (
-    serviceId: string,
-    partial: Partial<Omit<Service, "service_id">>
-  ) => {
+  updateService: async (serviceId, partial) => {
     const { error } = await supabase
       .from("services")
       .update(partial)
@@ -63,7 +64,7 @@ export const useServiceStore = create<ServiceState>((set) => ({
       )
     }));
   },
-  deleteService: async (serviceId: string) => {
+  deleteService: async (serviceId) => {
     const { error } = await supabase
       .from("services")
       .delete()
@@ -79,6 +80,26 @@ export const useServiceStore = create<ServiceState>((set) => ({
         (service) => service.service_id !== serviceId
       )
     }));
+  },
+  uploadServiceImage: async (file: File) => {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("service_images")
+      .upload(filePath, file);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from("service_images")
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
   }
-}));
+  }));
+
 

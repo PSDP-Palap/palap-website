@@ -1,10 +1,11 @@
-import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { createRootRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import FloatingChatWidget from "@/components/chat/FloatingChatWidget";
 import Navbar from "@/components/Navbar";
+import Loading from "@/components/shared/Loading";
 import GlobalOrderTrackingWidget from "@/components/tracking/GlobalOrderTrackingWidget";
 import { useUserStore } from "@/stores/useUserStore";
 
@@ -14,23 +15,21 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const { isLoading, initialize } = useUserStore();
+  const location = useLocation();
+  const isManagement = location.pathname.startsWith("/management");
 
   useEffect(() => {
     initialize();
   }, [initialize]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
     <>
       <Toaster position="bottom-right" reverseOrder={false} />
-      <Navbar />
+      {!isManagement && <Navbar />}
       <main>
         <Outlet />
       </main>

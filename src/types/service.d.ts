@@ -8,6 +8,8 @@ export interface Service {
   category: ServiceCategory;
   pickup_address?: string | null;
   dest_address?: string | null;
+  detail_1?: string | null;
+  detail_2?: string | null;
   description?: string | null;
   image_url?: string | null;
   creator_id?: string | null;

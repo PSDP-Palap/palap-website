@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useState } from "react";
 
-import { useUserStore } from "@/stores/useUserStore";
 import { useServiceStore } from "@/stores/useServiceStore";
+import { useUserStore } from "@/stores/useUserStore";
 import type { Service, ServiceCategory } from "@/types/service";
 
 type ServiceFormState = Omit<Service, "service_id" | "id"> & {
@@ -20,8 +21,13 @@ const emptyForm: ServiceFormState = {
 const AdminDashboard = () => {
   const { profile } = useUserStore();
 
-  const { services, loadServices, createService, updateService, deleteService } =
-    useServiceStore();
+  const {
+    services,
+    loadServices,
+    createService,
+    updateService,
+    deleteService
+  } = useServiceStore();
 
   useEffect(() => {
     loadServices();
@@ -47,9 +53,8 @@ const AdminDashboard = () => {
 
   const handleEdit = (service: Service) => {
     const targetId = service.service_id || service.id || null;
-    const { service_id, id, ...rest } = service;
     setEditingId(targetId);
-    setForm(rest);
+    setForm(service);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -171,7 +176,9 @@ const AdminDashboard = () => {
                       <button
                         type="button"
                         className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700 hover:bg-red-200"
-                        onClick={() => handleDelete(service.service_id || service.id)}
+                        onClick={() =>
+                          handleDelete(service.service_id || service.id)
+                        }
                       >
                         ลบ
                       </button>

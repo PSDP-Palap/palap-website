@@ -98,7 +98,7 @@ function CheckoutComponent() {
 
   const subtotal = useMemo(() => {
     return products.reduce((sum, product) => {
-      const quantity = cartItems[product.id] || 0;
+      const quantity = cartItems[product.id || ""] || 0;
       return sum + product.price * quantity;
     }, 0);
   }, [products, cartItems]);
@@ -109,7 +109,7 @@ function CheckoutComponent() {
   const orderRows = useMemo(() => {
     return products
       .map((product) => {
-        const quantity = cartItems[product.id] || 0;
+        const quantity = cartItems[product.id || ""] || 0;
         return {
           id: product.id,
           name: product.name,

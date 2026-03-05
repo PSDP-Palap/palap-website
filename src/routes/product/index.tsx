@@ -157,7 +157,7 @@ function RouteComponent() {
             <ProductCard
               key={item.id}
               product={item}
-              cartQuantity={cartItems[item.id] || 0}
+              cartQuantity={cartItems[item.id || ""] || 0}
             />
           ))}
         </div>

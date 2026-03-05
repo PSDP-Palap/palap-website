@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "leaflet/dist/leaflet.css";
 
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
@@ -15,7 +16,7 @@ import type {
 } from "@/types/freelance";
 import supabase from "@/utils/supabase";
 
-export const Route = createFileRoute("/_freelance/freelance")({
+export const Route = createFileRoute('/_freelance/freelance')({
   component: RouteComponent
 });
 
@@ -66,7 +67,9 @@ const getOrderIdFromDeliveryDoneMessage = (message: string) => {
 };
 
 const getTaggedValue = (message: string, tag: string) => {
-  const match = String(message || "").match(new RegExp(`${tag}:([^\\s]+)`, "i"));
+  const match = String(message || "").match(
+    new RegExp(`${tag}:([^\\s]+)`, "i")
+  );
   return match?.[1] ? String(match[1]) : "";
 };
 
@@ -1339,10 +1342,14 @@ function RouteComponent() {
             String(row.message || "").startsWith("[SYSTEM_HIRE_REQUEST]")
           );
           const hasDeliveryAccepted = rows.some((row: any) =>
-            String(row.message || "").startsWith("[SYSTEM_DELIVERY_ORDER_ACCEPTED]")
+            String(row.message || "").startsWith(
+              "[SYSTEM_DELIVERY_ORDER_ACCEPTED]"
+            )
           );
           const hasDeliveryRoomCreated = rows.some((row: any) =>
-            String(row.message || "").startsWith("[SYSTEM_DELIVERY_ROOM_CREATED]")
+            String(row.message || "").startsWith(
+              "[SYSTEM_DELIVERY_ROOM_CREATED]"
+            )
           );
           const acceptedMessage = rows.find((row: any) => {
             const message = String(row.message || "");
@@ -1834,7 +1841,8 @@ function RouteComponent() {
         } else {
           ((markerByOrderResult.data as any[]) ?? []).forEach((row: any) => {
             const markerOrderId = String(
-              row?.order_id || getOrderIdFromDeliveryDoneMessage(String(row?.message || ""))
+              row?.order_id ||
+                getOrderIdFromDeliveryDoneMessage(String(row?.message || ""))
             );
             if (!markerOrderId) return;
             doneOrderSet.add(markerOrderId);
@@ -1884,10 +1892,9 @@ function RouteComponent() {
           });
 
           serviceReleasedCount = releasedByServiceId.size;
-          serviceReleasedIncome = Array.from(releasedByServiceId.values()).reduce(
-            (sum, value) => sum + value,
-            0
-          );
+          serviceReleasedIncome = Array.from(
+            releasedByServiceId.values()
+          ).reduce((sum, value) => sum + value, 0);
         }
 
         const totalIncome = completedOrderIncome + serviceReleasedIncome;

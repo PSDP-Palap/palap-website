@@ -708,6 +708,19 @@ function RouteComponent() {
       loadHireRequestData({ silent: true });
     };
 
+    const onFocusRefresh = () => {
+      refreshSilently();
+    };
+
+    const onVisibilityRefresh = () => {
+      if (document.visibilityState === "visible") {
+        refreshSilently();
+      }
+    };
+
+    window.addEventListener("focus", onFocusRefresh);
+    document.addEventListener("visibilitychange", onVisibilityRefresh);
+
     const serviceChannel = supabase
       .channel(`service_detail_${id}`)
       .on(

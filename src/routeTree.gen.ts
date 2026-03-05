@@ -27,9 +27,14 @@ import { Route as AuthenticatedOrderSummaryRouteImport } from './routes/_authent
 import { Route as AuthenticatedFreelanceSignUpRouteImport } from './routes/_authenticated/freelance-sign-up'
 import { Route as AuthenticatedEditProfileRouteImport } from './routes/_authenticated/edit-profile'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
-import { Route as AdminAdminRouteImport } from './routes/_admin/admin'
+import { Route as AdminManagementRouteImport } from './routes/_admin/management'
 import { Route as AuthenticatedOrderHistoryOrderIdRouteImport } from './routes/_authenticated/order-history/$orderId'
 import { Route as AuthenticatedChatIdRouteImport } from './routes/_authenticated/chat/$id'
+import { Route as AdminManagementShopRouteImport } from './routes/_admin/management/shop'
+import { Route as AdminManagementServiceRouteImport } from './routes/_admin/management/service'
+import { Route as AdminManagementPaymentRouteImport } from './routes/_admin/management/payment'
+import { Route as AdminManagementFreelanceRouteImport } from './routes/_admin/management/freelance'
+import { Route as AdminManagementAdminRouteImport } from './routes/_admin/management/admin'
 
 const GuestRoute = GuestRouteImport.update({
   id: '/_guest',
@@ -120,9 +125,9 @@ const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AdminAdminRoute = AdminAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AdminManagementRoute = AdminManagementRouteImport.update({
+  id: '/management',
+  path: '/management',
   getParentRoute: () => AdminRoute,
 } as any)
 const AuthenticatedOrderHistoryOrderIdRoute =
@@ -136,10 +141,36 @@ const AuthenticatedChatIdRoute = AuthenticatedChatIdRouteImport.update({
   path: '/chat/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AdminManagementShopRoute = AdminManagementShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => AdminManagementRoute,
+} as any)
+const AdminManagementServiceRoute = AdminManagementServiceRouteImport.update({
+  id: '/service',
+  path: '/service',
+  getParentRoute: () => AdminManagementRoute,
+} as any)
+const AdminManagementPaymentRoute = AdminManagementPaymentRouteImport.update({
+  id: '/payment',
+  path: '/payment',
+  getParentRoute: () => AdminManagementRoute,
+} as any)
+const AdminManagementFreelanceRoute =
+  AdminManagementFreelanceRouteImport.update({
+    id: '/freelance',
+    path: '/freelance',
+    getParentRoute: () => AdminManagementRoute,
+  } as any)
+const AdminManagementAdminRoute = AdminManagementAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AdminManagementRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminAdminRoute
+  '/management': typeof AdminManagementRouteWithChildren
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/edit-profile': typeof AuthenticatedEditProfileRoute
   '/freelance-sign-up': typeof AuthenticatedFreelanceSignUpRoute
@@ -153,12 +184,17 @@ export interface FileRoutesByFullPath {
   '/service/$id': typeof ServiceIdRoute
   '/product/': typeof ProductIndexRoute
   '/service/': typeof ServiceIndexRoute
+  '/management/admin': typeof AdminManagementAdminRoute
+  '/management/freelance': typeof AdminManagementFreelanceRoute
+  '/management/payment': typeof AdminManagementPaymentRoute
+  '/management/service': typeof AdminManagementServiceRoute
+  '/management/shop': typeof AdminManagementShopRoute
   '/chat/$id': typeof AuthenticatedChatIdRoute
   '/order-history/$orderId': typeof AuthenticatedOrderHistoryOrderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminAdminRoute
+  '/management': typeof AdminManagementRouteWithChildren
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/edit-profile': typeof AuthenticatedEditProfileRoute
   '/freelance-sign-up': typeof AuthenticatedFreelanceSignUpRoute
@@ -172,6 +208,11 @@ export interface FileRoutesByTo {
   '/service/$id': typeof ServiceIdRoute
   '/product': typeof ProductIndexRoute
   '/service': typeof ServiceIndexRoute
+  '/management/admin': typeof AdminManagementAdminRoute
+  '/management/freelance': typeof AdminManagementFreelanceRoute
+  '/management/payment': typeof AdminManagementPaymentRoute
+  '/management/service': typeof AdminManagementServiceRoute
+  '/management/shop': typeof AdminManagementShopRoute
   '/chat/$id': typeof AuthenticatedChatIdRoute
   '/order-history/$orderId': typeof AuthenticatedOrderHistoryOrderIdRoute
 }
@@ -182,7 +223,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_freelance': typeof FreelanceRouteWithChildren
   '/_guest': typeof GuestRouteWithChildren
-  '/_admin/admin': typeof AdminAdminRoute
+  '/_admin/management': typeof AdminManagementRouteWithChildren
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/edit-profile': typeof AuthenticatedEditProfileRoute
   '/_authenticated/freelance-sign-up': typeof AuthenticatedFreelanceSignUpRoute
@@ -196,6 +237,11 @@ export interface FileRoutesById {
   '/service/$id': typeof ServiceIdRoute
   '/product/': typeof ProductIndexRoute
   '/service/': typeof ServiceIndexRoute
+  '/_admin/management/admin': typeof AdminManagementAdminRoute
+  '/_admin/management/freelance': typeof AdminManagementFreelanceRoute
+  '/_admin/management/payment': typeof AdminManagementPaymentRoute
+  '/_admin/management/service': typeof AdminManagementServiceRoute
+  '/_admin/management/shop': typeof AdminManagementShopRoute
   '/_authenticated/chat/$id': typeof AuthenticatedChatIdRoute
   '/_authenticated/order-history/$orderId': typeof AuthenticatedOrderHistoryOrderIdRoute
 }
@@ -203,7 +249,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admin'
+    | '/management'
     | '/checkout'
     | '/edit-profile'
     | '/freelance-sign-up'
@@ -217,12 +263,17 @@ export interface FileRouteTypes {
     | '/service/$id'
     | '/product/'
     | '/service/'
+    | '/management/admin'
+    | '/management/freelance'
+    | '/management/payment'
+    | '/management/service'
+    | '/management/shop'
     | '/chat/$id'
     | '/order-history/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
+    | '/management'
     | '/checkout'
     | '/edit-profile'
     | '/freelance-sign-up'
@@ -236,6 +287,11 @@ export interface FileRouteTypes {
     | '/service/$id'
     | '/product'
     | '/service'
+    | '/management/admin'
+    | '/management/freelance'
+    | '/management/payment'
+    | '/management/service'
+    | '/management/shop'
     | '/chat/$id'
     | '/order-history/$orderId'
   id:
@@ -245,7 +301,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_freelance'
     | '/_guest'
-    | '/_admin/admin'
+    | '/_admin/management'
     | '/_authenticated/checkout'
     | '/_authenticated/edit-profile'
     | '/_authenticated/freelance-sign-up'
@@ -259,6 +315,11 @@ export interface FileRouteTypes {
     | '/service/$id'
     | '/product/'
     | '/service/'
+    | '/_admin/management/admin'
+    | '/_admin/management/freelance'
+    | '/_admin/management/payment'
+    | '/_admin/management/service'
+    | '/_admin/management/shop'
     | '/_authenticated/chat/$id'
     | '/_authenticated/order-history/$orderId'
   fileRoutesById: FileRoutesById
@@ -403,11 +464,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCheckoutRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_admin/admin': {
-      id: '/_admin/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminAdminRouteImport
+    '/_admin/management': {
+      id: '/_admin/management'
+      path: '/management'
+      fullPath: '/management'
+      preLoaderRoute: typeof AdminManagementRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_authenticated/order-history/$orderId': {
@@ -424,15 +485,70 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_admin/management/shop': {
+      id: '/_admin/management/shop'
+      path: '/shop'
+      fullPath: '/management/shop'
+      preLoaderRoute: typeof AdminManagementShopRouteImport
+      parentRoute: typeof AdminManagementRoute
+    }
+    '/_admin/management/service': {
+      id: '/_admin/management/service'
+      path: '/service'
+      fullPath: '/management/service'
+      preLoaderRoute: typeof AdminManagementServiceRouteImport
+      parentRoute: typeof AdminManagementRoute
+    }
+    '/_admin/management/payment': {
+      id: '/_admin/management/payment'
+      path: '/payment'
+      fullPath: '/management/payment'
+      preLoaderRoute: typeof AdminManagementPaymentRouteImport
+      parentRoute: typeof AdminManagementRoute
+    }
+    '/_admin/management/freelance': {
+      id: '/_admin/management/freelance'
+      path: '/freelance'
+      fullPath: '/management/freelance'
+      preLoaderRoute: typeof AdminManagementFreelanceRouteImport
+      parentRoute: typeof AdminManagementRoute
+    }
+    '/_admin/management/admin': {
+      id: '/_admin/management/admin'
+      path: '/admin'
+      fullPath: '/management/admin'
+      preLoaderRoute: typeof AdminManagementAdminRouteImport
+      parentRoute: typeof AdminManagementRoute
+    }
   }
 }
 
+interface AdminManagementRouteChildren {
+  AdminManagementAdminRoute: typeof AdminManagementAdminRoute
+  AdminManagementFreelanceRoute: typeof AdminManagementFreelanceRoute
+  AdminManagementPaymentRoute: typeof AdminManagementPaymentRoute
+  AdminManagementServiceRoute: typeof AdminManagementServiceRoute
+  AdminManagementShopRoute: typeof AdminManagementShopRoute
+}
+
+const AdminManagementRouteChildren: AdminManagementRouteChildren = {
+  AdminManagementAdminRoute: AdminManagementAdminRoute,
+  AdminManagementFreelanceRoute: AdminManagementFreelanceRoute,
+  AdminManagementPaymentRoute: AdminManagementPaymentRoute,
+  AdminManagementServiceRoute: AdminManagementServiceRoute,
+  AdminManagementShopRoute: AdminManagementShopRoute,
+}
+
+const AdminManagementRouteWithChildren = AdminManagementRoute._addFileChildren(
+  AdminManagementRouteChildren,
+)
+
 interface AdminRouteChildren {
-  AdminAdminRoute: typeof AdminAdminRoute
+  AdminManagementRoute: typeof AdminManagementRouteWithChildren
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
-  AdminAdminRoute: AdminAdminRoute,
+  AdminManagementRoute: AdminManagementRouteWithChildren,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

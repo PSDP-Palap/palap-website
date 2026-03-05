@@ -1,70 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 
-import type { UserRole } from "@/types/user";
+import Loading from "@/components/shared/Loading";
 import { useUserStore } from "@/stores/useUserStore";
-import supabase from "@/utils/supabase";
 
 const ProfilePage = () => {
-  const { profile, session, isLoading, setProfile } = useUserStore();
-  const [isRecoveringProfile, setIsRecoveringProfile] = useState(false);
+  const { profile, isLoading } = useUserStore();
 
-  useEffect(() => {
-    let isActive = true;
-
-    const recoverProfile = async () => {
-      if (isLoading || profile || !session?.user?.id) return;
-
-      try {
-        setIsRecoveringProfile(true);
-
-        const { data: fetchedProfile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .maybeSingle();
-
-        if (!isActive) return;
-
-        const roleFromMeta = session.user.app_metadata?.role as UserRole | undefined;
-
-        if (fetchedProfile) {
-          setProfile({
-            ...fetchedProfile,
-            role: roleFromMeta || fetchedProfile.role,
-          });
-          return;
-        }
-
-        setProfile({
-          id: session.user.id,
-          email: session.user.email || "",
-          full_name: session.user.user_metadata?.full_name || "",
-          role: roleFromMeta || "customer",
-          phone_number: null,
-          created_at: new Date().toISOString(),
-          address: null,
-        });
-      } finally {
-        if (isActive) {
-          setIsRecoveringProfile(false);
-        }
-      }
-    };
-
-    recoverProfile();
-
-    return () => {
-      isActive = false;
-    };
-  }, [isLoading, profile, session, setProfile]);
-
-  if (isLoading || (session && !profile && isRecoveringProfile)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#9a3c0b]"></div>
-      </div>
-    );
+  if (isLoading) {
+    return <Loading />;
   }
 
   if (!profile) {
