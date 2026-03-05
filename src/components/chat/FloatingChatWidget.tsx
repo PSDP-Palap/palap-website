@@ -238,7 +238,7 @@ const FloatingChatWidget = () => {
               ? await withTimeout(
                   supabase
                     .from("orders")
-                    .select("order_id, customer_id, freelancer_id, freelance_id")
+                    .select("order_id, customer_id, freelance_id")
                     .in("order_id", candidateOrderIds),
                   12000
                 )
@@ -345,7 +345,7 @@ const FloatingChatWidget = () => {
           ? await withTimeout(
               supabase
                 .from("orders")
-                .select("order_id, customer_id, freelancer_id, freelance_id")
+                .select("order_id, customer_id, freelance_id")
                 .in("order_id", orderIds),
               12000
             )
@@ -476,11 +476,18 @@ const FloatingChatWidget = () => {
       }
     };
 
-    loadConversations();
+    const loadConversationsThrottled = (() => {
+      let timer: number | null = null;
+      return () => {
+        if (timer) window.clearTimeout(timer);
+        timer = window.setTimeout(() => {
+          loadConversations();
+          timer = null;
+        }, 500);
+      };
+    })();
 
-    const pollingTimer = window.setInterval(() => {
-      loadConversations();
-    }, 4000);
+    loadConversations();
 
     const channel = supabase
       .channel(`floating-chat-${userId}`)
@@ -488,20 +495,20 @@ const FloatingChatWidget = () => {
         "postgres_changes",
         { event: "*", schema: "public", table: "chat_rooms" },
         () => {
-          loadConversations();
+          loadConversationsThrottled();
         }
       )
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages" },
         () => {
-          loadConversations();
+          loadConversationsThrottled();
         }
       )
       .subscribe();
 
     const handleExternalChatUpdate = () => {
-      loadConversations();
+      loadConversationsThrottled();
     };
     window.addEventListener("service-chat-updated", handleExternalChatUpdate);
 
@@ -511,7 +518,6 @@ const FloatingChatWidget = () => {
       if (fetchUnlockTimer) {
         window.clearTimeout(fetchUnlockTimer);
       }
-      window.clearInterval(pollingTimer);
       window.removeEventListener("service-chat-updated", handleExternalChatUpdate);
       supabase.removeChannel(channel);
     };
