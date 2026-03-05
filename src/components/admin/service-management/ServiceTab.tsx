@@ -47,7 +47,7 @@ export const ServiceTab = () => {
     (s) =>
       s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.service_id.toLowerCase().includes(searchTerm.toLowerCase())
+      s.service_id!.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const categoryLabel = (category: ServiceCategory) => {
@@ -159,7 +159,7 @@ export const ServiceTab = () => {
               {filteredServices.length > 0 ? (
                 filteredServices.map((service) => (
                   <tr
-                    key={service.service_id}
+                    key={service.service_id!}
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="px-6 py-4 text-sm font-mono text-gray-500">
@@ -168,15 +168,15 @@ export const ServiceTab = () => {
                           <span
                             className="cursor-pointer hover:text-[#A6411C] transition-colors"
                             onClick={() => {
-                              navigator.clipboard.writeText(service.service_id);
+                              navigator.clipboard.writeText(service.service_id!);
                               toast.success("คัดลอก ID เรียบร้อยแล้ว");
                             }}
                           >
-                            {service.service_id.split("-")[0]}...
+                            {service.service_id!.split("-")[0]}...
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>{service.service_id}</p>
+                          <p>{service.service_id!}</p>
                         </TooltipContent>
                       </Tooltip>
                     </td>
@@ -265,7 +265,7 @@ export const ServiceTab = () => {
         </div>
 
         <ServiceManagementDialog
-          key={selectedService?.service_id || "new"}
+          key={selectedService?.service_id! || "new"}
           isOpen={!!selectedService}
           service={selectedService}
           onClose={() => setSelectedService(null)}

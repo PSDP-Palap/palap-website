@@ -35,7 +35,7 @@ export const ShopTab = () => {
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.product_id.toLowerCase().includes(searchTerm.toLowerCase())
+      p.product_id!.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (isLoading) {
@@ -119,7 +119,7 @@ export const ShopTab = () => {
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
                   <tr
-                    key={product.product_id}
+                    key={product.product_id!}
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="px-6 py-4 text-sm font-mono text-gray-500">
@@ -128,15 +128,15 @@ export const ShopTab = () => {
                           <span
                             className="cursor-pointer hover:text-[#A6411C] transition-colors"
                             onClick={() => {
-                              navigator.clipboard.writeText(product.product_id);
+                              navigator.clipboard.writeText(product.product_id!);
                               toast.success("คัดลอก ID เรียบร้อยแล้ว");
                             }}
                           >
-                            {product.product_id.split("-")[0]}...
+                            {product.product_id!.split("-")[0]}...
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>{product.product_id}</p>
+                          <p>{product.product_id!}</p>
                         </TooltipContent>
                       </Tooltip>
                     </td>
@@ -163,7 +163,7 @@ export const ShopTab = () => {
                       {product.price.toLocaleString()} ฿
                     </td>
                     <td className="px-6 py-4 text-sm text-right text-gray-600">
-                      {product.qty.toLocaleString()}
+                      {product.qty!.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
@@ -219,7 +219,7 @@ export const ShopTab = () => {
         </div>
 
         <ProductManagementDialog
-          key={selectedProduct?.product_id || "new"}
+          key={selectedProduct?.product_id! || "new"}
           isOpen={!!selectedProduct}
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}

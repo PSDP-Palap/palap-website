@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Navigate, redirect } from "@tanstack/react-router";
 
 import BannerSection from "@/components/home/BannerSection";
 import HeaderSection from "@/components/home/HeaderSection";
@@ -32,35 +32,24 @@ function RouteComponent() {
 
   // If Freelance, show Freelance Dashboard
   if (profile?.role === "freelance") {
-    return (
-      <div className="pt-24 container mx-auto text-center">
-        <h1 className="text-2xl font-bold text-orange-600">
-          Freelance Dashboard
-        </h1>
-        <p className="mt-4 text-gray-600">
-          ยินดีต้อนรับ Freelance! คุณสามารถจัดการงานของคุณได้ที่นี่
-        </p>
-
-        <div className="mt-8 p-12 border-2 border-dashed border-gray-200 rounded-3xl">
-          <p className="text-gray-400">Freelance Features Coming Soon...</p>
-        </div>
-      </div>
-    );
+    return <Navigate to="/freelance" />;
   }
 
   // Otherwise, show regular Home Page (Customers & Guests)
   return (
     <main className="relative pb-16 bg-[#FFF2EC]">
-      <img src="home_header.png" alt="home_header" className="w-full" />
-
-      <div className="container m-auto">
+      <div className="relative">
+        <img src="home_header.png" alt="home_header" className="w-full" />
         <HeaderSection />
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4">
         <ServiceSection />
       </div>
 
       <BannerSection />
 
-      <div className="container m-auto">
+      <div className="max-w-6xl mx-auto px-4">
         <RecommendSection />
       </div>
     </main>

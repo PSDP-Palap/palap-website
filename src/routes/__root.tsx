@@ -3,8 +3,10 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
+import FloatingChatWidget from "@/components/chat/FloatingChatWidget";
 import Navbar from "@/components/Navbar";
 import Loading from "@/components/shared/Loading";
+import GlobalOrderTrackingWidget from "@/components/tracking/GlobalOrderTrackingWidget";
 import { useUserStore } from "@/stores/useUserStore";
 
 export const Route = createRootRoute({
@@ -31,6 +33,8 @@ function RootLayout() {
       <main>
         <Outlet />
       </main>
+      <GlobalOrderTrackingWidget />
+      <FloatingChatWidget />
       <TanStackRouterDevtools />
     </>
   );

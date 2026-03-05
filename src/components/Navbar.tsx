@@ -16,6 +16,7 @@ const Navbar = () => {
 
   const isLoggedIn = !!session;
   const displayName = profile?.full_name || session?.user?.email || null;
+  const isFreelancer = String(profile?.role || "").toLowerCase() === "freelance";
 
   // เช็คว่าเป็น Freelance หรือไม่
   const isFreelance = profile?.role === "freelance";
@@ -30,7 +31,14 @@ const Navbar = () => {
         </div>
         <ul className="flex gap-6 items-center">
           <li className="font-semibold hover:text-orange-500 transition-colors">
-            <Link to="/">HOME</Link>
+            {isFreelancer ? (
+              <Link to="/freelance">DASHBOARD</Link>
+            ) : (
+              <Link to="/">HOME</Link>
+            )}
+          </li>
+          <li className="font-semibold hover:text-orange-500 transition-colors">
+            <Link to="/product">PRODUCT</Link>
           </li>
 
           {/* --- ส่วนที่เพิ่มเข้ามา --- */}

@@ -7,13 +7,15 @@ import type { ServiceCategory } from "@/types/service";
 const categoryIconMap: Record<ServiceCategory, string> = {
   SHOPPING: "🍲",
   DELIVERY: "🚐",
-  CARE: "🦮"
+  CARE: "🦮",
+  DELIVERY_SESSION: "📦"
 };
 
 const categoryLabelMap: Record<ServiceCategory, string> = {
   SHOPPING: "ซื้อของ",
   DELIVERY: "รับ-ส่ง",
-  CARE: "ดูแลสัตว์เลี้ยง"
+  CARE: "ดูแลสัตว์เลี้ยง",
+  DELIVERY_SESSION: "ออเดอร์"
 };
 
 const ServiceSection = () => {
@@ -46,14 +48,15 @@ const ServiceSection = () => {
         {services.slice(0, 3).map((service) => (
           <Link
             to="/service/$id"
-            params={{ id: service.service_id }}
+            params={{ id: service.service_id || service.id || "" }}
             key={service.service_id}
             className="group"
           >
-            <div 
+            <div
               className="flex flex-col p-0 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-orange-100 overflow-hidden group relative"
               style={{
-                background: "linear-gradient(135deg, rgba(255, 155, 69, 0.3) 0%, rgba(255, 155, 69, 1) 100%)"
+                background:
+                  "linear-gradient(135deg, rgba(255, 155, 69, 0.3) 0%, rgba(255, 155, 69, 1) 100%)"
               }}
             >
               {/* Category Badge */}
@@ -97,8 +100,8 @@ const ServiceSection = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-        <div className="h-64 flex justify-between bg-linear-to-r from-orange-400 to-amber-400 rounded-[2.5rem] overflow-hidden shadow-lg group">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="h-64 flex justify-between bg-linear-to-r from-orange-400 to-amber-400 rounded-2xl overflow-hidden shadow-lg group">
           <div className="flex flex-col justify-center pl-10 z-10">
             <h2 className="text-3xl font-black text-white leading-tight">
               สัตว์เลี้ยงคุณยิ้ม
@@ -121,7 +124,7 @@ const ServiceSection = () => {
           </div>
         </div>
 
-        <div className="h-64 flex justify-between bg-[#9a3c0b] rounded-[2.5rem] overflow-hidden shadow-lg group">
+        <div className="h-64 flex justify-between bg-[#9a3c0b] rounded-2xl overflow-hidden shadow-lg group">
           <div className="relative w-1/2">
             <img
               src="./parrot-eating.png"

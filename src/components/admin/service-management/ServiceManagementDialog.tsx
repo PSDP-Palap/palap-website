@@ -94,7 +94,7 @@ export const ServiceManagementDialog = ({
         finalImageUrl = await uploadServiceImage(selectedFile);
       }
 
-      await onUpdate(service.service_id, { ...form, image_url: finalImageUrl });
+      await onUpdate(service.service_id!, { ...form, image_url: finalImageUrl });
       toast.success("บันทึกข้อมูลเรียบร้อยแล้ว", { id: loadingToast });
       setIsEditing(false);
       setSelectedFile(null);
@@ -110,7 +110,7 @@ export const ServiceManagementDialog = ({
     if (window.confirm("คุณต้องการลบบริการนี้ใช่หรือไม่?")) {
       const loadingToast = toast.loading("กำลังลบข้อมูล...");
       try {
-        await onDelete(service.service_id);
+        await onDelete(service.service_id!);
         toast.success("ลบข้อมูลเรียบร้อยแล้ว", { id: loadingToast });
         onClose();
       } catch (error) {
@@ -237,7 +237,7 @@ export const ServiceManagementDialog = ({
                 Service ID
               </label>
               <p className="text-xs font-mono text-gray-500 break-all">
-                {service.service_id}
+                {service.service_id!}
               </p>
             </div>
 

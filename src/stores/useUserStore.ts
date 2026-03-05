@@ -56,6 +56,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         const { data: profile } = await supabase
           .from("profiles")
           .select("*")
+          .eq("id", session.user.id)
           .single();
 
         let address = null;
@@ -63,7 +64,7 @@ export const useUserStore = create<UserState>((set, get) => ({
           const { data: customer } = await supabase
             .from("customers")
             .select("address")
-            .eq("id", profile.id)
+            .eq("id", session.user.id)
             .single();
           address = customer?.address;
         }
@@ -146,7 +147,6 @@ export const useUserStore = create<UserState>((set, get) => ({
               }
             });
           } else {
-            // Fallback if profile doesn't exist yet
             set({
               profile: {
                 id: session.user.id,
@@ -162,13 +162,15 @@ export const useUserStore = create<UserState>((set, get) => ({
         }
       }
     } catch (error) {
-      console.error("User initialization failed:", error);
+      console.error("[UserStore] User initialization failed catastrophically:", error);
     } finally {
+      console.log("[UserStore] Initialization finished.");
       set({ isLoading: false, isInitialized: true });
     }
 
     // 3. Setup Auth Listener
     supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("[UserStore] Auth state change event:", event);
       set({ session });
 
       if (

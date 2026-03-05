@@ -14,15 +14,22 @@ import { Route as FreelanceRouteImport } from './routes/_freelance'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ServiceIndexRouteImport } from './routes/service/index'
+import { Route as ProductIndexRouteImport } from './routes/product/index'
+import { Route as ServiceIdRouteImport } from './routes/service/$id'
+import { Route as ProductIdRouteImport } from './routes/product/$id'
 import { Route as GuestSignUpRouteImport } from './routes/_guest/sign-up'
 import { Route as GuestSignInRouteImport } from './routes/_guest/sign-in'
 import { Route as FreelanceFreelanceRouteImport } from './routes/_freelance/freelance'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedPaymentRouteImport } from './routes/_authenticated/payment'
+import { Route as AuthenticatedOrderSummaryRouteImport } from './routes/_authenticated/order-summary'
 import { Route as AuthenticatedFreelanceSignUpRouteImport } from './routes/_authenticated/freelance-sign-up'
 import { Route as AuthenticatedEditProfileRouteImport } from './routes/_authenticated/edit-profile'
+import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AdminManagementRouteImport } from './routes/_admin/management'
-import { Route as AuthenticatedServiceIndexRouteImport } from './routes/_authenticated/service/index'
-import { Route as AuthenticatedServiceIdRouteImport } from './routes/_authenticated/service/$id'
+import { Route as AuthenticatedOrderHistoryOrderIdRouteImport } from './routes/_authenticated/order-history/$orderId'
+import { Route as AuthenticatedChatIdRouteImport } from './routes/_authenticated/chat/$id'
 import { Route as AdminManagementShopRouteImport } from './routes/_admin/management/shop'
 import { Route as AdminManagementServiceRouteImport } from './routes/_admin/management/service'
 import { Route as AdminManagementPaymentRouteImport } from './routes/_admin/management/payment'
@@ -50,6 +57,26 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServiceIndexRoute = ServiceIndexRouteImport.update({
+  id: '/service/',
+  path: '/service/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductIndexRoute = ProductIndexRouteImport.update({
+  id: '/product/',
+  path: '/product/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServiceIdRoute = ServiceIdRouteImport.update({
+  id: '/service/$id',
+  path: '/service/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductIdRoute = ProductIdRouteImport.update({
+  id: '/product/$id',
+  path: '/product/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GuestSignUpRoute = GuestSignUpRouteImport.update({
   id: '/sign-up',
   path: '/sign-up',
@@ -70,6 +97,17 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPaymentRoute = AuthenticatedPaymentRouteImport.update({
+  id: '/payment',
+  path: '/payment',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedOrderSummaryRoute =
+  AuthenticatedOrderSummaryRouteImport.update({
+    id: '/order-summary',
+    path: '/order-summary',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedFreelanceSignUpRoute =
   AuthenticatedFreelanceSignUpRouteImport.update({
     id: '/freelance-sign-up',
@@ -82,20 +120,25 @@ const AuthenticatedEditProfileRoute =
     path: '/edit-profile',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AdminManagementRoute = AdminManagementRouteImport.update({
   id: '/management',
   path: '/management',
   getParentRoute: () => AdminRoute,
 } as any)
-const AuthenticatedServiceIndexRoute =
-  AuthenticatedServiceIndexRouteImport.update({
-    id: '/service/',
-    path: '/service/',
+const AuthenticatedOrderHistoryOrderIdRoute =
+  AuthenticatedOrderHistoryOrderIdRouteImport.update({
+    id: '/order-history/$orderId',
+    path: '/order-history/$orderId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedServiceIdRoute = AuthenticatedServiceIdRouteImport.update({
-  id: '/service/$id',
-  path: '/service/$id',
+const AuthenticatedChatIdRoute = AuthenticatedChatIdRouteImport.update({
+  id: '/chat/$id',
+  path: '/chat/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AdminManagementShopRoute = AdminManagementShopRouteImport.update({
@@ -128,36 +171,50 @@ const AdminManagementAdminRoute = AdminManagementAdminRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/management': typeof AdminManagementRouteWithChildren
+  '/checkout': typeof AuthenticatedCheckoutRoute
   '/edit-profile': typeof AuthenticatedEditProfileRoute
   '/freelance-sign-up': typeof AuthenticatedFreelanceSignUpRoute
+  '/order-summary': typeof AuthenticatedOrderSummaryRoute
+  '/payment': typeof AuthenticatedPaymentRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/freelance': typeof FreelanceFreelanceRoute
   '/sign-in': typeof GuestSignInRoute
   '/sign-up': typeof GuestSignUpRoute
+  '/product/$id': typeof ProductIdRoute
+  '/service/$id': typeof ServiceIdRoute
+  '/product/': typeof ProductIndexRoute
+  '/service/': typeof ServiceIndexRoute
   '/management/admin': typeof AdminManagementAdminRoute
   '/management/freelance': typeof AdminManagementFreelanceRoute
   '/management/payment': typeof AdminManagementPaymentRoute
   '/management/service': typeof AdminManagementServiceRoute
   '/management/shop': typeof AdminManagementShopRoute
-  '/service/$id': typeof AuthenticatedServiceIdRoute
-  '/service/': typeof AuthenticatedServiceIndexRoute
+  '/chat/$id': typeof AuthenticatedChatIdRoute
+  '/order-history/$orderId': typeof AuthenticatedOrderHistoryOrderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/management': typeof AdminManagementRouteWithChildren
+  '/checkout': typeof AuthenticatedCheckoutRoute
   '/edit-profile': typeof AuthenticatedEditProfileRoute
   '/freelance-sign-up': typeof AuthenticatedFreelanceSignUpRoute
+  '/order-summary': typeof AuthenticatedOrderSummaryRoute
+  '/payment': typeof AuthenticatedPaymentRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/freelance': typeof FreelanceFreelanceRoute
   '/sign-in': typeof GuestSignInRoute
   '/sign-up': typeof GuestSignUpRoute
+  '/product/$id': typeof ProductIdRoute
+  '/service/$id': typeof ServiceIdRoute
+  '/product': typeof ProductIndexRoute
+  '/service': typeof ServiceIndexRoute
   '/management/admin': typeof AdminManagementAdminRoute
   '/management/freelance': typeof AdminManagementFreelanceRoute
   '/management/payment': typeof AdminManagementPaymentRoute
   '/management/service': typeof AdminManagementServiceRoute
   '/management/shop': typeof AdminManagementShopRoute
-  '/service/$id': typeof AuthenticatedServiceIdRoute
-  '/service': typeof AuthenticatedServiceIndexRoute
+  '/chat/$id': typeof AuthenticatedChatIdRoute
+  '/order-history/$orderId': typeof AuthenticatedOrderHistoryOrderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -167,55 +224,76 @@ export interface FileRoutesById {
   '/_freelance': typeof FreelanceRouteWithChildren
   '/_guest': typeof GuestRouteWithChildren
   '/_admin/management': typeof AdminManagementRouteWithChildren
+  '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/edit-profile': typeof AuthenticatedEditProfileRoute
   '/_authenticated/freelance-sign-up': typeof AuthenticatedFreelanceSignUpRoute
+  '/_authenticated/order-summary': typeof AuthenticatedOrderSummaryRoute
+  '/_authenticated/payment': typeof AuthenticatedPaymentRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_freelance/freelance': typeof FreelanceFreelanceRoute
   '/_guest/sign-in': typeof GuestSignInRoute
   '/_guest/sign-up': typeof GuestSignUpRoute
+  '/product/$id': typeof ProductIdRoute
+  '/service/$id': typeof ServiceIdRoute
+  '/product/': typeof ProductIndexRoute
+  '/service/': typeof ServiceIndexRoute
   '/_admin/management/admin': typeof AdminManagementAdminRoute
   '/_admin/management/freelance': typeof AdminManagementFreelanceRoute
   '/_admin/management/payment': typeof AdminManagementPaymentRoute
   '/_admin/management/service': typeof AdminManagementServiceRoute
   '/_admin/management/shop': typeof AdminManagementShopRoute
-  '/_authenticated/service/$id': typeof AuthenticatedServiceIdRoute
-  '/_authenticated/service/': typeof AuthenticatedServiceIndexRoute
+  '/_authenticated/chat/$id': typeof AuthenticatedChatIdRoute
+  '/_authenticated/order-history/$orderId': typeof AuthenticatedOrderHistoryOrderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/management'
+    | '/checkout'
     | '/edit-profile'
     | '/freelance-sign-up'
+    | '/order-summary'
+    | '/payment'
     | '/profile'
     | '/freelance'
     | '/sign-in'
     | '/sign-up'
+    | '/product/$id'
+    | '/service/$id'
+    | '/product/'
+    | '/service/'
     | '/management/admin'
     | '/management/freelance'
     | '/management/payment'
     | '/management/service'
     | '/management/shop'
-    | '/service/$id'
-    | '/service/'
+    | '/chat/$id'
+    | '/order-history/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/management'
+    | '/checkout'
     | '/edit-profile'
     | '/freelance-sign-up'
+    | '/order-summary'
+    | '/payment'
     | '/profile'
     | '/freelance'
     | '/sign-in'
     | '/sign-up'
+    | '/product/$id'
+    | '/service/$id'
+    | '/product'
+    | '/service'
     | '/management/admin'
     | '/management/freelance'
     | '/management/payment'
     | '/management/service'
     | '/management/shop'
-    | '/service/$id'
-    | '/service'
+    | '/chat/$id'
+    | '/order-history/$orderId'
   id:
     | '__root__'
     | '/'
@@ -224,19 +302,26 @@ export interface FileRouteTypes {
     | '/_freelance'
     | '/_guest'
     | '/_admin/management'
+    | '/_authenticated/checkout'
     | '/_authenticated/edit-profile'
     | '/_authenticated/freelance-sign-up'
+    | '/_authenticated/order-summary'
+    | '/_authenticated/payment'
     | '/_authenticated/profile'
     | '/_freelance/freelance'
     | '/_guest/sign-in'
     | '/_guest/sign-up'
+    | '/product/$id'
+    | '/service/$id'
+    | '/product/'
+    | '/service/'
     | '/_admin/management/admin'
     | '/_admin/management/freelance'
     | '/_admin/management/payment'
     | '/_admin/management/service'
     | '/_admin/management/shop'
-    | '/_authenticated/service/$id'
-    | '/_authenticated/service/'
+    | '/_authenticated/chat/$id'
+    | '/_authenticated/order-history/$orderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -245,6 +330,10 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   FreelanceRoute: typeof FreelanceRouteWithChildren
   GuestRoute: typeof GuestRouteWithChildren
+  ProductIdRoute: typeof ProductIdRoute
+  ServiceIdRoute: typeof ServiceIdRoute
+  ProductIndexRoute: typeof ProductIndexRoute
+  ServiceIndexRoute: typeof ServiceIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -284,6 +373,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/service/': {
+      id: '/service/'
+      path: '/service'
+      fullPath: '/service/'
+      preLoaderRoute: typeof ServiceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/': {
+      id: '/product/'
+      path: '/product'
+      fullPath: '/product/'
+      preLoaderRoute: typeof ProductIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/service/$id': {
+      id: '/service/$id'
+      path: '/service/$id'
+      fullPath: '/service/$id'
+      preLoaderRoute: typeof ServiceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/$id': {
+      id: '/product/$id'
+      path: '/product/$id'
+      fullPath: '/product/$id'
+      preLoaderRoute: typeof ProductIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_guest/sign-up': {
       id: '/_guest/sign-up'
       path: '/sign-up'
@@ -312,6 +429,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/payment': {
+      id: '/_authenticated/payment'
+      path: '/payment'
+      fullPath: '/payment'
+      preLoaderRoute: typeof AuthenticatedPaymentRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/order-summary': {
+      id: '/_authenticated/order-summary'
+      path: '/order-summary'
+      fullPath: '/order-summary'
+      preLoaderRoute: typeof AuthenticatedOrderSummaryRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/freelance-sign-up': {
       id: '/_authenticated/freelance-sign-up'
       path: '/freelance-sign-up'
@@ -326,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEditProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/checkout': {
+      id: '/_authenticated/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof AuthenticatedCheckoutRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_admin/management': {
       id: '/_admin/management'
       path: '/management'
@@ -333,18 +471,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminManagementRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/_authenticated/service/': {
-      id: '/_authenticated/service/'
-      path: '/service'
-      fullPath: '/service/'
-      preLoaderRoute: typeof AuthenticatedServiceIndexRouteImport
+    '/_authenticated/order-history/$orderId': {
+      id: '/_authenticated/order-history/$orderId'
+      path: '/order-history/$orderId'
+      fullPath: '/order-history/$orderId'
+      preLoaderRoute: typeof AuthenticatedOrderHistoryOrderIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/service/$id': {
-      id: '/_authenticated/service/$id'
-      path: '/service/$id'
-      fullPath: '/service/$id'
-      preLoaderRoute: typeof AuthenticatedServiceIdRouteImport
+    '/_authenticated/chat/$id': {
+      id: '/_authenticated/chat/$id'
+      path: '/chat/$id'
+      fullPath: '/chat/$id'
+      preLoaderRoute: typeof AuthenticatedChatIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_admin/management/shop': {
@@ -416,19 +554,25 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedEditProfileRoute: typeof AuthenticatedEditProfileRoute
   AuthenticatedFreelanceSignUpRoute: typeof AuthenticatedFreelanceSignUpRoute
+  AuthenticatedOrderSummaryRoute: typeof AuthenticatedOrderSummaryRoute
+  AuthenticatedPaymentRoute: typeof AuthenticatedPaymentRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
-  AuthenticatedServiceIdRoute: typeof AuthenticatedServiceIdRoute
-  AuthenticatedServiceIndexRoute: typeof AuthenticatedServiceIndexRoute
+  AuthenticatedChatIdRoute: typeof AuthenticatedChatIdRoute
+  AuthenticatedOrderHistoryOrderIdRoute: typeof AuthenticatedOrderHistoryOrderIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedEditProfileRoute: AuthenticatedEditProfileRoute,
   AuthenticatedFreelanceSignUpRoute: AuthenticatedFreelanceSignUpRoute,
+  AuthenticatedOrderSummaryRoute: AuthenticatedOrderSummaryRoute,
+  AuthenticatedPaymentRoute: AuthenticatedPaymentRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-  AuthenticatedServiceIdRoute: AuthenticatedServiceIdRoute,
-  AuthenticatedServiceIndexRoute: AuthenticatedServiceIndexRoute,
+  AuthenticatedChatIdRoute: AuthenticatedChatIdRoute,
+  AuthenticatedOrderHistoryOrderIdRoute: AuthenticatedOrderHistoryOrderIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -465,6 +609,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   FreelanceRoute: FreelanceRouteWithChildren,
   GuestRoute: GuestRouteWithChildren,
+  ProductIdRoute: ProductIdRoute,
+  ServiceIdRoute: ServiceIdRoute,
+  ProductIndexRoute: ProductIndexRoute,
+  ServiceIndexRoute: ServiceIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

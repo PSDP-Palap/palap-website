@@ -1,0 +1,82 @@
+interface CardDetailsFormProps {
+  cardNumber: string;
+  setCardNumber: (val: string) => void;
+  cardholderName: string;
+  setCardholderName: (val: string) => void;
+  cardExpiry: string;
+  setCardExpiry: (val: string) => void;
+  cardCvv: string;
+  setCardCvv: (val: string) => void;
+  formatCardNumber: (val: string) => string;
+  formatExpiry: (val: string) => string;
+  canProceedCard: boolean;
+}
+
+export function CardDetailsForm({
+  cardNumber,
+  setCardNumber,
+  cardholderName,
+  setCardholderName,
+  cardExpiry,
+  setCardExpiry,
+  cardCvv,
+  setCardCvv,
+  formatCardNumber,
+  formatExpiry,
+  canProceedCard,
+}: CardDetailsFormProps) {
+  return (
+    <section className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+      <h2 className="text-2xl font-black text-[#4A2600] mb-3">Card Details</h2>
+      <div className="space-y-4">
+        <div>
+          <p className="text-sm font-bold text-[#4A2600] mb-1">Card Number</p>
+          <input
+            value={cardNumber}
+            onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            placeholder="1234 5678 9012 3456"
+          />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-[#4A2600] mb-1">
+            Cardholder Name
+          </p>
+          <input
+            value={cardholderName}
+            onChange={(e) => setCardholderName(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            placeholder="Somsuk Kumkeaw"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-sm font-bold text-[#4A2600] mb-1">Expiry Date</p>
+            <input
+              value={cardExpiry}
+              onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              placeholder="MM/YY"
+            />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-[#4A2600] mb-1">CVV</p>
+            <input
+              value={cardCvv}
+              onChange={(e) =>
+                setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))
+              }
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              placeholder="123"
+            />
+          </div>
+        </div>
+        {!canProceedCard && (
+          <p className="text-xs font-semibold text-orange-600">
+            Please enter valid card format to proceed.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}

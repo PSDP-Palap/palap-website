@@ -29,7 +29,7 @@ const features: FeatureItem[] = [
 const BannerSection = () => {
   return (
     <section className="flex flex-col gap-12">
-      <div className="relative overflow-hidden md:rounded-[3rem] container mx-auto shadow-2xl">
+      <div className="relative overflow-hidden md:rounded-2xl max-w-6xl mx-auto shadow-2xl">
         <img
           src="./home_banner.png"
           alt="banner"
@@ -49,7 +49,7 @@ const BannerSection = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {features.map((feature, index) => (
             <div

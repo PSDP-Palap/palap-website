@@ -8,12 +8,12 @@ type ProductState = {
   products: Product[];
   addresses: Address[];
   isLoading: boolean;
-  loadProducts: () => Promise<void>;
+  loadProducts: (limit?: number) => Promise<void>;
   loadAddresses: () => Promise<void>;
-  createProduct: (product: Omit<Product, "product_id" | "created_at" | "pickup_address">) => Promise<void>;
+  createProduct: (product: Omit<Product, "product_id" | "created_at" | "pickup_address" | "id">) => Promise<void>;
   updateProduct: (
     productId: string,
-    partial: Partial<Omit<Product, "product_id" | "created_at" | "pickup_address">>
+    partial: Partial<Omit<Product, "product_id" | "created_at" | "pickup_address" | "id">>
   ) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   uploadImage: (file: File) => Promise<string>;
@@ -24,15 +24,21 @@ export const useProductStore = create<ProductState>((set, get) => ({
   products: [],
   addresses: [],
   isLoading: false,
-  loadProducts: async () => {
+  loadProducts: async (limit) => {
     set({ isLoading: true });
-    const { data, error } = await supabase
+    let query = supabase
       .from("products")
       .select(`
         *,
         pickup_address:addresses(*)
       `)
       .order("created_at", { ascending: false });
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Failed to load products from Supabase", error);

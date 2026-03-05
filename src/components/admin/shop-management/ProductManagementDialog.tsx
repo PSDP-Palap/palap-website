@@ -114,7 +114,7 @@ export const ProductManagementDialog = ({
         finalAddressId = createdAddr.id;
       }
 
-      await onUpdate(product.product_id, {
+      await onUpdate(product.product_id!, {
         ...form,
         image_url: finalImageUrl,
         pickup_address_id: finalAddressId
@@ -136,7 +136,7 @@ export const ProductManagementDialog = ({
     if (window.confirm("คุณต้องการลบสินค้านี้ใช่หรือไม่?")) {
       const loadingToast = toast.loading("กำลังลบสินค้า...");
       try {
-        await onDelete(product.product_id);
+        await onDelete(product.product_id!);
         toast.success("ลบสินค้าเรียบร้อยแล้ว", { id: loadingToast });
         onClose();
         // eslint-disable-next-line unused-imports/no-unused-vars
@@ -251,7 +251,7 @@ export const ProductManagementDialog = ({
                 Product ID
               </label>
               <p className="text-xs font-mono text-gray-500 break-all">
-                {product.product_id}
+                {product.product_id!}
               </p>
             </div>
 
@@ -281,7 +281,7 @@ export const ProductManagementDialog = ({
                       Quantity
                     </label>
                     <p className="font-bold text-gray-800">
-                      {product.qty.toLocaleString()}
+                      {product.qty!.toLocaleString()}
                     </p>
                   </div>
                 </div>
