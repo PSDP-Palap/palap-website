@@ -316,28 +316,32 @@ export function ServiceChat({
                 )}
 
                 {messages.map((message) => {
-                  const isMine =
-                    String(message.sender_id) === String(currentUserId);
-                  const imageUrl = extractImageUrl(message.message);
+                  const isMine = String(message.sender_id) === String(currentUserId);
+                  const imageUrl = extractImageUrl(message.message); // URL ที่ได้จาก DB
+
                   return (
-                    <div
-                      key={String(message.id)}
-                      className={`flex ${isMine ? "justify-end" : "justify-start"}`}
-                    >
-                      <div
-                        className={`max-w-[50%] rounded-2xl px-4 py-2 text-sm border shadow-sm wrap-break-word overflow-hidden ${isMine ? "bg-[#F2A779] border-orange-300 text-[#4A2600]" : "bg-white border-orange-200 text-[#4A2600]"}`}
-                      >
+                    <div key={String(message.id)} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[50%] rounded-2xl px-4 py-2 text-sm border shadow-sm ${isMine ? "bg-[#F2A779] border-orange-300 text-[#4A2600]" : "bg-white border-orange-200 text-[#4A2600]"}`}>
+                        
+                        {/* ตรงนี้คือจุดแสดงรูป */}
                         {imageUrl ? (
                           <img
-                            src={imageUrl}
+                            // ใส่ .trim() เพื่อลบช่องว่างทิ้ง กัน URL พัง
+                            src={imageUrl.trim()} 
                             alt="Chat image"
-                            className="max-h-64 w-auto rounded-lg border border-orange-200 object-contain"
+                            className="max-h-64 w-auto rounded-lg border border-orange-200 object-contain cursor-pointer"
+                            onClick={() => window.open(imageUrl.trim(), '_blank')}
+                            onError={(e) => {
+                              // ถ้าขึ้นไอคอนแตก ให้กด F12 แล้วดู Console มันจะบอกเลยว่า URL พังตรงไหน
+                              console.error("DEBUG: รูปโหลดไม่ได้ URL คือ:", e.currentTarget.src);
+                            }}
                           />
                         ) : (
                           <p className="whitespace-pre-wrap break-all">
                             {formatMessageText(message.message)}
                           </p>
                         )}
+                        
                         <p className="text-[10px] mt-1 opacity-70">
                           {new Date(message.created_at).toLocaleString()}
                         </p>

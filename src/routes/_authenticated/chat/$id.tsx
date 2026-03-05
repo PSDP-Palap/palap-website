@@ -471,45 +471,65 @@ function ChatRouteComponent() {
     }
   };
 
-  const onImageSelected = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const onImageSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !roomId || !currentUserId || !orderId) return;
+    // 1. Debug เบื้องต้น: ถ้าไม่มีไฟล์หรือค่าว่าง
+    if (!file || !roomId || !currentUserId || !orderId) {
+      console.log("DEBUG: ข้อมูลไม่ครบ", { file: !!file, roomId, currentUserId, orderId });
+      return;
+    }
 
     try {
       setSendingImage(true);
       const fileExt = file.name.split(".").pop();
       const fileName = `${roomId}_${Date.now()}.${fileExt}`;
-      const filePath = `chat_images/${fileName}`;
+      const filePath = `chat_images/${fileName}`; // โฟลเดอร์ย่อย
 
+      console.log("DEBUG: กำลังส่งไปที่ถัง (Bucket): service-images");
+
+      // 2. ถ้ามัน error ตรงนี้ ให้ดู Console
       const { error: uploadError } = await supabase.storage
-        .from("service-images")
+        .from("chat-images") 
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("DEBUG: อัปโหลด Storage พัง (เช็ค Policy ใน Supabase Dashboard):", uploadError);
+        throw uploadError;
+      }
+
+      console.log("DEBUG: อัปโหลดสำเร็จ กำลังดึง URL...");
 
       const { data: publicUrlData } = supabase.storage
-        .from("service-images")
+        .from("chat-images")
         .getPublicUrl(filePath);
 
       const publicUrl = publicUrlData.publicUrl;
       const imgMsg = toImageMessage(publicUrl);
 
-      await supabase.from("chat_messages").insert({
+      console.log("DEBUG: กำลังบันทึกข้อความลง DB...");
+
+      const { error: dbError } = await supabase.from("chat_messages").insert({
         room_id: roomId,
         order_id: orderId,
         sender_id: currentUserId,
         message: imgMsg
       });
+
+      if (dbError) {
+        console.error("DEBUG: บันทึกข้อความลงตาราง chat_messages พัง:", dbError);
+        throw dbError;
+      }
+      
+      console.log("DEBUG: ส่งรูปสำเร็จ!");
     } catch (e: any) {
+      console.error("DEBUG: พังที่ขั้นตอน:", e);
       setChatError(e.message);
+      alert("ส่งรูปไม่สำเร็จ (ดู Console/F12 เพื่อดูสาเหตุ)");
     } finally {
       setSendingImage(false);
       if (imageInputRef.current) imageInputRef.current.value = "";
     }
   };
-
   useEffect(() => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop =
