@@ -270,24 +270,16 @@ function GlobalOrderTrackingWidget() {
                 .maybeSingle()
             : { data: null as any };
 
-        const { data: doneMarkerRow } = await supabase
-          .from("chat_messages")
-          .select("id")
-          .eq("order_id", orderId)
-          .like("content", "[SYSTEM_DELIVERY_DONE] ORDER:%")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
         const addressMap = new Map(
           (addressRows ?? []).map((row: any) => [String(row.id), row])
         );
         const rawStatus = String(orderRow.status || "").toUpperCase();
-        const nextStatus =
-          hasDoneMarker ||
-          isCompletedOrderStatus(rawStatus, orderRow.payment_id)
-            ? "COMPLETE"
-            : rawStatus || "WAITING";
+        const nextStatus = isCompletedOrderStatus(
+          rawStatus,
+          orderRow.payment_id
+        )
+          ? "COMPLETE"
+          : rawStatus || "WAITING";
 
         // Only clear and close if it's REALLY finished (paid or marked as done)
         if (
@@ -517,8 +509,7 @@ function GlobalOrderTrackingWidget() {
     !userId ||
     !isCustomer ||
     isActiveChatPage ||
-    isPaymentConfirmPage ||
-    (ongoingOrderIds.length === 0 && !activeOrderId)
+    isPaymentConfirmPage
   ) {
     return null;
   }

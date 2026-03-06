@@ -15,8 +15,10 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const { isLoading, initialize, profile } = useUserStore();
-  const isAdmin = profile?.role === "admin";
-  const isFreelance = profile?.role === "customer";
+  const role = String(profile?.role || "").toLowerCase();
+  const isAdmin = role === "admin";
+  const isCustomer = role === "customer";
+  const isFreelance = role === "freelance";
 
   useEffect(() => {
     initialize();
@@ -33,12 +35,8 @@ function RootLayout() {
       <main>
         <Outlet />
       </main>
-      {isFreelance && (
-        <>
-          <GlobalOrderTrackingWidget />
-          <FloatingChatWidget />
-        </>
-      )}
+      {isCustomer && <GlobalOrderTrackingWidget />}
+      {(isCustomer || isFreelance) && <FloatingChatWidget />}
       <TanStackRouterDevtools />
     </>
   );
