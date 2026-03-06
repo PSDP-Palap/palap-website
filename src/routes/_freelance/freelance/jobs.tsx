@@ -447,28 +447,37 @@ function JobsRoute() {
     }
   };
 
-  const acceptDeliveryOrder = async (order: DeliveryOrderItem) => {
-    if (!currentUserId) return;
-    try {
-      setAcceptingOrderId(order.orderId);
-      const payload = {
-        freelancer_id: currentUserId,
-        freelance_id: currentUserId,
-        status: "ON_MY_WAY"
-      };
-      const { error } = await supabase
-        .from("orders")
-        .update(payload)
-        .eq("order_id", order.orderId);
-      if (error) throw error;
-      setSuccess(`Accepted order ${order.orderId}`);
-      await loadDeliveryOrders();
-    } catch (err: any) {
-      setError(err?.message || "Unable to accept order.");
-    } finally {
-      setAcceptingOrderId(null);
+const acceptDeliveryOrder = async (order: DeliveryOrderItem) => {
+  if (!currentUserId) return;
+  try {
+    setAcceptingOrderId(order.orderId);
+    
+    // ตรวจสอบชื่อคอลัมน์ให้ตรงกับ Database ของคุณ!
+    // ส่วนใหญ่มักจะเป็น 'freelance_id' หรือ 'freelancer_id' (เลือกตัวใดตัวหนึ่ง)
+    const payload = {
+      freelance_id: currentUserId, 
+      status: "ON_MY_WAY"
+    };
+
+    const { error } = await supabase
+      .from("orders")
+      .update(payload)
+      .eq("order_id", order.orderId);
+
+    if (error) {
+      console.error("Supabase Update Error:", error); // ดูรายละเอียดใน Console
+      throw error;
     }
-  };
+    
+    toast.success("Order accepted!");
+    await loadDeliveryOrders();
+  } catch (err: any) {
+    console.error(err);
+    toast.error(err?.message || "Unable to accept order.");
+  } finally {
+    setAcceptingOrderId(null);
+  }
+};
 
   const completeDeliveryOrder = async (order: DeliveryOrderItem) => {
     if (!currentUserId) return;
