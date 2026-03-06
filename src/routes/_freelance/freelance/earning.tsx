@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import EarningTab from "@/components/freelance/EarningTab";
 import { useUserStore } from "@/stores/useUserStore";
+import type { Transaction } from "@/types/payment";
 import supabase from "@/utils/supabase";
 
 export const Route = createFileRoute("/_freelance/freelance/earning")({
@@ -18,10 +19,10 @@ function EarningRoute() {
     completedOrders: 0,
     pendingOrders: 0
   });
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingEarning, setLoadingEarning] = useState(false);
 
-  const loadEarningSummary = async () => {
+  const loadEarningSummary = useCallback(async () => {
     if (!currentUserId) return;
     try {
       setLoadingEarning(true);
@@ -33,7 +34,7 @@ function EarningRoute() {
 
       if (error) throw error;
 
-      const list = earnings || [];
+      const list = (earnings || []) as Transaction[];
       const total = list
         .filter((e) => e.status === "completed" || e.status === "paid")
         .reduce((sum, e) => sum + Number(e.amount || 0), 0);
@@ -53,11 +54,11 @@ function EarningRoute() {
     } finally {
       setLoadingEarning(false);
     }
-  };
+  }, [currentUserId]);
 
   useEffect(() => {
     loadEarningSummary();
-  }, [currentUserId]);
+  }, [loadEarningSummary]);
 
   return (
     <EarningTab

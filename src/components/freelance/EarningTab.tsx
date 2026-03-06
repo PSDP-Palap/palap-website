@@ -1,4 +1,5 @@
 import Loading from "@/components/shared/Loading";
+import type { Transaction } from "@/types/payment";
 
 interface EarningTabProps {
   loadingEarning: boolean;
@@ -8,7 +9,7 @@ interface EarningTabProps {
     completedOrders: number;
     pendingOrders: number;
   };
-  transactions: any[];
+  transactions: Transaction[];
 }
 
 const EarningTab = ({ loadingEarning, earningSummary, transactions }: EarningTabProps) => {

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import Loading from "@/components/shared/Loading";
 
+import Loading from "@/components/shared/Loading";
 import MapPicker from "@/components/shared/MapPicker";
 import { useProductStore } from "@/stores/useProductStore";
 import type { Product } from "@/types/product";

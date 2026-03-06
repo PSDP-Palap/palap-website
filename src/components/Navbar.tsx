@@ -25,7 +25,6 @@ const Navbar = () => {
   const displayName = profile?.full_name || session?.user?.email || "User";
   const isFreelancer =
     String(profile?.role || "").toLowerCase() === "freelance";
-  const isCustomer = String(profile?.role || "").toLowerCase() === "customer";
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 

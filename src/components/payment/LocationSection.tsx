@@ -1,5 +1,8 @@
-import { MapContainer, TileLayer, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+
+import { MapContainer, TileLayer, useMapEvents } from "react-leaflet";
+
+import type { Address } from "@/types/address";
 
 interface LocationSectionProps {
   isEditingLocation: boolean;
@@ -9,7 +12,7 @@ interface LocationSectionProps {
   detectingLocation: boolean;
   resolvingAddress: boolean;
   savingLocation: boolean;
-  savedAddress: any;
+  savedAddress: Address | null;
   isMapExpanded: boolean;
   setIsMapExpanded: (val: boolean | ((prev: boolean) => boolean)) => void;
   locationName: string;

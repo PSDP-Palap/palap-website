@@ -154,7 +154,7 @@ function GlobalOrderTrackingWidget() {
         lastOngoingFetchTimeRef.current = Date.now();
         setOngoingOrderIds(result);
         return result;
-      } catch (err) {
+      } catch {
         return null;
       } finally {
         isFetchingOngoingRef.current = false;
@@ -341,25 +341,26 @@ function GlobalOrderTrackingWidget() {
         }
       }
     },
-    [getOngoingOrderIds]
+    [setTracking]
   );
+const handleManualRefresh = async () => {
+  try {
+    setLoading(true);
+    // Force refresh ongoing list
+    await getOngoingOrderIds([], true);
 
-  const handleManualRefresh = async () => {
-    try {
-      setLoading(true);
-      // Force refresh ongoing list
-      await getOngoingOrderIds([], true);
-
-      // Refresh current tracking if exists
-      if (activeOrderId) {
-        await loadTracking(activeOrderId);
-      }
-    } catch (err) {
-      toast.error("Failed to refresh");
-    } finally {
-      setLoading(false);
+    // Refresh current tracking if exists
+    if (activeOrderId) {
+      await loadTracking(activeOrderId);
     }
-  };
+    toast.success("Updated");
+  } catch {
+    toast.error("Failed to refresh");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     if (isPaymentConfirmPage) return;
@@ -389,7 +390,8 @@ function GlobalOrderTrackingWidget() {
     isInitialized,
     activeOrderId,
     getOngoingOrderIds,
-    setActiveOrderId
+    setActiveOrderId,
+    setTracking
   ]);
 
   useEffect(() => {
@@ -429,7 +431,7 @@ function GlobalOrderTrackingWidget() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isPaymentConfirmPage, isCustomer, activeOrderId, loadTracking]);
+  }, [isPaymentConfirmPage, isCustomer, activeOrderId, loadTracking, setTracking]);
 
   const handleOpenChat = async () => {
     const targetOrderId = tracking?.orderId || activeOrderId;
@@ -477,7 +479,7 @@ function GlobalOrderTrackingWidget() {
           "Could not start chat. Freelancer might not be assigned yet."
         );
       }
-    } catch (err: any) {
+    } catch {
       toast.error("Failed to open chat");
     } finally {
       setLoading(false);

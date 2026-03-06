@@ -7,7 +7,6 @@ import Loading from "@/components/shared/Loading";
 import { useUserStore } from "@/stores/useUserStore";
 import {
   cleanPreviewMessage,
-  isSystemMessage,
   withTimeout
 } from "@/utils/helpers";
 import supabase, { isUuidLike } from "@/utils/supabase";

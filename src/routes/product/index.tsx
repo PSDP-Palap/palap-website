@@ -9,12 +9,22 @@ import { useCartStore } from "@/stores/useCartStore";
 import type { Product } from "@/types/product";
 import supabase from "@/utils/supabase";
 
+interface RawProductRow {
+  product_id: string;
+  name: string;
+  price: number;
+  qty: number;
+  image_url: string | null;
+  created_at: string;
+  pickup_address_id: string | null;
+}
+
 export const Route = createFileRoute("/product/")({
   loader: async () => {
     // Direct query without withTimeout, similar to AdminTab fetch pattern
     const { data, error } = await supabase
       .from("products")
-      .select("product_id, name, price, qty, image_url")
+      .select("product_id, name, price, qty, image_url, created_at, pickup_address_id")
       .order("name", { ascending: true })
       .limit(100);
 
@@ -22,13 +32,16 @@ export const Route = createFileRoute("/product/")({
       throw error;
     }
 
-    const products: Product[] = (data || []).map((item: any) => ({
+    const rawData = (data as unknown as RawProductRow[]) || [];
+    const products: Product[] = rawData.map((item) => ({
       id: String(item.product_id),
-      product_id: item.product_id,
-      name: item.name,
-      price: item.price,
-      qty: item.qty,
-      image_url: item.image_url
+      product_id: String(item.product_id),
+      name: String(item.name),
+      price: Number(item.price || 0),
+      qty: Number(item.qty || 0),
+      image_url: item.image_url || null,
+      created_at: String(item.created_at),
+      pickup_address_id: item.pickup_address_id || null
     }));
 
     return { products };
