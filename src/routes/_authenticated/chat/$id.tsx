@@ -2,7 +2,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { ServiceChat } from "@/components/service/ServiceChat";
+import { ChatWindow } from "@/components/chat/ChatWindow";
 import Loading from "@/components/shared/Loading";
 import { useUserStore } from "@/stores/useUserStore";
 import type { ChatRoomListItem } from "@/types/service";
@@ -489,17 +489,17 @@ function ChatRouteComponent() {
     try {
       setSendingImage(true);
       const fileExt = file.name.split(".").pop();
-      const fileName = `${roomId}_${Date.now()}.${fileExt}`;
-      const filePath = `chat_images/${fileName}`;
+      const fileName = `chat_${roomId}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("service-images")
+        .from("chat-images")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: publicUrlData } = supabase.storage
-        .from("service-images")
+        .from("chat-images")
         .getPublicUrl(filePath);
 
       const publicUrl = publicUrlData.publicUrl;
@@ -813,7 +813,7 @@ function ChatRouteComponent() {
   ]);
 
   return (
-    <ServiceChat
+    <ChatWindow
       chatRoomSearch={chatRoomSearch}
       setChatRoomSearch={setChatRoomSearch}
       loadingChatRoomList={loadingChatRoomList}

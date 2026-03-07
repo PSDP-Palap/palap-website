@@ -1,5 +1,5 @@
 /* eslint-disable unused-imports/no-unused-vars */
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import Loading from "@/components/shared/Loading";
@@ -51,6 +51,23 @@ export const ServiceManagementDialog = ({
     detail_2: service?.detail_2 || ""
   });
 
+  // Update form when service changes
+  useEffect(() => {
+    if (service) {
+      setForm({
+        name: service.name || "",
+        price: service.price || 0,
+        category: service.category || "SHOPPING",
+        pickup_address_id: service.pickup_address_id || "",
+        destination_address_id: service.destination_address_id || "",
+        image_url: service.image_url || "",
+        detail_1: service.detail_1 || "",
+        detail_2: service.detail_2 || ""
+      });
+      setPreviewUrl(service.image_url || "");
+    }
+  }, [service]);
+
   if (!isOpen || !service) return null;
 
   const handleChange = (
@@ -95,16 +112,22 @@ export const ServiceManagementDialog = ({
         finalImageUrl = await uploadServiceImage(selectedFile);
       }
 
-      await onUpdate(service.service_id!, {
+      // Clean data: convert empty strings to null for UUID fields
+      const updateData = {
         ...form,
-        image_url: finalImageUrl
-      });
+        image_url: finalImageUrl,
+        pickup_address_id: form.pickup_address_id?.trim() === "" ? null : form.pickup_address_id,
+        destination_address_id: form.destination_address_id?.trim() === "" ? null : form.destination_address_id,
+      };
+
+      await onUpdate(service.service_id!, updateData);
       toast.success("บันทึกข้อมูลเรียบร้อยแล้ว", { id: loadingToast });
       setIsEditing(false);
       setSelectedFile(null);
       onClose();
-    } catch (error) {
-      toast.error("เกิดข้อผิดพลาดในการบันทึกข้อมูล", { id: loadingToast });
+    } catch (error: any) {
+      console.error("Update error:", error);
+      toast.error(error?.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล", { id: loadingToast });
     } finally {
       setIsSubmitting(false);
     }

@@ -6,7 +6,7 @@ import Loading from "@/components/shared/Loading";
 import { useUserStore } from "@/stores/useUserStore";
 import type { ChatMessage, ChatRoomListItem } from "@/types/service";
 
-interface ServiceChatProps {
+interface ChatWindowProps {
   chatRoomSearch: string;
   setChatRoomSearch: (val: string) => void;
   loadingChatRoomList: boolean;
@@ -58,7 +58,7 @@ interface ServiceChatProps {
     | null;
 }
 
-export function ServiceChat({
+export function ChatWindow({
   chatRoomSearch,
   setChatRoomSearch,
   loadingChatRoomList,
@@ -98,7 +98,7 @@ export function ServiceChat({
   onDeclineWork,
   onPayForCompletedWork,
   workflowBusyAction = null
-}: ServiceChatProps) {
+}: ChatWindowProps) {
   const { profile, session } = useUserStore();
   const currentUserId = profile?.id || session?.user?.id || null;
   const formatMessageText = (

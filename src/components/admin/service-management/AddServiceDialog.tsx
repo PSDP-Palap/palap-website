@@ -89,7 +89,15 @@ export const AddServiceDialog = ({
         finalImageUrl = await uploadServiceImage(selectedFile);
       }
 
-      await onSuccess({ ...form, image_url: finalImageUrl });
+      // Clean data: convert empty strings to null for UUID fields
+      const serviceData = {
+        ...form,
+        image_url: finalImageUrl,
+        pickup_address_id: form.pickup_address_id?.trim() === "" ? null : form.pickup_address_id,
+        destination_address_id: form.destination_address_id?.trim() === "" ? null : form.destination_address_id,
+      };
+
+      await onSuccess(serviceData);
       toast.success("เพิ่มบริการเรียบร้อยแล้ว", { id: loadingToast });
 
       // Reset
