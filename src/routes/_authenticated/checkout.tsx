@@ -148,74 +148,13 @@ function CheckoutComponent() {
         throw new Error("Missing pickup or destination address.");
       }
 
-      // Create Service Session (supports multiple owner column variants)
-      const serviceBasePayload = {
-        name: selectedProduct.name,
-        price: total,
-        category: "DELIVERY",
-        pickup_address_id: pickupAddressId,
-        destination_address_id: destinationAddressId,
-        image_url: selectedProduct.image_url
-      };
-
-      const serviceOwnerColumns = [
-        "created_by",
-        "freelancer_id",
-        "freelance_id",
-        "user_id",
-        "profile_id"
-      ];
-
-      let createdService: any = null;
-      let serviceInsertError: any = null;
-
-      for (const ownerColumn of serviceOwnerColumns) {
-        const payload = {
-          ...serviceBasePayload,
-          [ownerColumn]: currentUserId
-        } as any;
-
-        const { data, error } = await supabase
-          .from("services")
-          .insert([payload])
-          .select("service_id")
-          .single();
-
-        if (!error && data) {
-          createdService = data;
-          serviceInsertError = null;
-          break;
-        }
-
-        serviceInsertError = error;
-      }
-
-      if (!createdService) {
-        const { data, error } = await supabase
-          .from("services")
-          .insert([serviceBasePayload])
-          .select("service_id")
-          .single();
-
-        if (error) throw error;
-        createdService = data;
-      }
-
-      if (!createdService?.service_id) {
-        throw new Error(
-          serviceInsertError?.message || "Failed to create service session."
-        );
-      }
-
-      const serviceId = String(createdService.service_id);
-
       // Create Order
       let orderId: string | null = null;
       let lastOrderError: any = null;
 
       const baseOrderPayload = {
         customer_id: currentUserId,
-        service_id: serviceId,
+        service_id: null,
         product_id: selectedProduct.id,
         pickup_address_id: pickupAddressId,
         destination_address_id: destinationAddressId,
