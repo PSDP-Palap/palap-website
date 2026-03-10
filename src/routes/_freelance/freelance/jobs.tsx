@@ -438,6 +438,38 @@ function JobsRoute() {
 
       if (updateError) throw updateError;
 
+      // Send automated system message to chat
+      const { data: rooms } = await supabase
+        .from("chat_rooms")
+        .select("id")
+        .eq("order_id", orderId);
+
+      if (rooms && rooms.length > 0) {
+        let systemMsg = `Status updated to ${nextStatus.replace(/_/g, " ")}`;
+        let msgType = "SYSTEM";
+
+        if (nextStatus === "ON_MY_WAY") {
+          systemMsg = "Freelancer is on the way to pick up your order.";
+          msgType = "SYSTEM_ON_MY_WAY";
+        } else if (nextStatus === "IN_SERVICE") {
+          systemMsg = "Freelancer has started the service.";
+          msgType = "SYSTEM_IN_SERVICE";
+        } else if (nextStatus === "COMPLETE") {
+          systemMsg = "Freelancer has completed the task. Please review and release payment.";
+          msgType = "SYSTEM_COMPLETE";
+        }
+
+        for (const room of rooms) {
+          await supabase.from("chat_messages").insert({
+            room_id: room.id,
+            order_id: orderId,
+            sender_id: currentUserId,
+            content: systemMsg,
+            message_type: msgType
+          });
+        }
+      }
+
       toast.success(`Status updated to ${nextStatus.replace(/_/g, " ")}`);
       await refreshJobBoard();
     } catch (err: any) {

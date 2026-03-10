@@ -67,20 +67,26 @@ export const useUserStore = create<UserState>((set, get) => ({
         .maybeSingle();
 
       let address = null;
+      let lat = null;
+      let lng = null;
       if (profile?.role === "customer") {
         const { data: customer } = await supabase
           .from("customers")
-          .select("address_id, addresses:address_id(address_detail)")
+          .select("address_id, addresses:address_id(address_detail, lat, lng)")
           .eq("id", userId)
           .maybeSingle();
         address = (customer?.addresses as any)?.address_detail || null;
+        lat = (customer?.addresses as any)?.lat || null;
+        lng = (customer?.addresses as any)?.lng || null;
       }
 
       const finalProfile = profile
         ? ({
           ...profile,
           role: roleFromMeta || profile.role,
-          address
+          address,
+          lat,
+          lng
         } as Profile)
         : ({
           id: userId,
@@ -89,7 +95,9 @@ export const useUserStore = create<UserState>((set, get) => ({
           role: roleFromMeta || "customer",
           phone_number: null,
           created_at: session.user.created_at || new Date().toISOString(),
-          address: null
+          address: null,
+          lat: null,
+          lng: null
         } as Profile);
 
       set({ profile: finalProfile });

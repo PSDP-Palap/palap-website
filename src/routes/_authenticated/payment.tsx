@@ -3,6 +3,15 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { type ChangeEvent, useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { z } from "zod";
+import { 
+  CreditCard, 
+  QrCode, 
+  Banknote, 
+  ShieldCheck, 
+  ChevronLeft,
+  Lock,
+  ArrowRight
+} from "lucide-react";
 
 import cashIcon from "@/assets/1048961_97602-OL0FQH-995-removebg-preview.png";
 import cardIcon from "@/assets/2606579_5915-removebg-preview.png";
@@ -55,8 +64,7 @@ function RouteComponent() {
   const currentUserId = profile?.id || session?.user?.id || null;
 
   const hasHydrated = useCartStore((s) => s.hasHydrated);
-  const { setSelectedPaymentMethod } = useOrderStore();
-
+  
   const [paymentMethod, setPaymentMethod] = useState<any>("CARD");
   const [cardNumber, setCardNumber] = useState("");
   const [cardholderName, setCardholderName] = useState("");
@@ -172,7 +180,6 @@ function RouteComponent() {
 
       let finalOrderId = order_id;
 
-      // 1. If no order_id (Product flow from order-summary)
       if (!finalOrderId) {
         if (!currentUserId || !address_id) {
           throw new Error("Missing user or address information.");
@@ -183,7 +190,6 @@ function RouteComponent() {
           throw new Error("Cart is empty.");
         }
 
-        // Load product details to get pickup_address_id
         const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select("product_id, pickup_address_id, price")
@@ -191,20 +197,13 @@ function RouteComponent() {
 
         if (productsError) throw productsError;
 
-        // Create orders (For now, we create one order per product as per schema limitation)
-        // We will just create the first one for simplicity or we can loop.
-        // The user said "create order link customer_id with product_id"
         const ordersToCreate = productsData.map((p) => {
-          const productSubtotal = p.price * (cartItems[String(p.product_id)] || 1);
-          // Distribute deliveryFee and tax proportionally if multiple products, 
-          // or just add them to the total if we're only creating one order.
-          // Since we're currently limiting to 1 order anyway, we'll just use the total.
           return {
             customer_id: currentUserId,
             product_id: p.product_id,
             pickup_address_id: p.pickup_address_id,
             destination_address_id: address_id,
-            price: total, // Use total instead of just product price
+            price: total,
             status: "WAITING"
           };
         });
@@ -220,9 +219,8 @@ function RouteComponent() {
         finalOrderId = createdOrders.order_id;
       }
 
-      // 2. Process via Edge Function if it exists or direct transaction
       const { data, error: functionError } = await supabase.functions.invoke(
-        "payment",
+        "process-payment",
         {
           body: {
             order_id: finalOrderId,
@@ -232,12 +230,7 @@ function RouteComponent() {
         }
       );
 
-      // If function fails or doesn't exist, fallback to manual transaction record
       if (functionError || !data?.success) {
-        console.warn(
-          "Edge function failed or not found, falling back to manual transaction creation"
-        );
-
         const { error: transError } = await supabase
           .from("transactions")
           .insert([
@@ -251,6 +244,50 @@ function RouteComponent() {
           ]);
 
         if (transError) throw transError;
+
+        const { data: existingRoom } = await supabase
+          .from("chat_rooms")
+          .select("id")
+          .eq("order_id", finalOrderId)
+          .maybeSingle();
+
+        if (!existingRoom) {
+          const { data: orderData } = await supabase
+            .from("orders")
+            .select("freelance_id")
+            .eq("order_id", finalOrderId)
+            .single();
+
+          const { data: newRoom } = await supabase
+            .from("chat_rooms")
+            .insert({
+              order_id: finalOrderId,
+              customer_id: currentUserId,
+              freelancer_id: orderData?.freelance_id || null,
+              created_by: currentUserId,
+              last_message_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+          
+          if (newRoom) {
+            await supabase.from("chat_messages").insert({
+              room_id: newRoom.id,
+              order_id: finalOrderId,
+              sender_id: currentUserId,
+              content: "Order placed successfully. Waiting for freelancer.",
+              message_type: "SYSTEM_ORDER_PLACED"
+            });
+          }
+        }
+      } else if (data?.room_id) {
+        await supabase.from("chat_messages").insert({
+          room_id: data.room_id,
+          order_id: finalOrderId,
+          sender_id: currentUserId,
+          content: "Order paid and confirmed.",
+          message_type: "SYSTEM_ORDER_PAID"
+        });
       }
 
       clearCart();
@@ -272,85 +309,162 @@ function RouteComponent() {
     }
   };
 
-  if (!isCartReady) {
-    return <Loading />;
-  }
+  if (!isCartReady) return <Loading />;
 
   return (
-    <div className="min-h-screen bg-[#F9E6D8] pt-24 pb-10">
-      <main className="max-w-6xl mx-auto px-4">
-        <div className="bg-linear-to-r from-[#F2B594] to-[#FF7F32] rounded-xl px-8 py-6 mb-3 text-[#4A2600]">
-          <h1 className="text-4xl font-black">Payment</h1>
-          <p className="text-sm font-medium mt-2 text-[#4A2600]/80">
-            {order_id
-              ? `Paying for Order: ${order_id}`
-              : "Choose your payment method"}
-          </p>
+    <div className="min-h-screen bg-[#FDFCFB] pt-24 pb-20">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Visual Stepper */}
+        <div className="flex items-center justify-center mb-12">
+          <div className="flex items-center w-full max-w-2xl">
+            <div className="flex flex-col items-center flex-1 relative">
+              <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-black z-10 shadow-lg shadow-green-900/20">✓</div>
+              <p className="text-[10px] font-black uppercase tracking-widest mt-2 text-green-600">Summary</p>
+              <div className="absolute left-1/2 top-5 w-full h-0.5 bg-green-500 -z-0" />
+            </div>
+            <div className="flex flex-col items-center flex-1 relative">
+              <div className="w-10 h-10 rounded-full bg-[#A03F00] text-white flex items-center justify-center font-black z-10 shadow-lg shadow-orange-900/20">2</div>
+              <p className="text-[10px] font-black uppercase tracking-widest mt-2 text-[#A03F00]">Payment</p>
+              <div className="absolute left-1/2 top-5 w-full h-0.5 bg-gray-100 -z-0" />
+            </div>
+            <div className="flex flex-col items-center flex-1">
+              <div className="w-10 h-10 rounded-full bg-white border-2 border-gray-100 text-gray-300 flex items-center justify-center font-black z-10">3</div>
+              <p className="text-[10px] font-black uppercase tracking-widest mt-2 text-gray-300">Complete</p>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-orange-100/70 rounded-xl p-4 md:p-5">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 space-y-4">
-              <PaymentMethodSelector
-                paymentMethod={paymentMethod}
-                setPaymentMethod={setPaymentMethod}
-                setSubmitError={setSubmitError}
-                cardIcon={cardIcon}
-                qrIcon={qrIcon}
-                cashIcon={cashIcon}
-              />
-              {paymentMethod === "CARD" && (
-                <CardDetailsForm
-                  cardNumber={cardNumber}
-                  setCardNumber={setCardNumber}
-                  cardholderName={cardholderName}
-                  setCardholderName={setCardholderName}
-                  cardExpiry={cardExpiry}
-                  setCardExpiry={setCardExpiry}
-                  cardCvv={cardCvv}
-                  setCardCvv={setCardCvv}
-                  formatCardNumber={formatCardNumber}
-                  formatExpiry={formatExpiry}
-                  errors={cardErrors}
-                />
-              )}
-              {paymentMethod === "QR" && (
-                <QrPaymentForm
-                  qrIcon={qrIcon}
-                  total={total}
-                  qrSlipName={qrSlipName}
-                  qrSlipPreview={qrSlipPreview}
-                  handleQrSlipUpload={handleQrSlipUpload}
-                />
-              )}
-              {paymentMethod === "CASH" && (
-                <CashPaymentForm
-                  setCashSubmitted={setCashSubmitted}
-                  setSubmitError={setSubmitError}
-                />
-              )}
+        <div className="flex flex-col lg:flex-row gap-10">
+          <div className="flex-1 space-y-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-black text-[#4A2600]">Payment</h1>
+                <p className="text-gray-500 font-bold mt-1 uppercase text-xs tracking-widest">
+                  {order_id ? `Finalizing order #${order_id.slice(0,8)}` : "Secure checkout process"}
+                </p>
+              </div>
+              <button 
+                onClick={() => {
+                  if (order_id) {
+                    router.navigate({ to: "/order/$order_id" as any, params: { order_id } as any });
+                  } else {
+                    router.navigate({ to: "/order-summary" });
+                  }
+                }}
+                className="p-3 rounded-2xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
             </div>
-            <PaymentSummary
-              subtotal={subtotal}
-              tax={tax}
-              deliveryFee={deliveryFee}
-              total={total}
-              isSubmitting={isSubmitting}
-              proceedDisabled={proceedDisabled}
-              completePayment={completePayment}
-              onBack={() => {
-                if (order_id) {
-                  router.navigate({
-                    to: "/order/$order_id" as any,
-                    params: { order_id: order_id } as any
-                  });
-                } else {
-                  router.navigate({ to: "/order-summary" });
-                }
-              }}
-              submitError={submitError}
-              buttonText={order_id ? "Pay Now" : "Pay & Place Order"}
-            />
+
+            <div className="grid grid-cols-1 gap-6">
+              {/* Payment Method Selection */}
+              <section className="bg-white rounded-[2.5rem] border border-orange-50 shadow-xl shadow-orange-900/5 overflow-hidden">
+                <div className="p-8 border-b border-orange-50 bg-orange-50/30">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-2xl bg-[#A03F00] text-white shadow-lg shadow-orange-900/20">
+                      <Lock className="w-6 h-6" />
+                    </div>
+                    <h2 className="text-xl font-black text-[#4A2600]">Choose Payment Method</h2>
+                  </div>
+                </div>
+                
+                <div className="p-8">
+                  <PaymentMethodSelector
+                    paymentMethod={paymentMethod}
+                    setPaymentMethod={setPaymentMethod}
+                    setSubmitError={setSubmitError}
+                    cardIcon={cardIcon}
+                    qrIcon={qrIcon}
+                    cashIcon={cashIcon}
+                  />
+                </div>
+              </section>
+
+              {/* Payment Details Form */}
+              <section className="bg-white rounded-[2.5rem] border border-orange-50 shadow-xl shadow-orange-900/5 p-8 animate-in slide-in-from-bottom-4 duration-500">
+                {paymentMethod === "CARD" && (
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <CreditCard className="w-5 h-5 text-orange-600" />
+                      <h3 className="font-black text-[#4A2600] uppercase tracking-widest text-sm">Card Details</h3>
+                    </div>
+                    <CardDetailsForm
+                      cardNumber={cardNumber}
+                      setCardNumber={setCardNumber}
+                      cardholderName={cardholderName}
+                      setCardholderName={setCardholderName}
+                      cardExpiry={cardExpiry}
+                      setCardExpiry={setCardExpiry}
+                      cardCvv={cardCvv}
+                      setCardCvv={setCardCvv}
+                      formatCardNumber={formatCardNumber}
+                      formatExpiry={formatExpiry}
+                      errors={cardErrors}
+                    />
+                  </div>
+                )}
+                {paymentMethod === "QR" && (
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <QrCode className="w-5 h-5 text-orange-600" />
+                      <h3 className="font-black text-[#4A2600] uppercase tracking-widest text-sm">QR Payment</h3>
+                    </div>
+                    <QrPaymentForm
+                      qrIcon={qrIcon}
+                      total={total}
+                      qrSlipName={qrSlipName}
+                      qrSlipPreview={qrSlipPreview}
+                      handleQrSlipUpload={handleQrSlipUpload}
+                    />
+                  </div>
+                )}
+                {paymentMethod === "CASH" && (
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <Banknote className="w-5 h-5 text-orange-600" />
+                      <h3 className="font-black text-[#4A2600] uppercase tracking-widest text-sm">Cash on Delivery</h3>
+                    </div>
+                    <CashPaymentForm
+                      setCashSubmitted={setCashSubmitted}
+                      setSubmitError={setSubmitError}
+                    />
+                  </div>
+                )}
+              </section>
+            </div>
+          </div>
+
+          {/* Right Summary Side */}
+          <div className="lg:w-[400px]">
+            <div className="sticky top-28 space-y-6">
+              <PaymentSummary
+                subtotal={subtotal}
+                tax={tax}
+                deliveryFee={deliveryFee}
+                total={total}
+                isSubmitting={isSubmitting}
+                proceedDisabled={proceedDisabled}
+                completePayment={completePayment}
+                onBack={() => {}}
+                submitError={submitError}
+                buttonText={order_id ? "Complete Payment" : "Place Order & Pay"}
+              />
+
+              {/* Secure Trust Badge */}
+              <div className="bg-white rounded-[2rem] border border-orange-50 shadow-lg p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-green-600 shrink-0">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-[#4A2600] uppercase tracking-widest mb-1">Encrypted Payment</p>
+                    <p className="text-[10px] text-gray-500 font-bold leading-relaxed">We use industry-standard encryption to protect your sensitive financial data.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
