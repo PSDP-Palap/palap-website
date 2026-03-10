@@ -225,12 +225,14 @@ function RouteComponent() {
           body: {
             order_id: finalOrderId,
             payment_method: mappedMethod,
-            amount: total
+            amount: total,
+            delivery_fee: deliveryFee
           }
         }
       );
 
       if (functionError || !data?.success) {
+        // Fallback: Manually insert transaction and earning if function fails
         const { error: transError } = await supabase
           .from("transactions")
           .insert([
@@ -244,6 +246,22 @@ function RouteComponent() {
           ]);
 
         if (transError) throw transError;
+
+        // Ensure freelance earning is created matching the delivery fee
+        const { data: orderData } = await supabase
+          .from("orders")
+          .select("freelance_id")
+          .eq("order_id", finalOrderId)
+          .single();
+
+        if (orderData?.freelance_id) {
+          await supabase.from("freelance_earnings").insert({
+            order_id: finalOrderId,
+            freelance_id: orderData.freelance_id,
+            amount: deliveryFee, // Ensure this matches the delivery fee paid by customer
+            status: "pending"
+          });
+        }
 
         const { data: existingRoom } = await supabase
           .from("chat_rooms")

@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_authenticated/order-summary")({
 
 function RouteComponent() {
   const router = useRouter();
-  const { profile, session } = useUserStore();
+  const { profile, session, updateProfile: updateStoreProfile } = useUserStore();
   const userId = profile?.id || session?.user?.id || null;
 
   // Cart & Items
@@ -44,17 +44,17 @@ function RouteComponent() {
   const [loadingProducts, setLoadingProducts] = useState(true);
 
   // Form State
-  const [locationName, setLocationName] = useState("Home");
-  const [locationDetail, setLocationDetail] = useState("");
-  const [locationLat, setLocationLat] = useState("");
-  const [locationLng, setLocationLng] = useState("");
+  const [locationName, setLocationName] = useState(profile?.addressName || "Home");
+  const [locationDetail, setLocationDetail] = useState(profile?.address || "");
+  const [locationLat, setLocationLat] = useState(profile?.lat ? String(profile.lat) : "");
+  const [locationLng, setLocationLng] = useState(profile?.lng ? String(profile.lng) : "");
   const [displayDate, setDisplayDate] = useState(new Date().toLocaleDateString());
   const [displayTime, setDisplayTime] = useState(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
   
   const [orderNote, setOrderNote] = useState("");
   const [promoCode, setPromoCode] = useState("");
   
-  const [destinationAddressId, setDestinationAddressId] = useState<string | null>(null);
+  const [destinationAddressId, setDestinationAddressId] = useState<string | null>((profile as any)?.addressId || null);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [proceedingToPayment, setProceedingToPayment] = useState(false);
   const [isMapExpanded, setIsMapExpanded] = useState(false);
@@ -74,14 +74,44 @@ function RouteComponent() {
     try {
       setIsResolving(true);
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+        {
+          headers: {
+            'Accept-Language': 'en-US,en;q=0.9,th;q=0.8',
+            'User-Agent': 'PalapPetServices/1.0'
+          }
+        }
       );
       const data = await response.json();
-      if (data && data.display_name) {
+      
+      if (data && data.address) {
+        const a = data.address;
+        
+        // Pick most relevant descriptive parts
+        const main = a.amenity || a.building || a.house_number || a.shop || a.office || a.tourism || "";
+        const road = a.road || a.highway || "";
+        const area = a.suburb || a.neighbourhood || a.village || a.hamlet || a.city_district || "";
+        const city = a.city || a.town || a.municipality || a.province || "";
+        
+        // Combine parts and filter out empties
+        const parts = [main, road, area, city].filter(Boolean);
+        
+        // Deduplicate identical parts
+        const uniqueParts = parts.filter((item, index) => parts.indexOf(item) === index);
+        
+        if (uniqueParts.length > 0) {
+          setLocationDetail(uniqueParts.join(", "));
+        } else {
+          setLocationDetail(data.display_name || `Location at ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        }
+      } else if (data && data.display_name) {
         setLocationDetail(data.display_name);
+      } else {
+        setLocationDetail(`Location at ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
       }
     } catch (error) {
       console.error("Geocoding error:", error);
+      setLocationDetail(`Location at ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
     } finally {
       setIsResolving(false);
     }
@@ -93,15 +123,23 @@ function RouteComponent() {
     return () => clearTimeout(t);
   }, [hasHydrated]);
 
-  // 1. Fetch Products
+  // 1. Fetch Products - Only when the set of IDs changes, not quantities
   useEffect(() => {
     const fetchItems = async () => {
-      const ids = Object.keys(cartItems).filter((id) => cartItems[id] > 0);
+      const ids = Object.keys(cartItems).filter((id) => cartItems[id] > 0).sort();
       if (ids.length === 0) {
         setProducts([]);
         setLoadingProducts(false);
         return;
       }
+
+      // Check if we already have these exact products to avoid re-fetching
+      const currentIds = products.map(p => p.id || p.product_id).sort();
+      if (JSON.stringify(ids) === JSON.stringify(currentIds)) {
+        setLoadingProducts(false);
+        return;
+      }
+
       try {
         setLoadingProducts(true);
         const { data, error } = await supabase
@@ -115,31 +153,25 @@ function RouteComponent() {
       }
     };
     if (isCartReady) fetchItems();
-  }, [cartItems, isCartReady]);
+  }, [Object.keys(cartItems).join(','), isCartReady]);
 
-  // 2. Fetch User Location
+  // 2. Fetch User Location from Profile if available, otherwise fetch
   useEffect(() => {
-    const fetchUserAddress = async () => {
-      if (!userId) return;
-      const { data: customer } = await supabase
-        .from("customers")
-        .select("address_id, addresses(*)")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (customer?.addresses) {
-        const addr = customer.addresses as any;
-        setDestinationAddressId(addr.id);
-        setLocationName(addr.name || "Home");
-        setLocationDetail(addr.address_detail || "");
-        setLocationLat(String(addr.lat || ""));
-        setLocationLng(String(addr.lng || ""));
-      } else {
-        setIsEditingLocation(true);
+    if (profile) {
+      // Only set local state if it's currently empty to avoid overwriting user's active edits
+      if (!locationDetail) {
+        setLocationName(profile.addressName || "Home");
+        setLocationDetail(profile.address || "");
+        setLocationLat(profile.lat ? String(profile.lat) : "");
+        setLocationLng(profile.lng ? String(profile.lng) : "");
+        setDestinationAddressId((profile as any).addressId || null);
+        
+        if (!profile.address) {
+          setIsEditingLocation(true);
+        }
       }
-    };
-    fetchUserAddress();
-  }, [userId]);
+    }
+  }, [profile, locationDetail]);
 
   const toNumber = (v: string) => {
     const n = parseFloat(v);
@@ -156,40 +188,24 @@ function RouteComponent() {
       return null;
     }
 
-    const payload = {
-      profile_id: userId,
-      name: locationName || "Delivery Location",
-      address_detail: locationDetail,
-      lat: latNum,
-      lng: lngNum,
-      is_public: false
-    };
+    try {
+      const { error } = await updateStoreProfile({
+        address: locationDetail,
+        lat: latNum,
+        lng: lngNum,
+        name: locationName
+      });
 
-    let nextAddressId = destinationAddressId;
-    if (nextAddressId) {
-      const { error } = await supabase
-        .from("addresses")
-        .update(payload)
-        .eq("id", nextAddressId);
       if (error) throw error;
-    } else {
-      const { data, error } = await supabase
-        .from("addresses")
-        .insert(payload)
-        .select("id")
-        .single();
-      if (error) throw error;
-      nextAddressId = data.id;
-      setDestinationAddressId(nextAddressId);
+      
+      const updatedProfile = useUserStore.getState().profile;
+      const nextId = (updatedProfile as any)?.addressId;
+      setDestinationAddressId(nextId);
+      return nextId;
+    } catch (err: any) {
+      setLocationError(err.message || "Failed to save address.");
+      return null;
     }
-
-    await supabase.from("customers").upsert({
-      id: userId,
-      address_id: nextAddressId,
-      updated_at: new Date().toISOString()
-    });
-
-    return nextAddressId;
   };
 
   const orderRows = useMemo(() => {
@@ -255,6 +271,39 @@ function RouteComponent() {
           setIsResolving(false);
         }
       );
+    }
+  };
+
+  const handleManualSearch = async () => {
+    if (!locationDetail.trim()) {
+      setLocationError("Please enter an address to search");
+      return;
+    }
+
+    try {
+      setIsResolving(true);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationDetail)}&limit=1`,
+        {
+          headers: {
+            'Accept-Language': 'en-US,en;q=0.9,th;q=0.8',
+            'User-Agent': 'PalapPetServices/1.0'
+          }
+        }
+      );
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+        handleMapChange(parseFloat(lat), parseFloat(lon));
+      } else {
+        setLocationError("Could not find that location. Please be more specific.");
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      setLocationError("Failed to search address");
+    } finally {
+      setIsResolving(false);
     }
   };
 
@@ -368,11 +417,13 @@ function RouteComponent() {
                     setLocationLat={setLocationLat}
                     locationLng={locationLng}
                     setLocationLng={setLocationLng}
+                    address={locationDetail}
                     isMapExpanded={isMapExpanded}
                     setIsMapExpanded={setIsMapExpanded}
                     resolvingAddress={isResolving}
                     updateLocationFromMapCenter={handleMapChange}
                     useCurrentLocation={handleUseCurrentLocation}
+                    saveLocation={persistLocation}
                   />
                 </div>
               </div>

@@ -1,4 +1,5 @@
-import { Package } from "lucide-react";
+import { Package, Minus, Plus, Trash2 } from "lucide-react";
+import { useCartStore } from "@/stores/useCartStore";
 
 interface OrderItem {
   id: string;
@@ -14,6 +15,20 @@ interface OrderItemsListProps {
 }
 
 export function OrderItemsList({ orderRows }: OrderItemsListProps) {
+  const { setQuantity, remove } = useCartStore();
+
+  const handleDecrease = (id: string, currentQty: number) => {
+    if (currentQty > 1) {
+      setQuantity(id, currentQty - 1);
+    } else {
+      remove(id);
+    }
+  };
+
+  const handleIncrease = (id: string, currentQty: number) => {
+    setQuantity(id, currentQty + 1);
+  };
+
   return (
     <section className="space-y-4">
       {orderRows.length === 0 ? (
@@ -48,20 +63,44 @@ export function OrderItemsList({ orderRows }: OrderItemsListProps) {
                       Premium Supplies
                     </p>
                   </div>
-                  <p className="font-black text-[#4A2600] text-xl">
-                    ฿{row.subtotal.toLocaleString()}
-                  </p>
+                  <div className="text-right">
+                    <p className="font-black text-[#4A2600] text-xl">
+                      ฿{row.subtotal.toLocaleString()}
+                    </p>
+                    <p className="text-[10px] font-bold text-gray-400 mt-1">
+                      ฿{row.unitPrice.toLocaleString()} / unit
+                    </p>
+                  </div>
                 </div>
                 
-                <div className="flex items-center gap-4 mt-4">
-                  <div className="px-3 py-1 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-2">
-                    <span className="text-[10px] font-black text-gray-400 uppercase">Qty</span>
-                    <span className="text-sm font-black text-[#4A2600]">{row.quantity}</span>
+                <div className="flex items-center justify-between mt-4">
+                  {/* Quantity Controls */}
+                  <div className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-inner">
+                    <button
+                      onClick={() => handleDecrease(row.id, row.quantity)}
+                      className="p-2 rounded-lg hover:bg-white hover:text-orange-600 hover:shadow-sm transition-all active:scale-90 text-gray-400"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <div className="px-4 min-w-[40px] text-center">
+                      <span className="text-sm font-black text-[#4A2600]">{row.quantity}</span>
+                    </div>
+                    <button
+                      onClick={() => handleIncrease(row.id, row.quantity)}
+                      className="p-2 rounded-lg hover:bg-white hover:text-orange-600 hover:shadow-sm transition-all active:scale-90 text-gray-400"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <div className="h-4 w-px bg-gray-100" />
-                  <p className="text-xs font-bold text-gray-400">
-                    ฿{row.unitPrice.toLocaleString()} per item
-                  </p>
+
+                  {/* Remove Button */}
+                  <button
+                    onClick={() => remove(row.id)}
+                    className="flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all group/remove"
+                  >
+                    <Trash2 className="w-4 h-4 group-hover/remove:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Remove</span>
+                  </button>
                 </div>
               </div>
             </div>
