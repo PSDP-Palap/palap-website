@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { CartFooter } from "@/components/product/CartFooter";
 import { ProductCard } from "@/components/product/ProductCard";
 import Loading from "@/components/shared/Loading";
 import { useCartStore } from "@/stores/useCartStore";
@@ -61,7 +60,7 @@ export const Route = createFileRoute("/product/")({
     </div>
   ),
   pendingComponent: () => (
-    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-24">
+    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-6 md:pt-24">
       <Loading fullScreen={false} size={150} />
     </div>
   )
@@ -72,48 +71,12 @@ function RouteComponent() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // global cart state
   const cartItems = useCartStore((s) => s.items);
-  const setCartQuantity = useCartStore((s) => s.setQuantity);
-  const removeCartItem = useCartStore((s) => s.remove);
-  const [isFooterCartExpanded, setIsFooterCartExpanded] = useState(false);
 
   // Sync products if loader data changes
   useEffect(() => {
     setProducts(initialProducts);
   }, [initialProducts]);
-
-  const totalPrice = Object.entries(cartItems).reduce((sum, [id, qty]) => {
-    const item = products.find((p) => p.id === id);
-    return sum + (item?.price || 0) * qty;
-  }, 0);
-  const selectedItemCount = Object.values(cartItems).reduce((a, b) => a + b, 0);
-
-  const selectedCartRows = Object.entries(cartItems)
-    .map(([id, qty]) => {
-      const item = products.find((p) => p.id === id);
-      if (!item) return null;
-      return {
-        id,
-        name: item.name,
-        imageUrl: item.image_url || null,
-        qty,
-        unitPrice: item.price,
-        subtotal: item.price * qty
-      };
-    })
-    .filter(
-      (
-        row
-      ): row is {
-        id: string;
-        name: string;
-        imageUrl: string | null;
-        qty: number;
-        unitPrice: number;
-        subtotal: number;
-      } => !!row
-    );
 
   const filteredProducts = products.filter((item) => {
     const query = searchQuery.trim().toLowerCase();
@@ -123,8 +86,8 @@ function RouteComponent() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F9E6D8] font-sans pb-32">
-      <main className="max-w-6xl mx-auto p-6 pt-28">
+    <div className="min-h-screen bg-[#F9E6D8] font-sans pb-10">
+      <main className="max-w-6xl mx-auto p-6 pt-8 md:pt-28">
         <div className="flex items-center pl-8 bg-[#FF914D] rounded-2xl mb-8 relative overflow-hidden shadow-lg">
           <div className="z-10">
             <h1 className="text-3xl font-black text-white uppercase">
@@ -172,17 +135,6 @@ function RouteComponent() {
           </div>
         )}
       </main>
-
-      <CartFooter
-        isFooterCartExpanded={isFooterCartExpanded}
-        setIsFooterCartExpanded={setIsFooterCartExpanded}
-        selectedCartRows={selectedCartRows}
-        setCartQuantity={setCartQuantity}
-        removeCartItem={removeCartItem}
-        selectedItemCount={selectedItemCount}
-        totalPrice={totalPrice}
-        cartItems={cartItems}
-      />
     </div>
   );
 }

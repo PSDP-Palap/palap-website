@@ -203,7 +203,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9E6D8] pt-24 pb-10">
+    <div className="min-h-screen bg-[#F9E6D8] pt-6 md:pt-24 pb-10">
       <main className="max-w-6xl mx-auto px-4">
         <div className="bg-linear-to-r from-[#F2B594] to-[#FF7F32] rounded-xl px-8 py-6 mb-3 text-[#4A2600]">
           <h1 className="text-4xl font-black">Payment</h1>

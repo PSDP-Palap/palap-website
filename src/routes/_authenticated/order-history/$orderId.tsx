@@ -168,7 +168,7 @@ function RouteComponent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F9E6D8] pt-24 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F9E6D8] pt-6 md:pt-24 flex items-center justify-center">
         <p className="text-[#D35400] font-bold">Loading order detail...</p>
       </div>
     );
@@ -176,7 +176,7 @@ function RouteComponent() {
 
   if (error || !detail) {
     return (
-      <div className="min-h-screen bg-[#F9E6D8] pt-24 flex flex-col items-center justify-center gap-3">
+      <div className="min-h-screen bg-[#F9E6D8] pt-6 md:pt-24 flex flex-col items-center justify-center gap-3">
         <p className="text-red-600 font-semibold">{error || "Order not found."}</p>
         <button
           type="button"
@@ -190,7 +190,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9E6D8] pt-24 pb-10">
+    <div className="min-h-screen bg-[#F9E6D8] pt-6 md:pt-24 pb-10">
       <main className="max-w-5xl mx-auto px-4">
         <div className="bg-white rounded-2xl border border-orange-100 shadow-lg p-6 space-y-4">
           <div className="flex items-center justify-between gap-3">

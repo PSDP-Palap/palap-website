@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from "react";
 
 import DashboardTabContent from "@/components/freelance/DashboardTab";
 import { useUserStore } from "@/stores/useUserStore";
-import type { Service } from "@/types/service";
 import supabase from "@/utils/supabase";
 
 export const Route = createFileRoute("/_freelance/freelance/dashboard")({
@@ -13,8 +12,8 @@ export const Route = createFileRoute("/_freelance/freelance/dashboard")({
 function DashboardRoute() {
   const { profile, session } = useUserStore();
   const currentUserId = profile?.id || session?.user?.id || null;
-  const [services, setServices] = useState<Service[]>([]);
-  const [loadingServices, setLoadingServices] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
   const [earningSummary, setEarningSummary] = useState({
     totalIncome: 0,
     totalOrders: 0,
@@ -24,25 +23,30 @@ function DashboardRoute() {
 
   const loadDashboardData = useCallback(async () => {
     if (!currentUserId) return;
-    setLoadingServices(true);
+    setLoadingOrders(true);
     try {
-      const { data: svcData } = await supabase
-        .from("services")
-        .select("*")
-        .eq("created_by", currentUserId)
-        .limit(5);
+      const { data: ordData } = await supabase
+        .from("orders")
+        .select(`
+          *,
+          service:services(name, category),
+          product:products(name),
+          earning:freelance_earnings(status)
+        `)
+        .eq("freelance_id", currentUserId)
+        .order("created_at", { ascending: false })
+        .limit(10);
 
-      setServices((svcData as Service[]) || []);
+      setOrders(ordData || []);
 
       const { data: earnings } = await supabase
         .from("freelance_earnings")
         .select("*")
         .eq("freelance_id", currentUserId);
 
-      const total = (earnings || []).reduce(
-        (sum, e) => sum + Number(e.amount || 0),
-        0
-      );
+      const total = (earnings || [])
+        .filter((e) => e.status === "completed" || e.status === "paid")
+        .reduce((sum, e) => sum + Number(e.amount || 0), 0);
 
       setEarningSummary({
         totalIncome: total,
@@ -51,7 +55,7 @@ function DashboardRoute() {
         pendingOrders: 0
       });
     } finally {
-      setLoadingServices(false);
+      setLoadingOrders(false);
     }
   }, [currentUserId]);
 
@@ -62,8 +66,8 @@ function DashboardRoute() {
   return (
     <DashboardTabContent
       currentEarning={earningSummary.totalIncome}
-      upcomingJobs={services}
-      loadingServices={loadingServices}
+      orders={orders}
+      loadingOrders={loadingOrders}
     />
   );
 }

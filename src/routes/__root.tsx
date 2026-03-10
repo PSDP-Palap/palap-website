@@ -35,7 +35,7 @@ function RootLayout() {
       <main>
         <Outlet />
       </main>
-      {isCustomer && <GlobalOrderTrackingWidget />}
+      {(isCustomer || isFreelance) && <GlobalOrderTrackingWidget />}
       {(isCustomer || isFreelance) && <FloatingChatWidget />}
       <TanStackRouterDevtools />
     </>

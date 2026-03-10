@@ -114,7 +114,7 @@ export function ChatWindow({
   };
 
   return (
-    <div className="min-h-screen bg-[#F9E6D8] pt-24 pb-6 md:pb-8">
+    <div className="min-h-screen bg-[#F9E6D8] pt-6 md:pt-24 pb-6 md:pb-8">
       <main className="max-w-6xl mx-auto px-4">
         <div className="bg-white rounded-2xl border border-orange-100 shadow-lg p-3 md:p-4 h-[calc(100vh-7.5rem)] md:h-[calc(100vh-8rem)]">
           <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-3 h-full min-h-0">

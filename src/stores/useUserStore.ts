@@ -138,6 +138,18 @@ export const useUserStore = create<UserState>((set, get) => ({
         event === "INITIAL_SESSION"
       ) {
         if (session) {
+          // Cleanup URL hash if it contains auth tokens (e.g. after email confirmation redirect)
+          if (
+            typeof window !== "undefined" &&
+            window.location.hash.includes("access_token=")
+          ) {
+            window.history.replaceState(
+              null,
+              document.title,
+              window.location.pathname + window.location.search
+            );
+          }
+
           // If token refreshed but user is the same, just update session object
           if (event === "TOKEN_REFRESHED" && currentUserId === lastUserId) {
             set({ session });

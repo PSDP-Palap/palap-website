@@ -27,6 +27,7 @@ import { Route as AuthenticatedOrderCompleteRouteImport } from './routes/_authen
 import { Route as AuthenticatedFreelanceSignUpRouteImport } from './routes/_authenticated/freelance-sign-up'
 import { Route as AuthenticatedEditProfileRouteImport } from './routes/_authenticated/edit-profile'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
+import { Route as AuthenticatedCartRouteImport } from './routes/_authenticated/cart'
 import { Route as AdminManagementRouteImport } from './routes/_admin/management'
 import { Route as FreelanceFreelanceIndexRouteImport } from './routes/_freelance/freelance/index'
 import { Route as AuthenticatedOrderHistoryIndexRouteImport } from './routes/_authenticated/order-history/index'
@@ -135,6 +136,11 @@ const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedCartRoute = AuthenticatedCartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AdminManagementRoute = AdminManagementRouteImport.update({
   id: '/management',
   path: '/management',
@@ -229,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/management': typeof AdminManagementRouteWithChildren
+  '/cart': typeof AuthenticatedCartRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/edit-profile': typeof AuthenticatedEditProfileRoute
   '/freelance-sign-up': typeof AuthenticatedFreelanceSignUpRoute
@@ -262,6 +269,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/management': typeof AdminManagementRouteWithChildren
+  '/cart': typeof AuthenticatedCartRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/edit-profile': typeof AuthenticatedEditProfileRoute
   '/freelance-sign-up': typeof AuthenticatedFreelanceSignUpRoute
@@ -298,6 +306,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/_admin/management': typeof AdminManagementRouteWithChildren
+  '/_authenticated/cart': typeof AuthenticatedCartRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/edit-profile': typeof AuthenticatedEditProfileRoute
   '/_authenticated/freelance-sign-up': typeof AuthenticatedFreelanceSignUpRoute
@@ -333,6 +342,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/management'
+    | '/cart'
     | '/checkout'
     | '/edit-profile'
     | '/freelance-sign-up'
@@ -366,6 +376,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/management'
+    | '/cart'
     | '/checkout'
     | '/edit-profile'
     | '/freelance-sign-up'
@@ -401,6 +412,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/_admin/management'
+    | '/_authenticated/cart'
     | '/_authenticated/checkout'
     | '/_authenticated/edit-profile'
     | '/_authenticated/freelance-sign-up'
@@ -571,6 +583,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCheckoutRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/cart': {
+      id: '/_authenticated/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof AuthenticatedCartRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_admin/management': {
       id: '/_admin/management'
       path: '/management'
@@ -717,6 +736,7 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedCartRoute: typeof AuthenticatedCartRoute
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedEditProfileRoute: typeof AuthenticatedEditProfileRoute
   AuthenticatedFreelanceSignUpRoute: typeof AuthenticatedFreelanceSignUpRoute
@@ -731,6 +751,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedCartRoute: AuthenticatedCartRoute,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedEditProfileRoute: AuthenticatedEditProfileRoute,
   AuthenticatedFreelanceSignUpRoute: AuthenticatedFreelanceSignUpRoute,

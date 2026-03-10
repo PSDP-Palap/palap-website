@@ -72,7 +72,7 @@ export const Route = createFileRoute("/service/")({
     </div>
   ),
   pendingComponent: () => (
-    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-24">
+    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-6 md:pt-24">
       <Loading fullScreen={false} size={150} />
     </div>
   )
@@ -129,7 +129,7 @@ function RouteComponent() {
 
   return (
     <div className="min-h-screen bg-[#F9E6D8] font-sans pb-14">
-      <main className="max-w-6xl mx-auto p-6 pt-28">
+      <main className="max-w-6xl mx-auto p-6 pt-8 md:pt-28">
         <div className="flex items-center pl-8 bg-[#FF914D] rounded-2xl mb-8 relative overflow-hidden shadow-lg">
           <div>
             <h1 className="text-3xl font-black text-white uppercase ">

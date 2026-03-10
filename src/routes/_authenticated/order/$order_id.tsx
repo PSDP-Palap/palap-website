@@ -252,7 +252,7 @@ function OrderTrackingPage() {
 
   if (trackingError || !trackingData) {
     return (
-      <div className="min-h-screen bg-[#F9E6D8] pt-24 flex flex-col items-center justify-center gap-4 px-4 text-center">
+      <div className="min-h-screen bg-[#F9E6D8] pt-6 md:pt-24 flex flex-col items-center justify-center gap-4 px-4 text-center">
         <p className="text-red-600 font-bold text-lg">
           {trackingError || "Order not found"}
         </p>

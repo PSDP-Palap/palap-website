@@ -38,15 +38,17 @@ function GlobalOrderTrackingWidget() {
   const userRole = useUserStore((s) => s.profile?.role || null);
   const isInitialized = useUserStore((s) => s.isInitialized);
   const isCustomer = String(userRole || "").toLowerCase() === "customer";
+  const isFreelance = String(userRole || "").toLowerCase() === "freelance";
 
   const {
     activeOrderId,
     setActiveOrderId,
     activeOrderTracking: tracking,
-    setActiveOrderTracking: setTracking
+    setActiveOrderTracking: setTracking,
+    ongoingOrderIds,
+    setOngoingOrderIds
   } = useOrderStore();
 
-  const [ongoingOrderIds, setOngoingOrderIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -358,7 +360,7 @@ function GlobalOrderTrackingWidget() {
 
   useEffect(() => {
     if (isPaymentConfirmPage) return;
-    if (!isCustomer) return;
+    if ((!isCustomer && !isFreelance)) return;
     if (!userId || !isInitialized) return;
     if (activeOrderId) return;
     if (suppressAutoPickRef.current) return;
@@ -380,6 +382,7 @@ function GlobalOrderTrackingWidget() {
   }, [
     isPaymentConfirmPage,
     isCustomer,
+    isFreelance,
     userId,
     isInitialized,
     activeOrderId,
@@ -390,7 +393,7 @@ function GlobalOrderTrackingWidget() {
 
   useEffect(() => {
     if (isPaymentConfirmPage) return;
-    if (!isCustomer) return;
+    if ((!isCustomer && !isFreelance)) return;
     if (!activeOrderId) {
       setTracking(null);
       lastLoadedOrderIdRef.current = null;
@@ -428,6 +431,7 @@ function GlobalOrderTrackingWidget() {
   }, [
     isPaymentConfirmPage,
     isCustomer,
+    isFreelance,
     activeOrderId,
     loadTracking,
     setTracking
@@ -527,7 +531,7 @@ function GlobalOrderTrackingWidget() {
   if (
     !isInitialized ||
     !userId ||
-    !isCustomer ||
+    (!isCustomer && !isFreelance) ||
     isActiveChatPage ||
     isPaymentConfirmPage
   ) {
@@ -600,7 +604,7 @@ function GlobalOrderTrackingWidget() {
               </div>
             ) : (
               <>
-                {isCompletedUnpaid && (
+                {isCompletedUnpaid && isCustomer && (
                   <div className="rounded-xl bg-orange-100 border border-orange-200 p-3 mb-1">
                     <p className="text-xs font-black text-orange-800 uppercase tracking-tight mb-1">
                       Action Required

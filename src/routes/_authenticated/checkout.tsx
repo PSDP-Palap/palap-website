@@ -144,78 +144,12 @@ function CheckoutComponent() {
       const pickupAddressId = selectedProduct?.pickup_address_id || null;
       const destinationAddressId = savedAddress?.id || null;
 
-      if (!pickupAddressId || !destinationAddressId) {
-        throw new Error("Missing pickup or destination address.");
-      }
-
-      // Create Service Session (supports multiple owner column variants)
-      const serviceBasePayload = {
-        name: selectedProduct.name,
-        price: total,
-        category: "DELIVERY",
-        pickup_address_id: pickupAddressId,
-        destination_address_id: destinationAddressId,
-        image_url: selectedProduct.image_url
-      };
-
-      const serviceOwnerColumns = [
-        "created_by",
-        "freelancer_id",
-        "freelance_id",
-        "user_id",
-        "profile_id"
-      ];
-
-      let createdService: any = null;
-      let serviceInsertError: any = null;
-
-      for (const ownerColumn of serviceOwnerColumns) {
-        const payload = {
-          ...serviceBasePayload,
-          [ownerColumn]: currentUserId
-        } as any;
-
-        const { data, error } = await supabase
-          .from("services")
-          .insert([payload])
-          .select("service_id")
-          .single();
-
-        if (!error && data) {
-          createdService = data;
-          serviceInsertError = null;
-          break;
-        }
-
-        serviceInsertError = error;
-      }
-
-      if (!createdService) {
-        const { data, error } = await supabase
-          .from("services")
-          .insert([serviceBasePayload])
-          .select("service_id")
-          .single();
-
-        if (error) throw error;
-        createdService = data;
-      }
-
-      if (!createdService?.service_id) {
-        throw new Error(
-          serviceInsertError?.message || "Failed to create service session."
-        );
-      }
-
-      const serviceId = String(createdService.service_id);
-
-      // Create Order
+      // Create Order directly (no more service session creation for products)
       let orderId: string | null = null;
       let lastOrderError: any = null;
 
       const baseOrderPayload = {
         customer_id: currentUserId,
-        service_id: serviceId,
         product_id: selectedProduct.id,
         pickup_address_id: pickupAddressId,
         destination_address_id: destinationAddressId,
@@ -302,7 +236,7 @@ function CheckoutComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9E6D8] pt-24 pb-10">
+    <div className="min-h-screen bg-[#F9E6D8] pt-6 md:pt-24 pb-10">
       <main className="max-w-5xl mx-auto px-4">
         <div className="bg-[#FF914D] rounded-xl px-6 py-5 mb-4 text-white">
           <h1 className="text-3xl font-black uppercase">Final Review</h1>

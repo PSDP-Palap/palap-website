@@ -39,7 +39,7 @@ function FreelanceManagementLayout() {
   ] as const;
 
   return (
-    <div className="h-screen bg-[#FCE6D5] pt-24 pb-6 font-sans overflow-hidden">
+    <div className="h-screen bg-[#FCE6D5] pt-6 md:pt-24 pb-6 font-sans overflow-hidden">
       <main className="max-w-6xl mx-auto px-4 h-full">
         <section className="w-full h-full bg-[#e9bc9a] rounded-2xl border border-orange-100 p-4 md:p-6 flex flex-col min-h-0 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-4 md:gap-6 flex-1 min-h-0 overflow-hidden">

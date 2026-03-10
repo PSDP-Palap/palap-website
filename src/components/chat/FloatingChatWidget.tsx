@@ -4,6 +4,7 @@ import { MessageCircle, Search, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Loading from "@/components/shared/Loading";
+import { useOrderStore } from "@/stores/useOrderStore";
 import { useUserStore } from "@/stores/useUserStore";
 import {
   cleanPreviewMessage,
@@ -45,7 +46,12 @@ const FloatingChatWidget = () => {
     select: (s) => ({ pathname: s.location.pathname })
   });
   const { profile, session, isInitialized } = useUserStore();
+  const { ongoingOrderIds } = useOrderStore();
   const userId = profile?.id || session?.user?.id || null;
+
+  const isFreelance = String(profile?.role || "").toLowerCase() === "freelance";
+  const hasNoOngoingOrders = ongoingOrderIds.length === 0;
+  const shouldBeOnLeft = isFreelance && hasNoOngoingOrders;
 
   const [open, setOpen] = useState(false);
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
@@ -676,12 +682,16 @@ const FloatingChatWidget = () => {
   return (
     <div
       ref={rootRef}
-      className={`fixed right-4 mb-2 md:right-6 z-60 transition-all duration-300 ${
-        isCheckoutFooterPage ? "bottom-41 md:bottom-22" : "bottom-20"
-      }`}
+      className={`fixed mb-2 z-60 transition-all duration-300 ${
+        shouldBeOnLeft ? "left-4 md:left-6" : "right-4 md:right-6"
+      } ${isCheckoutFooterPage ? "bottom-41 md:bottom-22" : "bottom-20"}`}
     >
       {open && (
-        <div className="mb-4 w-80 md:w-96 rounded-2xl border border-orange-100 bg-white shadow-2xl overflow-hidden flex flex-col max-h-125">
+        <div
+          className={`mb-4 w-80 md:w-96 rounded-2xl border border-orange-100 bg-white shadow-2xl overflow-hidden flex flex-col max-h-125 ${
+            shouldBeOnLeft ? "origin-bottom-left" : "origin-bottom-right"
+          }`}
+        >
           <div className="bg-[#FF914D] p-4 flex items-center justify-between text-white">
             <h3 className="font-black text-lg">Messages</h3>
             <button
@@ -781,7 +791,9 @@ const FloatingChatWidget = () => {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 bg-[#FF914D] text-white"
+          className={`w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 bg-[#FF914D] text-white ${
+            shouldBeOnLeft ? "mr-auto" : "ml-auto"
+          }`}
         >
           <div className="relative">
             <MessageCircle className="w-7 h-7 md:w-8 md:h-8 fill-current" />

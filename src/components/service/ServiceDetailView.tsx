@@ -31,6 +31,7 @@ interface ServiceDetailViewProps {
   requestError: string | null;
   activeOrderId: string | null;
   hasActiveOrder: boolean;
+  isFreelancer?: boolean;
 }
 
 export function ServiceDetailView({
@@ -58,10 +59,11 @@ export function ServiceDetailView({
   decliningRequestRoomId,
   chatError,
   requestError,
-  hasActiveOrder
+  hasActiveOrder,
+  isFreelancer
 }: ServiceDetailViewProps) {
   return (
-    <div className="min-h-screen bg-[#F9E6D8] pt-24 pb-10">
+    <div className="min-h-screen bg-[#F9E6D8] pt-6 md:pt-24 pb-10">
       <main className="max-w-6xl mx-auto px-4">
         <div className="bg-white rounded-2xl border border-orange-100 shadow-lg p-6 md:p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -236,6 +238,14 @@ export function ServiceDetailView({
                   Close
                 </Link>
               </div>
+
+              {!hasActiveOrder && isFreelancer && !isServiceOwner && (
+                <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 mt-2">
+                  <p className="text-sm text-orange-800 font-bold">
+                    💡 คุณล็อกอินในฐานะ Freelance จึงไม่สามารถจ้างงานบริการได้ (เฉพาะ Customer เท่านั้น)
+                  </p>
+                </div>
+              )}
 
               {canTryHire && !canRequestHire && (
                 <p className="text-sm text-red-600 font-semibold">

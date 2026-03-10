@@ -171,7 +171,7 @@ export const Route = createFileRoute("/service/$service_id")({
   },
   component: RouteComponent,
   errorComponent: ({ error }) => (
-    <div className="min-h-screen bg-[#F9E6D8] flex flex-col items-center justify-center pt-24 gap-4">
+    <div className="min-h-screen bg-[#F9E6D8] flex flex-col items-center justify-center pt-6 md:pt-24 gap-4">
       <p className="text-red-600 font-bold">
         {error.message || "Failed to load service"}
       </p>
@@ -184,7 +184,7 @@ export const Route = createFileRoute("/service/$service_id")({
     </div>
   ),
   pendingComponent: () => (
-    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-24">
+    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-6 md:pt-24">
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-[#D35400] border-t-transparent rounded-full animate-spin"></div>
         <p className="text-[#D35400] font-bold animate-pulse">
@@ -286,6 +286,8 @@ function RouteComponent() {
   const { profile, session } = useUserStore();
   const { activeOrderId: globalActiveOrderId, activeOrderTracking } = useOrderStore();
 
+  const isFreelancer = String(profile?.role || "").toLowerCase() === "freelance";
+
   const currentUserId = profile?.id || session?.user?.id || null;
   const isServiceOwner = !!(
     currentUserId &&
@@ -293,7 +295,7 @@ function RouteComponent() {
     String(currentUserId) === String(creatorId)
   );
 
-  const canTryHire = !!(currentUserId && !isServiceOwner);
+  const canTryHire = !!(currentUserId && !isServiceOwner && !isFreelancer);
 
   const canRequestHire = !!(canTryHire && !!creatorId);
 
@@ -806,7 +808,7 @@ function RouteComponent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-24">
+      <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-6 md:pt-24">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-[#D35400] border-t-transparent rounded-full animate-spin"></div>
           <p className="text-[#D35400] font-bold animate-pulse">
@@ -819,7 +821,7 @@ function RouteComponent() {
 
   if (error || !service) {
     return (
-      <div className="min-h-screen bg-[#F9E6D8] flex flex-col items-center justify-center pt-24 gap-4">
+      <div className="min-h-screen bg-[#F9E6D8] flex flex-col items-center justify-center pt-6 md:pt-24 gap-4">
         <p className="text-red-600 font-bold">{error || "Service not found"}</p>
         <button
           className="bg-[#D35400] text-white px-4 py-2 rounded-lg font-bold"
@@ -859,6 +861,7 @@ function RouteComponent() {
       requestError={requestError}
       activeOrderId={activeOrderId}
       hasActiveOrder={hasActiveOrder}
+      isFreelancer={isFreelancer}
     />
   );
 }

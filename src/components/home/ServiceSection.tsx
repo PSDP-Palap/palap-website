@@ -51,7 +51,7 @@ const ServiceSection = () => {
             className="group"
           >
             <div
-              className="flex flex-col rounded-[2.5rem] shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-orange-100 overflow-hidden group relative"
+              className="flex flex-col rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-orange-100 overflow-hidden group relative"
               style={{
                 background:
                   "linear-gradient(135deg, rgba(255, 155, 69, 0.3) 0%, rgba(255, 155, 69, 1) 100%)"

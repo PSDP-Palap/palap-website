@@ -16,7 +16,7 @@ function OrderCompletePage() {
   const { order_id, payment_id } = Route.useSearch();
 
   return (
-    <div className="min-h-screen bg-[#F9E6D8] pt-24 pb-10 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#F9E6D8] pt-6 md:pt-24 pb-10 flex items-center justify-center px-4">
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-xl border border-orange-100 overflow-hidden transform animate-in fade-in zoom-in duration-500">
         <div className="bg-linear-to-br from-green-500 to-emerald-600 p-10 text-center text-white relative">
           <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none overflow-hidden">

@@ -64,7 +64,7 @@ export function DeliveryTrackingView({
   const isCompleteUnpaid = status === "COMPLETE";
 
   return (
-    <div className="min-h-screen bg-[#F9E6D8] pt-24 pb-10">
+    <div className="min-h-screen bg-[#F9E6D8] pt-6 md:pt-24 pb-10">
       <main className="max-w-6xl mx-auto px-4">
         <div className="bg-white rounded-2xl border border-orange-100 shadow-lg p-6 md:p-8 space-y-5">
           <div className="flex items-center justify-between gap-4">

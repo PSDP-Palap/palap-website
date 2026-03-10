@@ -571,70 +571,63 @@ const MyJobsTab = ({
             )}
           </div>
 
-          <div className="space-y-2 border border-orange-100 rounded-xl p-3 bg-orange-50/50">
-            <p className="text-xs font-bold uppercase tracking-wider text-orange-700/70">
-              Select Location by Map
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setActiveLocationField("pickup")}
-                className={`px-3 py-1.5 rounded-md text-xs font-black uppercase ${activeLocationField === "pickup" ? "bg-[#A03F00] text-white" : "bg-white text-[#4A2600] border border-orange-200"}`}
-              >
-                Pickup
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveLocationField("destination")}
-                className={`px-3 py-1.5 rounded-md text-xs font-black uppercase ${activeLocationField === "destination" ? "bg-[#A03F00] text-white" : "bg-white text-[#4A2600] border border-orange-200"}`}
-              >
-                Destination
-              </button>
-              <button
-                type="button"
-                onClick={() => setMapExpanded((prev) => !prev)}
-                className="px-3 py-1.5 rounded-md bg-white text-[#4A2600] border border-orange-200 font-black text-xs uppercase"
-              >
-                {mapExpanded ? "Collapse Map" : "Expand Map"}
-              </button>
-            </div>
-
-            <div
-              className={`rounded-md overflow-hidden border border-orange-200 relative ${mapExpanded ? "h-95" : "h-48"}`}
-            >
-              <MapContainer
-                bounds={mapLeafletBounds}
-                className="w-full h-full z-0"
-              >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                <MapCenterTracker
-                  onCenterChange={(lat, lng) => {
-                    setMapLat(Number(lat.toFixed(6)));
-                    setMapLng(Number(lng.toFixed(6)));
-                  }}
-                />
-              </MapContainer>
-              <div className="absolute inset-0 z-1000 pointer-events-none flex items-center justify-center">
-                <div className="relative w-14 h-14 flex items-center justify-center">
-                  <div className="absolute top-1/2 left-0 right-0 h-px bg-black/20" />
-                  <div className="absolute left-1/2 top-0 bottom-0 w-px bg-black/20" />
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-2 w-4 h-1.5 rounded-full bg-black/20 blur-[1px]" />
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow" />
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-white/90" />
-                </div>
+          {category === "DELIVERY" && (
+            <div className="space-y-2 border border-orange-100 rounded-xl p-3 bg-orange-50/50">
+              <p className="text-xs font-bold uppercase tracking-wider text-orange-700/70">
+                Select Location by Map
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveLocationField("pickup")}
+                  className={`px-3 py-1.5 rounded-md text-xs font-black uppercase ${activeLocationField === "pickup" ? "bg-[#A03F00] text-white" : "bg-white text-[#4A2600] border border-orange-200"}`}
+                >
+                  Pickup
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveLocationField("destination")}
+                  className={`px-3 py-1.5 rounded-md text-xs font-black uppercase ${activeLocationField === "destination" ? "bg-[#A03F00] text-white" : "bg-white text-[#4A2600] border border-orange-200"}`}
+                >
+                  Destination
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMapExpanded((prev) => !prev)}
+                  className="px-3 py-1.5 rounded-md bg-white text-[#4A2600] border border-orange-200 font-black text-xs uppercase"
+                >
+                  {mapExpanded ? "Collapse Map" : "Expand Map"}
+                </button>
               </div>
+
+              <div
+                className={`rounded-md overflow-hidden border border-orange-200 relative ${mapExpanded ? "h-95" : "h-48"}`}
+              >
+                <MapContainer
+                  bounds={mapLeafletBounds}
+                  className="w-full h-full z-0"
+                >
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <MapCenterTracker
+                    onCenterChange={(lat, lng) => {
+                      setMapLat(Number(lat.toFixed(6)));
+                      setMapLng(Number(lng.toFixed(6)));
+                    }}
+                  />
+                </MapContainer>
+              </div>
+              <button
+                type="button"
+                onClick={applyLocationFromPin}
+                disabled={resolvingAddress}
+                className="px-3 py-1.5 rounded-md bg-[#A03F00] text-white font-black text-xs uppercase"
+              >
+                {resolvingAddress
+                  ? "Resolving..."
+                  : `Use Pin for ${activeLocationField === "pickup" ? "Pickup" : "Destination"}`}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={applyLocationFromPin}
-              disabled={resolvingAddress}
-              className="px-3 py-1.5 rounded-md bg-[#A03F00] text-white font-black text-xs uppercase"
-            >
-              {resolvingAddress
-                ? "Resolving..."
-                : `Use Pin for ${activeLocationField === "pickup" ? "Pickup" : "Destination"}`}
-            </button>
-          </div>
+          )}
 
           <button
             type="submit"
@@ -672,17 +665,6 @@ const MyJobsTab = ({
                   <p className="text-gray-500">
                     {service.category} • ฿
                     {Number(service.price ?? 0).toFixed(2)}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {typeof service.pickup_address === "object"
-                      ? `${service.pickup_address?.name || ""} ${service.pickup_address?.address_detail || ""}`.trim() ||
-                        service.pickup_address_id
-                      : service.pickup_address || service.pickup_address_id}{" "}
-                    →{" "}
-                    {typeof service.dest_address === "object"
-                      ? `${service.dest_address?.name || ""} ${service.dest_address?.address_detail || ""}`.trim() ||
-                        service.destination_address_id
-                      : service.dest_address || service.destination_address_id}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
