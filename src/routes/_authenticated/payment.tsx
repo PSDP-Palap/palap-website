@@ -341,7 +341,7 @@ function RouteComponent() {
                 }
               }}
               submitError={submitError}
-              buttonText={order_id ? "Pay Now" : "Review Order"}
+              buttonText={order_id ? "Pay Now" : "Pay & Place Order"}
             />
           </div>
         </div>

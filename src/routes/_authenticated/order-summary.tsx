@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DateTimeSection } from "@/components/payment/DateTimeSection";
 import { LocationSection } from "@/components/payment/LocationSection";
 import { OrderItemsList } from "@/components/payment/OrderItemsList";
+import { OrderReviewModal } from "@/components/payment/OrderReviewModal";
 import { PriceSummarySide } from "@/components/payment/PriceSummarySide";
 import Loading from "@/components/shared/Loading";
 import { useCartStore } from "@/stores/useCartStore";
@@ -46,6 +47,7 @@ function RouteComponent() {
   const [isMapExpanded, setIsMapExpanded] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [cartHydrationTimedOut, setCartHydrationTimedOut] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   const isCartReady = hasHydrated || cartHydrationTimedOut;
 
@@ -366,15 +368,7 @@ function RouteComponent() {
       const nextAddressId = await persistLocation();
       if (!nextAddressId) return;
 
-      router.navigate({
-        to: "/payment",
-        search: {
-          subtotal,
-          tax,
-          total,
-          address_id: nextAddressId
-        }
-      });
+      setIsReviewModalOpen(true);
     } catch (err: any) {
       setLocationError(
         err?.message || "Failed to save destination before payment."
@@ -382,6 +376,19 @@ function RouteComponent() {
     } finally {
       setProceedingToPayment(false);
     }
+  };
+
+  const handleConfirmPayment = () => {
+    setIsReviewModalOpen(false);
+    router.navigate({
+      to: "/payment",
+      search: {
+        subtotal,
+        tax,
+        total,
+        address_id: destinationAddressId || undefined
+      }
+    });
   };
 
   const orderRows = useMemo(() => {
@@ -496,6 +503,20 @@ function RouteComponent() {
           </div>
         </div>
       </main>
+
+      <OrderReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        onConfirm={handleConfirmPayment}
+        orderRows={orderRows}
+        subtotal={subtotal}
+        tax={tax}
+        total={total}
+        addressName={locationName}
+        addressDetail={locationDetail}
+        displayDate={displayDate}
+        displayTime={displayTime}
+      />
     </div>
   );
 }
