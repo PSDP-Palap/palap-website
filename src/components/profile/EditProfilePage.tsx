@@ -1,6 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { Search } from "lucide-react";
 
 import Loading from "@/components/shared/Loading";
 import MapPicker from "@/components/shared/MapPicker";
@@ -26,8 +27,8 @@ const EditProfilePage = () => {
         full_name: profile.full_name || "",
         phone_number: profile.phone_number || "",
         address: profile.address || "",
-        lat: null, // We'll need to fetch these if we want them initially
-        lng: null
+        lat: profile.lat || null,
+        lng: profile.lng || null
       });
     }
   }, [profile]);
@@ -45,6 +46,45 @@ const EditProfilePage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleManualSearch = async () => {
+    if (!formData.address.trim()) {
+      toast.error("Please enter an address to search");
+      return;
+    }
+
+    try {
+      setIsResolving(true);
+      const loadingToast = toast.loading("Searching for address...");
+      
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}&limit=1`,
+        {
+          headers: {
+            'Accept-Language': 'en-US,en;q=0.9,th;q=0.8',
+            'User-Agent': 'PalapPetServices/1.0'
+          }
+        }
+      );
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+        const newLat = parseFloat(lat);
+        const newLng = parseFloat(lon);
+        
+        setFormData(prev => ({ ...prev, lat: newLat, lng: newLng }));
+        toast.success("Location found and pinned!", { id: loadingToast });
+      } else {
+        toast.error("Could not find that location. Please be more specific or use the map.", { id: loadingToast });
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      toast.error("Failed to search address");
+    } finally {
+      setIsResolving(false);
+    }
+  };
+
   const handleMapChange = async (lat: number, lng: number) => {
     setFormData((prev) => ({ ...prev, lat, lng }));
     
@@ -52,26 +92,63 @@ const EditProfilePage = () => {
     try {
       setIsResolving(true);
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+        {
+          headers: {
+            'Accept-Language': 'en-US,en;q=0.9,th;q=0.8',
+            'User-Agent': 'PalapPetServices/1.0'
+          }
+        }
       );
       const data = await response.json();
-      if (data && data.display_name) {
+      
+      if (data && data.address) {
+        const a = data.address;
+        
+        // Pick most relevant descriptive parts
+        const main = a.amenity || a.building || a.house_number || a.shop || a.office || a.tourism || "";
+        const road = a.road || a.highway || "";
+        const area = a.suburb || a.neighbourhood || a.village || a.hamlet || a.city_district || "";
+        const city = a.city || a.town || a.municipality || a.province || "";
+        
+        // Combine parts and filter out empties
+        const parts = [main, road, area, city].filter(Boolean);
+        
+        // Deduplicate identical parts
+        const uniqueParts = parts.filter((item, index) => parts.indexOf(item) === index);
+        
+        if (uniqueParts.length > 0) {
+          setFormData(prev => ({ ...prev, address: uniqueParts.join(", ") }));
+        } else {
+          setFormData(prev => ({ ...prev, address: data.display_name || `Location at ${lat.toFixed(6)}, ${lng.toFixed(6)}` }));
+        }
+      } else if (data && data.display_name) {
         setFormData(prev => ({ ...prev, address: data.display_name }));
+      } else {
+        setFormData(prev => ({ ...prev, address: `Location at ${lat.toFixed(6)}, ${lng.toFixed(6)}` }));
       }
     } catch (error) {
       console.error("Geocoding error:", error);
+      setFormData(prev => ({ ...prev, address: `Location at ${lat.toFixed(6)}, ${lng.toFixed(6)}` }));
     } finally {
       setIsResolving(false);
     }
   };
 
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     const loadingToast = toast.loading("Saving changes...");
 
     try {
-      const { error } = await updateProfile(formData);
+      // Standardize payload for updateProfile
+      const { error } = await updateProfile({
+        full_name: formData.full_name,
+        phone_number: formData.phone_number,
+        address: formData.address,
+        lat: formData.lat,
+        lng: formData.lng
+      });
 
       if (error) {
         toast.error(
@@ -158,18 +235,33 @@ const EditProfilePage = () => {
                     <label className="block text-sm font-semibold text-gray-500 uppercase mb-1">
                       Home Location
                     </label>
-                    <div className="mb-2">
-                      <MapPicker lat={formData.lat} lng={formData.lng} onChange={handleMapChange} />
+                    <div className="mb-2 h-80 w-full relative">
+                      <MapPicker 
+                        lat={formData.lat} 
+                        lng={formData.lng} 
+                        address={formData.address}
+                        onChange={handleMapChange} 
+                      />
                       <p className="text-[10px] text-gray-400 mt-2 px-2 italic">
                         Click on the map to pin your exact delivery location.
                       </p>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-500 uppercase mb-1">
-                      Home Address Detail {isResolving && <span className="text-[10px] lowercase animate-pulse">(resolving...)</span>}
-                    </label>
+                  <div className="pt-4">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-sm font-semibold text-gray-500 uppercase">
+                        Home Address Detail {isResolving && <span className="text-[10px] lowercase animate-pulse">(resolving...)</span>}
+                      </label>
+                      <button 
+                        type="button"
+                        onClick={handleManualSearch}
+                        className="text-[10px] font-black text-orange-600 uppercase flex items-center gap-1 hover:underline"
+                      >
+                        <Search className="w-3 h-3" />
+                        Search & Pin
+                      </button>
+                    </div>
                     <textarea
                       name="address"
                       value={formData.address}
