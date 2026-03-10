@@ -172,13 +172,18 @@ function OrderTrackingPage() {
   const handlePay = async () => {
     if (!trackingData || !currentUserId || !order_id) return;
     const price = trackingData.price || 0;
-    const subtotal = price / 1.07;
-    const tax = price - subtotal;
+    
+    // total = subtotal * 1.05 (delivery) * 1.03 (tax)
+    // total = subtotal * 1.0815
+    const subtotal = price / 1.0815;
+    const deliveryFee = subtotal * 0.05;
+    const tax = (subtotal + deliveryFee) * 0.03;
 
     router.navigate({
       to: "/payment",
       search: {
         subtotal: Number(subtotal.toFixed(2)),
+        deliveryFee: Number(deliveryFee.toFixed(2)),
         tax: Number(tax.toFixed(2)),
         total: Number(price.toFixed(2)),
         order_id: order_id

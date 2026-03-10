@@ -23,6 +23,7 @@ export interface FreelanceEarning {
   order_id: string | null;
   freelance_id: string | null;
   amount: number;
+  delivery_fee: number;
   status: string;
   paid_at: string | null;
   created_at: string;

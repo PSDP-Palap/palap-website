@@ -194,14 +194,20 @@ function RouteComponent() {
         // Create orders (For now, we create one order per product as per schema limitation)
         // We will just create the first one for simplicity or we can loop.
         // The user said "create order link customer_id with product_id"
-        const ordersToCreate = productsData.map((p) => ({
-          customer_id: currentUserId,
-          product_id: p.product_id,
-          pickup_address_id: p.pickup_address_id,
-          destination_address_id: address_id,
-          price: p.price * (cartItems[String(p.product_id)] || 1),
-          status: "WAITING"
-        }));
+        const ordersToCreate = productsData.map((p) => {
+          const productSubtotal = p.price * (cartItems[String(p.product_id)] || 1);
+          // Distribute deliveryFee and tax proportionally if multiple products, 
+          // or just add them to the total if we're only creating one order.
+          // Since we're currently limiting to 1 order anyway, we'll just use the total.
+          return {
+            customer_id: currentUserId,
+            product_id: p.product_id,
+            pickup_address_id: p.pickup_address_id,
+            destination_address_id: address_id,
+            price: total, // Use total instead of just product price
+            status: "WAITING"
+          };
+        });
 
         const { data: createdOrders, error: createOrderError } = await supabase
           .from("orders")

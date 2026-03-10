@@ -1,5 +1,5 @@
 import Loading from "@/components/shared/Loading";
-import type { Transaction } from "@/types/payment";
+import type { FreelanceEarning, Transaction } from "@/types/payment";
 
 interface EarningTabProps {
   loadingEarning: boolean;
@@ -9,7 +9,7 @@ interface EarningTabProps {
     completedOrders: number;
     pendingOrders: number;
   };
-  transactions: Transaction[];
+  transactions: (Transaction | FreelanceEarning)[];
 }
 
 const EarningTab = ({ loadingEarning, earningSummary, transactions }: EarningTabProps) => {
@@ -66,37 +66,48 @@ const EarningTab = ({ loadingEarning, earningSummary, transactions }: EarningTab
               No transactions yet.
             </div>
           ) : (
-            <div className="space-y-2">
-              {transactions.map((e) => (
-                <div 
-                  key={e.id} 
-                  className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-orange-50/30 transition-colors"
-                >
-                  <div className="min-w-0">
-                    <p className="font-bold text-[#4A2600] text-sm truncate">
-                      Order: {String(e.order_id).slice(0, 8)}...
-                    </p>
-                    <p className="text-[10px] text-gray-500">
-                      {new Date(e.created_at).toLocaleDateString()} {new Date(e.created_at).toLocaleTimeString()}
-                    </p>
+            <div className="space-y-2 px-1">
+              {transactions.map((e) => {
+                const deliveryFee = (e as FreelanceEarning).delivery_fee || 0;
+                const baseAmount = Number(e.amount) - (deliveryFee > 0 ? deliveryFee : 0);
+                const totalAmount = Number(e.amount);
+
+                return (
+                  <div 
+                    key={e.id} 
+                    className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-orange-50/30 transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-bold text-[#4A2600] text-sm truncate">
+                        Order: {String(e.order_id).slice(0, 8)}...
+                      </p>
+                      <div className="flex flex-col text-[10px] text-gray-500">
+                        <span>{new Date(e.created_at).toLocaleDateString()} {new Date(e.created_at).toLocaleTimeString()}</span>
+                        {deliveryFee > 0 && (
+                          <span className="text-[#A03F00] font-semibold">
+                            Incl. ฿{deliveryFee.toLocaleString()} delivery fee
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <p className="font-black text-[#5D2611]">
+                        ฿ {totalAmount.toLocaleString()}
+                      </p>
+                      <span 
+                        className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                          e.status === 'completed' || e.status === 'paid' 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-orange-100 text-orange-700'
+                        }`}
+                      >
+                        {e.status}
+                      </span>
+                    </div>
                   </div>
-                  
-                  <div className="text-right">
-                    <p className="font-black text-[#5D2611]">
-                      ฿ {Number(e.amount).toLocaleString()}
-                    </p>
-                    <span 
-                      className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                        e.status === 'completed' || e.status === 'paid' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-orange-100 text-orange-700'
-                      }`}
-                    >
-                      {e.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
