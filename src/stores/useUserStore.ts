@@ -16,7 +16,7 @@ interface UserState {
   setProfile: (profile: Profile | null) => void;
   fetchProfile: () => Promise<Profile | null>;
   initialize: () => Promise<void>;
-  updateProfile: (updates: Partial<Profile & { lat?: number | null; lng?: number | null }>) => Promise<{ error: any }>;
+  updateProfile: (updates: Partial<Profile & { lat?: number | null; lng?: number | null; name?: string }>) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -69,15 +69,21 @@ export const useUserStore = create<UserState>((set, get) => ({
       let address = null;
       let lat = null;
       let lng = null;
+      let addressId = null;
+      let addressName = null;
       if (profile?.role === "customer") {
         const { data: customer } = await supabase
           .from("customers")
-          .select("address_id, addresses:address_id(address_detail, lat, lng)")
+          .select("address_id, addresses:address_id(id, address_detail, lat, lng, name)")
           .eq("id", userId)
           .maybeSingle();
-        address = (customer?.addresses as any)?.address_detail || null;
-        lat = (customer?.addresses as any)?.lat || null;
-        lng = (customer?.addresses as any)?.lng || null;
+        
+        const addrData = (customer?.addresses as any);
+        addressId = addrData?.id || null;
+        address = addrData?.address_detail || null;
+        lat = addrData?.lat || null;
+        lng = addrData?.lng || null;
+        addressName = addrData?.name || "Home";
       }
 
       const finalProfile = profile
@@ -86,8 +92,10 @@ export const useUserStore = create<UserState>((set, get) => ({
           role: roleFromMeta || profile.role,
           address,
           lat,
-          lng
-        } as Profile)
+          lng,
+          addressId,
+          addressName
+        } as Profile & { addressId?: string | null; addressName?: string | null })
         : ({
           id: userId,
           email: session.user.email || "",
@@ -97,8 +105,10 @@ export const useUserStore = create<UserState>((set, get) => ({
           created_at: session.user.created_at || new Date().toISOString(),
           address: null,
           lat: null,
-          lng: null
-        } as Profile);
+          lng: null,
+          addressId: null,
+          addressName: null
+        } as Profile & { addressId?: string | null; addressName?: string | null });
 
       set({ profile: finalProfile });
       return finalProfile;
@@ -159,46 +169,56 @@ export const useUserStore = create<UserState>((set, get) => ({
     });
   },
 
-  updateProfile: async (updates: Partial<Profile & { lat?: number | null; lng?: number | null }>) => {
+  updateProfile: async (updates: Partial<Profile & { lat?: number | null; lng?: number | null; name?: string }>) => {
     const { profile } = get();
     if (!profile) return { error: "No profile found" };
 
-    const { full_name, phone_number, address, lat, lng } = updates;
+    const { full_name, phone_number, address, lat, lng, name } = updates;
     console.log("Updating profile for ID:", profile.id, "with updates:", updates);
 
-    // Update profiles table
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({ full_name, phone_number })
-      .eq("id", profile.id);
+    // 1. Update profiles table - only if full_name or phone_number is provided
+    if (full_name !== undefined || phone_number !== undefined) {
+      const profilePayload: any = {};
+      if (full_name !== undefined) profilePayload.full_name = full_name;
+      if (phone_number !== undefined) profilePayload.phone_number = phone_number;
 
-    if (profileError) {
-      console.error("Error updating profiles table:", profileError);
-      return { error: profileError };
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update(profilePayload)
+        .eq("id", profile.id);
+
+      if (profileError) {
+        console.error("Error updating profiles table:", profileError);
+        return { error: profileError };
+      }
     }
 
-    // Update customers and addresses table if role is customer
+    // 2. Update customers and addresses table if role is customer
     if (profile.role === "customer") {
       console.log("Updating customer address for ID:", profile.id);
 
-      let addressId = null;
+      let addressId = (profile as any).addressId;
 
-      // 1. Check if customer already has an address_id
-      const { data: customerData } = await supabase
-        .from("customers")
-        .select("address_id")
-        .eq("id", profile.id)
-        .maybeSingle();
+      // Check if customer already has an address_id if store doesn't have it
+      if (!addressId) {
+        const { data: customerData } = await supabase
+          .from("customers")
+          .select("address_id")
+          .eq("id", profile.id)
+          .maybeSingle();
+        addressId = customerData?.address_id;
+      }
 
-      addressId = customerData?.address_id;
-
-      const addressPayload = {
-        name: "Home Address",
-        address_detail: address,
-        lat: lat,
-        lng: lng,
+      // Prepare address payload - only include provided fields or keep existing ones
+      const currentAddressName = name || (profile as any).addressName || "Home";
+      const addressPayload: any = {
+        name: currentAddressName,
         profile_id: profile.id
       };
+      
+      if (address !== undefined) addressPayload.address_detail = address;
+      if (lat !== undefined) addressPayload.lat = lat;
+      if (lng !== undefined) addressPayload.lng = lng;
 
       if (addressId) {
         // Update existing address
@@ -208,7 +228,7 @@ export const useUserStore = create<UserState>((set, get) => ({
           .eq("id", addressId);
         
         if (addrError) console.error("Error updating address:", addrError);
-      } else if (address || (lat && lng)) {
+      } else if (address || (lat !== undefined && lng !== undefined)) {
         // Create new address
         const { data: newAddr, error: addrError } = await supabase
           .from("addresses")
@@ -223,7 +243,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         }
       }
 
-      // 2. Upsert customer record with address_id
+      // Upsert customer record with address_id
       const { error: customerError } = await supabase
         .from("customers")
         .upsert({
@@ -236,10 +256,20 @@ export const useUserStore = create<UserState>((set, get) => ({
         console.error("Error updating customers table:", customerError);
         return { error: customerError };
       }
+      
+      // Update local state for customer
+      const newProfile = { 
+        ...profile, 
+        ...updates, 
+        addressId: addressId, 
+        addressName: currentAddressName 
+      };
+      set({ profile: newProfile });
+    } else {
+      // Update local state for non-customers
+      set({ profile: { ...profile, ...updates } });
     }
 
-    // Update local state
-    set({ profile: { ...profile, ...updates } });
     console.log("Profile updated successfully in store and Supabase");
     return { error: null };
   },
