@@ -1,6 +1,6 @@
 import type { Session } from "@supabase/supabase-js";
 import { Link } from "@tanstack/react-router";
-import { Edit, ExternalLink, Mail, Phone, Shield, User } from "lucide-react";
+import { Edit, Mail, Phone, Shield, User } from "lucide-react";
 
 import type { Profile } from "@/types/user";
 
@@ -116,7 +116,9 @@ const AccountSettingTab = ({ profile, session }: AccountSettingTabProps) => {
                 <p className="font-bold text-gray-700 text-sm uppercase tracking-tight">
                   Verified Account
                 </p>
-                <p className="text-[10px] text-green-600 font-bold">Role: {profile?.role || "Freelance"}</p>
+                <p className="text-[10px] text-green-600 font-bold">
+                  Role: {profile?.role || "Freelance"}
+                </p>
               </div>
             </div>
           </div>

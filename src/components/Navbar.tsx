@@ -1,5 +1,13 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { History, Home, LogOut, Package, ShoppingCart, Stethoscope, User } from "lucide-react";
+import {
+  History,
+  Home,
+  LogOut,
+  Package,
+  ShoppingCart,
+  Stethoscope,
+  User
+} from "lucide-react";
 import { useRef, useState } from "react";
 
 import {
@@ -48,7 +56,7 @@ const Navbar = () => {
   return (
     <>
       {/* Desktop Navbar */}
-      <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl bg-white rounded-full drop-shadow-xl z-[100] pointer-events-auto hidden md:block">
+      <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl bg-white rounded-full drop-shadow-xl z-100 pointer-events-auto hidden md:block">
         <div className="flex justify-between items-center py-4 px-8">
           <div className="flex items-center gap-2">
             <Link to="/" className="flex gap-2 items-center">
@@ -157,8 +165,7 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Mobile Bottom Navbar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-orange-100 z-[100] px-2 py-2 md:hidden shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-orange-100 z-100 px-2 py-2 md:hidden shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         <ul className="flex justify-around items-center h-14">
           <li>
             <Link
@@ -167,7 +174,9 @@ const Navbar = () => {
               activeProps={{ className: "text-orange-600 font-bold" }}
             >
               <Home className="w-5 h-5" />
-              <span className="text-[10px]">{isFreelancer ? "แดชบอร์ด" : "หน้าหลัก"}</span>
+              <span className="text-[10px]">
+                {isFreelancer ? "แดชบอร์ด" : "หน้าหลัก"}
+              </span>
             </Link>
           </li>
           {!isFreelancer && (
