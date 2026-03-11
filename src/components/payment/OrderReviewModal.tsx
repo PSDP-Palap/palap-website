@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, MapPin, Calendar, Clock, CreditCard } from 'lucide-react';
 
 interface OrderItem {

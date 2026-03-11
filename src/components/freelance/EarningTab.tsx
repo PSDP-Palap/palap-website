@@ -69,7 +69,6 @@ const EarningTab = ({ loadingEarning, earningSummary, transactions }: EarningTab
             <div className="space-y-2 px-1">
               {transactions.map((e) => {
                 const deliveryFee = (e as FreelanceEarning).delivery_fee || 0;
-                const baseAmount = Number(e.amount) - (deliveryFee > 0 ? deliveryFee : 0);
                 const totalAmount = Number(e.amount);
 
                 return (

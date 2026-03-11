@@ -9,8 +9,7 @@ import {
   Banknote, 
   ShieldCheck, 
   ChevronLeft,
-  Lock,
-  ArrowRight
+  Lock
 } from "lucide-react";
 
 import cashIcon from "@/assets/1048961_97602-OL0FQH-995-removebg-preview.png";
@@ -23,7 +22,6 @@ import { PaymentSummary } from "@/components/payment/PaymentSummary";
 import { QrPaymentForm } from "@/components/payment/QrPaymentForm";
 import Loading from "@/components/shared/Loading";
 import { useCartStore } from "@/stores/useCartStore";
-import { useOrderStore } from "@/stores/useOrderStore";
 import { useUserStore } from "@/stores/useUserStore";
 import supabase from "@/utils/supabase";
 

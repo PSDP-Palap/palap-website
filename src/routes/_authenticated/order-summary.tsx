@@ -3,9 +3,6 @@ import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { 
   MapPin, 
-  Calendar, 
-  Clock, 
-  ChevronRight, 
   ShoppingBag, 
   Map as MapIcon,
   AlertCircle,
@@ -24,7 +21,6 @@ import { OrderReviewModal } from "@/components/payment/OrderReviewModal";
 import { PriceSummarySide } from "@/components/payment/PriceSummarySide";
 import Loading from "@/components/shared/Loading";
 import { useCartStore } from "@/stores/useCartStore";
-import { useOrderStore } from "@/stores/useOrderStore";
 import { useUserStore } from "@/stores/useUserStore";
 import type { Product } from "@/types/product";
 import supabase from "@/utils/supabase";
@@ -44,12 +40,12 @@ function RouteComponent() {
   const [loadingProducts, setLoadingProducts] = useState(true);
 
   // Form State
-  const [locationName, setLocationName] = useState(profile?.addressName || "Home");
+  const [locationName, setLocationName] = useState((profile as any)?.addressName || "Home");
   const [locationDetail, setLocationDetail] = useState(profile?.address || "");
   const [locationLat, setLocationLat] = useState(profile?.lat ? String(profile.lat) : "");
   const [locationLng, setLocationLng] = useState(profile?.lng ? String(profile.lng) : "");
-  const [displayDate, setDisplayDate] = useState(new Date().toLocaleDateString());
-  const [displayTime, setDisplayTime] = useState(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+  const [displayDate] = useState(new Date().toLocaleDateString());
+  const [displayTime] = useState(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
   
   const [orderNote, setOrderNote] = useState("");
   const [promoCode, setPromoCode] = useState("");
@@ -272,39 +268,6 @@ function RouteComponent() {
           setIsResolving(false);
         }
       );
-    }
-  };
-
-  const handleManualSearch = async () => {
-    if (!locationDetail.trim()) {
-      setLocationError("Please enter an address to search");
-      return;
-    }
-
-    try {
-      setIsResolving(true);
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationDetail)}&limit=1`,
-        {
-          headers: {
-            'Accept-Language': 'en-US,en;q=0.9,th;q=0.8',
-            'User-Agent': 'PalapPetServices/1.0'
-          }
-        }
-      );
-      const data = await response.json();
-
-      if (data && data.length > 0) {
-        const { lat, lon } = data[0];
-        handleMapChange(parseFloat(lat), parseFloat(lon));
-      } else {
-        setLocationError("Could not find that location. Please be more specific.");
-      }
-    } catch (error) {
-      console.error("Search error:", error);
-      setLocationError("Failed to search address");
-    } finally {
-      setIsResolving(false);
     }
   };
 

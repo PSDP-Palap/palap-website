@@ -6,7 +6,7 @@ import {
   ChevronLeft, 
   ChevronRight,
   Package,
-  MapPin
+  MapPin,
 } from "lucide-react";
 import { useState } from "react";
 

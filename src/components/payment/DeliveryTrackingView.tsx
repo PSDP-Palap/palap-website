@@ -2,7 +2,6 @@
 import { 
   Package, 
   MapPin, 
-  User, 
   Truck, 
   MessageSquare, 
   CheckCircle2, 

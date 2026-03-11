@@ -1,5 +1,5 @@
 import { useRouter } from "@tanstack/react-router";
-import { Star, ShoppingCart, Eye, Heart } from "lucide-react";
+import { ShoppingCart, Eye } from "lucide-react";
 import { useState } from "react";
 
 import type { Product } from "@/types/product";

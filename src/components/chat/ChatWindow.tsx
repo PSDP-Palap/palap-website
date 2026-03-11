@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Send, Image as ImageIcon, ArrowLeft, MoreVertical, ShieldCheck, Clock, MessageCircle } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
 import type { RefObject } from "react";
 
 import Loading from "@/components/shared/Loading";
@@ -67,7 +66,6 @@ export function ChatWindow({
   roomId,
   hashRoomId,
   setRoomId,
-  loadRoomParticipants,
   serviceName,
   chatCounterpartAvatar,
   chatCounterpartName,
@@ -75,7 +73,6 @@ export function ChatWindow({
   messagesContainerRef,
   chatLoading,
   messages,
-  isCurrentUserFreelancerInRoom,
   chatError,
   imageInputRef,
   onImageSelected,
@@ -91,13 +88,9 @@ export function ChatWindow({
   canPayAndStartWork = false,
   canSubmitWork = false,
   canApproveWork = false,
-  canDeclineWork = false,
-  canPayForCompletedWork = false,
   onPayAndStartWork,
   onSubmitWork,
   onApproveWork,
-  onDeclineWork,
-  onPayForCompletedWork,
   workflowBusyAction = null
 }: ChatWindowProps) {
   const { profile, session } = useUserStore();
@@ -259,8 +252,7 @@ export function ChatWindow({
                 </div>
               )}
 
-              {messages.map((msg, idx) => {
-                const isMine = String(msg.sender_id) === String(currentUserId);
+              {messages.map((msg) => {                const isMine = String(msg.sender_id) === String(currentUserId);
                 const isSystem = isSystemMessage(msg.message_type);
                 const isImage = msg.message_type === "IMAGE";
                 

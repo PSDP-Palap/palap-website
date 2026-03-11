@@ -12,7 +12,8 @@ import {
   ShieldCheck, 
   CreditCard,
   Building,
-  Navigation
+  Navigation,
+  XCircle
 } from "lucide-react";
 
 import { useOrderStore } from "@/stores/useOrderStore";
@@ -40,6 +41,7 @@ type OrderDetail = {
   pickupDetail: string;
   destinationName: string;
   destinationDetail: string;
+  isCompleted: boolean;
 };
 
 function RouteComponent() {
@@ -143,7 +145,8 @@ function RouteComponent() {
           pickupName: addressMap.get(String(row.pickup_address_id || ""))?.name || "Pickup Point",
           pickupDetail: addressMap.get(String(row.pickup_address_id || ""))?.address_detail || "Information not available",
           destinationName: addressMap.get(String(row.destination_address_id || ""))?.name || "Destination",
-          destinationDetail: addressMap.get(String(row.destination_address_id || ""))?.address_detail || "Information not available"
+          destinationDetail: addressMap.get(String(row.destination_address_id || ""))?.address_detail || "Information not available",
+          isCompleted: normalizedStatus === "COMPLETE"
         });
       } catch (err: any) {
         setError(err?.message || "Unable to load order detail.");
@@ -154,16 +157,6 @@ function RouteComponent() {
 
     loadOrderDetail();
   }, [currentUserId, orderId]);
-
-  const handleCancel = async () => {
-    if (!detail || !window.confirm("Are you sure you want to cancel this order?")) return;
-    try {
-      await supabase.from("orders").update({ status: "CANCEL" }).eq("order_id", detail.orderId);
-      window.location.reload();
-    } catch (e) {
-      alert("Failed to cancel order");
-    }
-  };
 
   if (loading) return <Loading />;
 

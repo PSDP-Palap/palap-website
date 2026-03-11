@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Search, SlidersHorizontal, Grid, List, ChevronDown, Filter } from "lucide-react";
+import { Search, ChevronDown, Filter } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { CartFooter } from "@/components/product/CartFooter";

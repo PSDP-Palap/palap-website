@@ -319,6 +319,7 @@ function CheckoutComponent() {
               <PaymentSummary
                 subtotal={subtotal}
                 tax={tax}
+                deliveryFee={0}
                 total={total}
                 isSubmitting={isSubmitting}
                 proceedDisabled={isSubmitting}

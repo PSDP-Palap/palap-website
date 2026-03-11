@@ -9,7 +9,7 @@ import {
   cleanPreviewMessage,
   withTimeout
 } from "@/utils/helpers";
-import supabase, { isUuidLike } from "@/utils/supabase";
+import supabase from "@/utils/supabase";
 
 interface ConversationItem {
   key: string;
@@ -67,12 +67,6 @@ const FloatingChatWidget = () => {
     return null;
   }, [pathname]);
   const isActiveChatPage = Boolean(activeChatPrefix);
-  const activeChatRoomId = useMemo(() => {
-    if (!activeChatPrefix) return null;
-    const raw = pathname.slice(activeChatPrefix.length);
-    const roomId = decodeURIComponent(raw.split("/")[0] || "").trim();
-    return roomId || null;
-  }, [pathname, activeChatPrefix]);
 
   const readStorageKey = useMemo(
     () => `floating_chat_read_at:${String(userId || "")}`,
@@ -138,18 +132,6 @@ const FloatingChatWidget = () => {
       setReadByRoom({});
     }
   }, [readStorageKey, userId]);
-
-  const isColumnMissingError = (error: any) => {
-    const message = String(error?.message || "").toLowerCase();
-    const code = String(error?.code || "").toLowerCase();
-    return (
-      code === "pgrst204" ||
-      code === "42703" ||
-      message.includes("column") ||
-      message.includes("does not exist") ||
-      message.includes("could not find")
-    );
-  };
 
   useEffect(() => {
     if (!userId || !isInitialized) return;

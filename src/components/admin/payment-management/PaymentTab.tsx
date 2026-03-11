@@ -4,19 +4,14 @@ import {
   RefreshCcw,
   DollarSign,
   AlertCircle, 
-  Search,
   Package,
   CheckCircle2,
-  Clock,
   ArrowRight
 } from "lucide-react";
 
 import Loading from "@/components/shared/Loading";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
+  TooltipProvider
 } from "@/components/ui/tooltip";
 import supabase from "@/utils/supabase";
 

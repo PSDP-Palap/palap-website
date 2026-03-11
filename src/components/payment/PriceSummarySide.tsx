@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, Loader2, ArrowRight } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 
 interface PriceSummarySideProps {
   totalItems: number;
@@ -40,7 +40,7 @@ export function PriceSummarySide({
         </div>
         
         <div className="flex items-center justify-between text-sm">
-          <p className="font-bold text-gray-400 uppercase tracking-widest">Web Service (3%)</p>
+          <p className="font-bold text-gray-400 uppercase tracking-widest">Tax (3%)</p>
           <p className="font-black text-[#4A2600]">฿{tax.toLocaleString()}</p>
         </div>
         

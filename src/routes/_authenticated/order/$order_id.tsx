@@ -14,7 +14,6 @@ export const Route = createFileRoute("/_authenticated/order/$order_id")({
   component: OrderTrackingPage
 });
 
-const DEFAULT_MAP_CENTER = { lat: 13.7563, lng: 100.5018 };
 const WAITING_STATUS_SET = new Set([
   "",
   "WAITING",

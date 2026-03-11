@@ -6,10 +6,6 @@ import {
   ChevronRight, 
   Clock, 
   CheckCircle2, 
-  XCircle, 
-  Search,
-  Filter,
-  ArrowLeft,
   Truck
 } from "lucide-react";
 
