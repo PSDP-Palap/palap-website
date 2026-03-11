@@ -170,7 +170,7 @@ const EditProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
+    <div className="min-h-screen bg-gray-50 pt-6 md:pt-24 pb-12">
       <div className="max-w-2xl mx-auto px-4">
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
           <div className="bg-[#9a3c0b] py-6 px-8 text-white flex justify-between items-center">

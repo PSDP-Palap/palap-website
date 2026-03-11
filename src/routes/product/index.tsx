@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Search, ChevronDown, Filter } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { CartFooter } from "@/components/product/CartFooter";
 import { ProductCard } from "@/components/product/ProductCard";
 import Loading from "@/components/shared/Loading";
 import { useCartStore } from "@/stores/useCartStore";
@@ -69,9 +68,6 @@ function RouteComponent() {
   const [sortBy, setSortBy] = useState("newest");
 
   const cartItems = useCartStore((s) => s.items);
-  const setCartQuantity = useCartStore((s) => s.setQuantity);
-  const removeCartItem = useCartStore((s) => s.remove);
-  const [isFooterCartExpanded, setIsFooterCartExpanded] = useState(false);
 
   useEffect(() => { setProducts(initialProducts); }, [initialProducts]);
 
@@ -210,17 +206,6 @@ function RouteComponent() {
           </div>
         </div>
       </main>
-
-      <CartFooter
-        isFooterCartExpanded={isFooterCartExpanded}
-        setIsFooterCartExpanded={setIsFooterCartExpanded}
-        selectedCartRows={selectedCartRows}
-        setCartQuantity={setCartQuantity}
-        removeCartItem={removeCartItem}
-        selectedItemCount={selectedItemCount}
-        totalPrice={totalPrice}
-        cartItems={cartItems}
-      />
     </div>
   );
 }

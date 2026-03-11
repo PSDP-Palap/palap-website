@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import MyJobsTab from "@/components/freelance/MyJobsTab";
+import { useServiceStore } from "@/stores/useServiceStore";
 import { useUserStore } from "@/stores/useUserStore";
 import type {
   DeliveryOrderItem,
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/_freelance/freelance/jobs")({
 
 function JobsRoute() {
   const { profile, session } = useUserStore();
+  const { uploadServiceImage } = useServiceStore();
   const currentUserId = profile?.id || session?.user?.id || null;
 
   const [services, setServices] = useState<Service[]>([]);
@@ -83,6 +85,17 @@ function JobsRoute() {
       let pickupAddressId = null;
       let destinationAddressId = null;
 
+      // Upload image if provided
+      let finalImageUrl = formData.image_url || "";
+      if (formData.imageFile) {
+        try {
+          finalImageUrl = await uploadServiceImage(formData.imageFile);
+        } catch (uploadErr) {
+          console.error("Image upload failed:", uploadErr);
+          throw new Error("Failed to upload service image.");
+        }
+      }
+
       // Create pickup address if provided
       if (formData.pickupAddress) {
         const { data: pAddr, error: pError } = await supabase
@@ -128,6 +141,66 @@ function JobsRoute() {
       await loadMyServices();
     } catch (err: any) {
       setError(err?.message || "Unable to create service.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const updateMyService = async (serviceId: string, formData: any) => {
+    if (!currentUserId) return;
+    try {
+      setCreating(true);
+      setError(null);
+
+      // Upload image if provided
+      let finalImageUrl = formData.image_url;
+      if (formData.imageFile) {
+        try {
+          finalImageUrl = await uploadServiceImage(formData.imageFile);
+        } catch (uploadErr) {
+          console.error("Image upload failed:", uploadErr);
+          throw new Error("Failed to upload service image.");
+        }
+      }
+
+      const payload = {
+        name: formData.name,
+        price: Number(formData.price),
+        category: formData.category,
+        image_url: finalImageUrl,
+        detail_1: formData.detail_1,
+        detail_2: formData.detail_2
+      };
+
+      const { error } = await supabase
+        .from("services")
+        .update(payload)
+        .eq("service_id", serviceId);
+
+      if (error) throw error;
+      toast.success("Service updated successfully!");
+      await loadMyServices();
+    } catch (err: any) {
+      toast.error(err?.message || "Unable to update service.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const deleteMyService = async (serviceId: string) => {
+    if (!currentUserId) return;
+    try {
+      setCreating(true);
+      const { error } = await supabase
+        .from("services")
+        .delete()
+        .eq("service_id", serviceId);
+
+      if (error) throw error;
+      toast.success("Service deleted successfully!");
+      await loadMyServices();
+    } catch (err: any) {
+      toast.error(err?.message || "Unable to delete service.");
     } finally {
       setCreating(false);
     }
@@ -201,8 +274,7 @@ function JobsRoute() {
         messages.data
           ?.filter(
             (m) =>
-              String(m.message_type).toUpperCase() === "SYSTEM_DELIVERY_DONE" ||
-              String(m.content).startsWith("[SYSTEM_DELIVERY_DONE]")
+              String(m.message_type).toUpperCase() === "SYSTEM_DELIVERY_DONE"
           )
           .map((m) => String(m.order_id))
       );
@@ -632,9 +704,9 @@ const acceptDeliveryOrder = async (order: DeliveryOrderItem) => {
       completeDeliveryOrder={completeDeliveryOrder}
       completingOrderId={completingOrderId}
       createMyService={createMyService}
+      updateMyService={updateMyService}
+      deleteMyService={deleteMyService}
       creating={creating}
-      repairMyServiceLinks={async () => {}}
-      repairingLinks={false}
       error={error}
       success={success}
     />

@@ -27,29 +27,33 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
+    <div className="min-h-screen bg-gray-50 pt-6 md:pt-24 pb-12">
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
           <div className="bg-[#9a3c0b] h-32 md:h-48 relative">
-            <div className="absolute -bottom-12 left-8 md:left-16">
-              <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full border-4 border-white shadow-lg flex items-center justify-center text-4xl md:text-5xl overflow-hidden">
-                {profile.full_name?.charAt(0) || "👤"}
-              </div>
-            </div>
           </div>
 
-          <div className="pt-16 pb-8 px-8 md:px-16">
+          <div className="pt-6 pb-8 px-8 md:px-16">
             <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">
-                  {profile.full_name}
-                </h1>
-                <p className="text-gray-500 font-medium">{profile.email}</p>
-              </div>
-              <div className="flex gap-2">
-                <span className="px-4 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-bold uppercase tracking-wider">
-                  {profile.role}
-                </span>
+              <div className="flex items-center gap-6">
+                <div className="w-24 h-24 md:w-32 md:h-32 -mt-12 md:-mt-16 bg-white rounded-full border-4 border-white shadow-lg flex items-center justify-center text-4xl md:text-5xl overflow-hidden shrink-0 relative z-10">
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
+                  ) : (
+                    profile.full_name?.charAt(0) || "👤"
+                  )}
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-800">
+                    {profile.full_name}
+                  </h1>
+                  <p className="text-gray-500 font-medium">{profile.email}</p>
+                  <div className="flex gap-2 mt-2">
+                    <span className="px-4 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                      {profile.role}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -61,27 +65,29 @@ const ProfilePage = () => {
                   Account Information
                 </h2>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-400 uppercase mb-1">
-                    Full Name
-                  </label>
-                  <p className="text-lg text-gray-700">{profile.full_name}</p>
-                </div>
+                <div className="space-y-4">
+                  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                      Full Name
+                    </label>
+                    <p className="text-lg font-bold text-gray-700">{profile.full_name}</p>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-400 uppercase mb-1">
-                    Email Address
-                  </label>
-                  <p className="text-lg text-gray-700">{profile.email}</p>
-                </div>
+                  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                      Email Address
+                    </label>
+                    <p className="text-lg font-bold text-gray-700">{profile.email}</p>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-400 uppercase mb-1">
-                    Phone Number
-                  </label>
-                  <p className="text-lg text-gray-700">
-                    {profile.phone_number || "Not provided"}
-                  </p>
+                  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                      Phone Number
+                    </label>
+                    <p className="text-lg font-bold text-gray-700">
+                      {profile.phone_number || "Not provided"}
+                    </p>
+                  </div>
                 </div>
 
                 {profile.role === "customer" && (
@@ -101,37 +107,26 @@ const ProfilePage = () => {
                 )}
               </div>
 
+              {/* Only show Settings/Edit if it's my own profile (defaulting to true for private /profile route) */}
               <div className="space-y-6">
                 <h2 className="text-xl font-bold text-gray-800 mb-4">
-                  Settings
+                  Quick Actions
                 </h2>
 
                 <div className="space-y-3">
                   <Link to="/edit-profile" className="block w-full">
-                    <button className="w-full text-left px-6 py-4 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between group">
+                    <button className="w-full text-left px-6 py-4 rounded-2xl bg-orange-50 border border-orange-100 hover:bg-orange-100 transition-colors flex items-center justify-between group">
                       <div>
-                        <p className="font-bold text-gray-700">Edit Profile</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="font-bold text-orange-800">Edit Profile</p>
+                        <p className="text-xs text-orange-700/60">
                           Update your personal information
                         </p>
                       </div>
-                      <span className="group-hover:translate-x-1 transition-transform">
+                      <span className="text-orange-400 group-hover:translate-x-1 transition-transform">
                         →
                       </span>
                     </button>
                   </Link>
-
-                  <button className="w-full text-left px-6 py-4 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between group">
-                    <div>
-                      <p className="font-bold text-gray-700">Change Password</p>
-                      <p className="text-xs text-gray-400">
-                        Secure your account
-                      </p>
-                    </div>
-                    <span className="group-hover:translate-x-1 transition-transform">
-                      →
-                    </span>
-                  </button>
 
                   {profile.role === "customer" && (
                     <Link to="/freelance-sign-up" className="block w-full">

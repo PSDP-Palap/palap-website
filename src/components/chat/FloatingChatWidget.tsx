@@ -4,6 +4,7 @@ import { MessageCircle, Search, X, ChevronRight, Inbox } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Loading from "@/components/shared/Loading";
+import { useOrderStore } from "@/stores/useOrderStore";
 import { useUserStore } from "@/stores/useUserStore";
 import {
   cleanPreviewMessage,
@@ -45,7 +46,12 @@ const FloatingChatWidget = () => {
     select: (s) => ({ pathname: s.location.pathname })
   });
   const { profile, session, isInitialized } = useUserStore();
+  const { ongoingOrderIds } = useOrderStore();
   const userId = profile?.id || session?.user?.id || null;
+
+  const isFreelance = String(profile?.role || "").toLowerCase() === "freelance";
+  const hasNoOngoingOrders = ongoingOrderIds.length === 0;
+  const shouldBeOnLeft = isFreelance && hasNoOngoingOrders;
 
   const [open, setOpen] = useState(false);
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
@@ -337,7 +343,6 @@ const FloatingChatWidget = () => {
           const key = String(row.room_id);
           if (latestMessageByRoom.has(key)) return;
           const upperType = String(row.message_type || "").toUpperCase();
-          if (upperType.startsWith("SYSTEM_")) return;
 
           latestMessageByRoom.set(key, {
             content: row.content ?? "",

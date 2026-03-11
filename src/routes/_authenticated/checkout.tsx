@@ -241,7 +241,7 @@ function CheckoutComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9E6D8] pt-24 pb-10">
+    <div className="min-h-screen bg-[#F9E6D8] pt-6 md:pt-24 pb-10">
       <main className="max-w-5xl mx-auto px-4">
         <div className="bg-[#FF914D] rounded-xl px-6 py-5 mb-4 text-white">
           <h1 className="text-3xl font-black uppercase">Final Review</h1>

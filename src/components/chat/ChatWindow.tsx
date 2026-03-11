@@ -100,16 +100,10 @@ export function ChatWindow({
     rawMessage: string | null | undefined,
     type?: string
   ) => {
-    const message = String(rawMessage || "");
+    const message = String(rawMessage || "").trim();
     const upperType = String(type || "").toUpperCase();
-    if (upperType.startsWith("SYSTEM_") || upperType === "SYSTEM") {
-      return (
-        message
-          .replace(/\[SYSTEM_[A-Z_]+\]/g, "")
-          .replace(/\b(SERVICE|PRICE|CUSTOMER|FREELANCER|ORDER):[^\s]+/gi, "")
-          .replace(/\s{2,}/g, " ")
-          .trim() || "System update"
-      );
+    if (upperType === "SYSTEM" || upperType.startsWith("SYSTEM_")) {
+      return message || "System update";
     }
     return message;
   };
@@ -120,15 +114,13 @@ export function ChatWindow({
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] pt-20 pb-0 md:pb-4">
-      <main className="max-w-7xl mx-auto px-0 md:px-4 h-[calc(100vh-5rem)]">
-        <div className="bg-white md:rounded-3xl shadow-2xl shadow-orange-900/5 border border-orange-100 flex overflow-hidden h-full">
-          
-          {/* Desktop Sidebar */}
-          <aside className="hidden lg:flex w-80 flex-col border-r border-orange-50 bg-[#FDFCFB]">
-            <div className="p-6">
-              <h2 className="text-xl font-black text-[#4A2600] mb-4">Messages</h2>
-              <div className="relative">
+    <div className="min-h-screen bg-[#F9E6D8] pt-6 md:pt-24 pb-6 md:pb-8">
+      <main className="max-w-6xl mx-auto px-4">
+        <div className="bg-white rounded-2xl border border-orange-100 shadow-lg p-3 md:p-4 h-[calc(100vh-7.5rem)] md:h-[calc(100vh-8rem)]">
+          <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-3 h-full min-h-0">
+            {/* Sidebar */}
+            <aside className="hidden md:flex bg-[#F7D9C4] rounded-xl p-3 border border-orange-100 flex-col min-h-0">
+              <div className="bg-white rounded-lg px-3 py-2 border border-orange-100 mb-3">
                 <input
                   type="text"
                   placeholder="Search chats..."

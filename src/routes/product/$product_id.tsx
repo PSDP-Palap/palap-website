@@ -106,7 +106,7 @@ export const Route = createFileRoute("/product/$product_id")({
   },
   component: RouteComponent,
   errorComponent: ({ error }) => (
-    <div className="min-h-screen bg-[#F9E6D8] flex flex-col items-center justify-center pt-24 gap-4">
+    <div className="min-h-screen bg-[#F9E6D8] flex flex-col items-center justify-center pt-6 md:pt-24 gap-4">
       <p className="text-red-600 font-bold">
         {error.message || "Failed to load product"}
       </p>
@@ -119,7 +119,7 @@ export const Route = createFileRoute("/product/$product_id")({
     </div>
   ),
   pendingComponent: () => (
-    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-24">
+    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-6 md:pt-24">
       <Loading fullScreen={false} size={150} />
     </div>
   )

@@ -160,13 +160,13 @@ export const ServiceManagementDialog = ({
   };
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm font-sans overflow-y-auto">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm font-sans overflow-y-auto">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg animate-in fade-in zoom-in duration-200 my-auto relative">
         {/* Close Button */}
         <button
           onClick={onClose}
           disabled={isSubmitting}
-          className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50 transition-all z-20 disabled:opacity-50"
+          className="absolute top-4 right-4 md:top-6 md:right-6 p-2 text-gray-400 hover:text-gray-600 rounded-full bg-white/80 hover:bg-gray-50 transition-all z-20 disabled:opacity-50 shadow-sm"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -184,7 +184,7 @@ export const ServiceManagementDialog = ({
           </svg>
         </button>
 
-        <div className="p-8">
+        <div className="p-6 md:p-8">
           <div className="space-y-6">
             {/* 1. Image Area */}
             <div className="flex flex-col items-center gap-2">

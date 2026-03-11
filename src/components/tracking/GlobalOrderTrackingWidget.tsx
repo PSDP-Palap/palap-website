@@ -36,12 +36,15 @@ function GlobalOrderTrackingWidget() {
   const userRole = useUserStore((s) => s.profile?.role || null);
   const isInitialized = useUserStore((s) => s.isInitialized);
   const isCustomer = String(userRole || "").toLowerCase() === "customer";
+  const isFreelance = String(userRole || "").toLowerCase() === "freelance";
 
   const {
     activeOrderId,
     setActiveOrderId,
     activeOrderTracking: tracking,
-    setActiveOrderTracking: setTracking
+    setActiveOrderTracking: setTracking,
+    ongoingOrderIds,
+    setOngoingOrderIds
   } = useOrderStore();
 
   const [ongoingOrders, setOngoingOrders] = useState<{ id: string; name: string; status: string }[]>([]);

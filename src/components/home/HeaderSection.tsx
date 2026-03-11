@@ -17,13 +17,13 @@ const HeaderSection = () => {
             className="lg:text-3xl font-extrabold text-white mb-8"
             style={{ textShadow: "2px 2px 5px rgba(0, 0, 0, 0.4)" }}
           >
-            LET'S ME TAKE CARE YOUR PETS
+            ให้เราดูแลสัตว์เลี้ยงของคุณ
           </h2>
           <button
             onClick={scrollToServices}
             className="bg-white text-black font-bold text-sm md:text-base py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 hover:-translate-y-1 transition-all duration-300"
           >
-            Try now
+            ลองเลย
           </button>
         </div>
       </div>

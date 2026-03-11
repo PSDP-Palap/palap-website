@@ -11,15 +11,10 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import type { Service } from "@/types/service";
+import type { Service, ServiceCategory } from "@/types/service";
 import supabase from "@/utils/supabase";
 
-const DEFAULT_DESCRIPTION =
-  "Reliable and professional pet service tailored for your needs.";
-const DEFAULT_IMAGE =
-  "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1200&auto=format&fit=crop";
-
-const categoryLabelMap: Record<string, string> = {
+const categoryLabelMap: Record<ServiceCategory | "all", string> = {
   all: "All Categories",
   SHOPPING: "ซื้อของ",
   DELIVERY: "รับ-ส่ง",
@@ -40,29 +35,25 @@ export const Route = createFileRoute("/service/")({
     const visibleServices: Service[] = (data ?? [])
       .map((item) => ({
         id: String(item.service_id ?? item.id ?? ""),
-        name: item.name ?? "Unnamed Service",
+        name: item.name || "",
         price: Number(item.price ?? 0),
         category: item.category ?? null,
         pickup_address: item.pickup_address ?? null,
         dest_address: item.dest_address ?? null,
         pickup_address_id: item.pickup_address_id ?? null,
         destination_address_id: item.destination_address_id ?? null,
-        description: item.description ?? DEFAULT_DESCRIPTION,
-        image_url: item.image_url ?? DEFAULT_IMAGE,
+        description: item.description || "",
+        image_url: item.image_url || null,
         creator_id:
           item.freelancer_id ??
           item.created_by ??
           item.user_id ??
           item.profile_id ??
           null,
-        creator_name: "Freelancer",
+        creator_name: null,
         creator_avatar_url: null,
         created_at: item.created_at
-      }))
-      .filter((item) => {
-        const name = String(item.name || "").toLowerCase();
-        return !name.includes("order session");
-      });
+      }));
 
     return { services: visibleServices };
   },
@@ -81,7 +72,7 @@ export const Route = createFileRoute("/service/")({
     </div>
   ),
   pendingComponent: () => (
-    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-24">
+    <div className="min-h-screen bg-[#F9E6D8] flex items-center justify-center pt-6 md:pt-24">
       <Loading fullScreen={false} size={150} />
     </div>
   )
@@ -138,7 +129,7 @@ function RouteComponent() {
 
   return (
     <div className="min-h-screen bg-[#F9E6D8] font-sans pb-14">
-      <main className="max-w-6xl mx-auto p-6 pt-28">
+      <main className="max-w-6xl mx-auto p-6 pt-8 md:pt-28">
         <div className="flex items-center pl-8 bg-[#FF914D] rounded-2xl mb-8 relative overflow-hidden shadow-lg">
           <div>
             <h1 className="text-3xl font-black text-white uppercase ">
@@ -200,8 +191,6 @@ function RouteComponent() {
             <ServiceCard
               key={service.id}
               service={service}
-              defaultImage={DEFAULT_IMAGE}
-              defaultDescription={DEFAULT_DESCRIPTION}
             />
           ))}
         </div>
