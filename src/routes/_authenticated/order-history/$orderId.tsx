@@ -8,7 +8,6 @@ import {
   ArrowLeft, 
   Clock, 
   CheckCircle2, 
-  Truck, 
   ShieldCheck, 
   CreditCard,
   Building,
