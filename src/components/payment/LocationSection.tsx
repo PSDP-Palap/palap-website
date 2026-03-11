@@ -1,18 +1,17 @@
 import "leaflet/dist/leaflet.css";
-
-import { MapContainer, TileLayer, useMapEvents } from "react-leaflet";
-
 import type { SavedAddressSnapshot } from "@/types/payment";
+import { MapPin, Navigation, Map as MapIcon, RotateCcw, Maximize2, Minimize2, Search } from "lucide-react";
+import MapPicker from "@/components/shared/MapPicker";
 
 interface LocationSectionProps {
   isEditingLocation: boolean;
   setIsEditingLocation: (val: boolean | ((prev: boolean) => boolean)) => void;
-  useCurrentLocation: () => void;
-  useSavedAddress: () => void;
-  detectingLocation: boolean;
-  resolvingAddress: boolean;
-  savingLocation: boolean;
-  savedAddress: SavedAddressSnapshot | null;
+  useCurrentLocation?: () => void;
+  useSavedAddress?: () => void;
+  detectingLocation?: boolean;
+  resolvingAddress?: boolean;
+  savingLocation?: boolean;
+  savedAddress?: SavedAddressSnapshot | null;
   isMapExpanded: boolean;
   setIsMapExpanded: (val: boolean | ((prev: boolean) => boolean)) => void;
   locationName: string;
@@ -23,43 +22,23 @@ interface LocationSectionProps {
   setLocationLat: (val: string) => void;
   locationLng: string;
   setLocationLng: (val: string) => void;
-  mapLeafletBounds: [[number, number], [number, number]];
   updateLocationFromMapCenter: (lat: number, lng: number) => void;
-  googleMapsUrl: string;
-  resolveAddressFromCoordinates: (lat: number, lng: number) => void;
-  toNumber: (val: string) => number | null;
-  saveLocation: () => void;
-  locationError: string | null;
-  mapSrc: string;
-}
-
-function MapCenterTracker({
-  onCenterChange
-}: {
-  onCenterChange: (lat: number, lng: number) => void;
-}) {
-  const map = useMapEvents({
-    moveend: () => {
-      const center = map.getCenter();
-      onCenterChange(center.lat, center.lng);
-    },
-    zoomend: () => {
-      const center = map.getCenter();
-      onCenterChange(center.lat, center.lng);
-    }
-  });
-  return null;
+  googleMapsUrl?: string;
+  resolveAddressFromCoordinates?: (lat: number, lng: number) => void;
+  toNumber?: (val: string) => number | null;
+  saveLocation?: () => void;
+  handleManualSearch?: () => void;
+  locationError?: string | null;
+  address?: string | null;
+  mapSrc?: string;
 }
 
 export function LocationSection({
   isEditingLocation,
   setIsEditingLocation,
   useCurrentLocation,
-  useSavedAddress,
-  detectingLocation,
-  resolvingAddress,
-  savingLocation,
-  savedAddress,
+  detectingLocation = false,
+  resolvingAddress = false,
   isMapExpanded,
   setIsMapExpanded,
   locationName,
@@ -70,178 +49,168 @@ export function LocationSection({
   setLocationLat,
   locationLng,
   setLocationLng,
-  mapLeafletBounds,
   updateLocationFromMapCenter,
   googleMapsUrl,
-  resolveAddressFromCoordinates,
-  toNumber,
   saveLocation,
-  locationError,
+  handleManualSearch,
+  address,
   mapSrc
 }: LocationSectionProps) {
+  
+  const latNum = parseFloat(locationLat) || null;
+  const lngNum = parseFloat(locationLng) || null;
+
+  const handleConfirm = async () => {
+    if (saveLocation) {
+      await saveLocation();
+    }
+    setIsEditingLocation(false);
+  };
+
   return (
-    <section className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-black text-[#4A2600]">Location</h2>
-        <button
-          type="button"
-          onClick={() => setIsEditingLocation((v: boolean) => !v)}
-          className="text-xs font-black uppercase text-orange-600 hover:text-orange-700"
-        >
-          {isEditingLocation ? "Close" : "Edit"}
-        </button>
-      </div>
-
+    <div className="space-y-6">
       {isEditingLocation ? (
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={useCurrentLocation}
-              disabled={detectingLocation || resolvingAddress}
-              className="px-3 py-1.5 rounded-md bg-orange-100 text-orange-700 font-black text-xs uppercase hover:bg-orange-200 disabled:bg-gray-100 disabled:text-gray-400"
-            >
-              {detectingLocation ? "Detecting..." : "Use My Current Location"}
-            </button>
-            <button
-              type="button"
-              onClick={useSavedAddress}
-              disabled={
-                !savedAddress ||
-                savingLocation ||
-                detectingLocation ||
-                resolvingAddress
-              }
-              className="px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 font-black text-xs uppercase hover:bg-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
-            >
-              Use Saved Address
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsMapExpanded((prev: boolean) => !prev)}
-              className="px-3 py-1.5 rounded-md bg-orange-50 text-orange-700 font-black text-xs uppercase hover:bg-orange-100"
-            >
-              {isMapExpanded ? "Collapse Map" : "Expand Map"}
-            </button>
-            {resolvingAddress && (
-              <p className="text-xs font-semibold text-gray-500">
-                Resolving address...
-              </p>
+        <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
+          {/* Quick Actions */}
+          <div className="flex flex-wrap gap-2">
+            {useCurrentLocation && (
+              <button
+                type="button"
+                onClick={useCurrentLocation}
+                disabled={detectingLocation || resolvingAddress}
+                className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-orange-100 text-[#A03F00] font-black text-[10px] uppercase tracking-widest hover:bg-orange-200 transition-all disabled:opacity-50"
+              >
+                <Navigation className="w-3.5 h-3.5" />
+                {detectingLocation ? "Locating..." : "Use Current GPS"}
+              </button>
             )}
-          </div>
-
-          <input
-            value={locationName}
-            onChange={(e) => setLocationName(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-            placeholder="Location Name"
-          />
-          <textarea
-            value={locationDetail}
-            onChange={(e) => setLocationDetail(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm h-20 resize-none"
-            placeholder="Details of location"
-          />
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              value={locationLat}
-              onChange={(e) => setLocationLat(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              placeholder="Latitude"
-            />
-            <input
-              value={locationLng}
-              onChange={(e) => setLocationLng(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              placeholder="Longitude"
-            />
-          </div>
-          <div
-            className={`rounded-md overflow-hidden border border-gray-200 relative ${isMapExpanded ? "h-105" : "h-44"}`}
-          >
-            <MapContainer
-              bounds={mapLeafletBounds}
-              className="w-full h-full z-0"
+            <button
+              type="button"
+              onClick={() => setIsMapExpanded(!isMapExpanded)}
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gray-100 text-gray-600 font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all"
             >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <MapCenterTracker onCenterChange={updateLocationFromMapCenter} />
-            </MapContainer>
+              {isMapExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+              {isMapExpanded ? "Compact" : "Expand Map"}
+            </button>
+          </div>
 
-            <div className="absolute inset-0 z-1000 pointer-events-none flex items-center justify-center">
-              <div className="relative w-14 h-14 flex items-center justify-center">
-                <div className="absolute top-1/2 left-0 right-0 h-px bg-black/20" />
-                <div className="absolute left-1/2 top-0 bottom-0 w-px bg-black/20" />
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-2 w-4 h-1.5 rounded-full bg-black/20 blur-[1px]" />
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow" />
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-white/90" />
-              </div>
+          {/* Map Container */}
+          <div className="space-y-3">
+            <div className={`rounded-3xl overflow-hidden border-4 border-white shadow-xl relative transition-all duration-500 z-0 ${isMapExpanded ? "h-96" : "h-80"}`}>
+              <MapPicker 
+                lat={latNum} 
+                lng={lngNum} 
+                address={address}
+                onChange={(lat, lng) => {
+                  setLocationLat(String(lat));
+                  setLocationLng(String(lng));
+                  updateLocationFromMapCenter(lat, lng);
+                }} 
+              />
+            </div>
+            
+            <div className="flex justify-between items-center px-1">
+              <p className="text-[10px] font-bold text-gray-400 italic">Click on the map to set delivery point</p>
+              {resolvingAddress && (
+                <div className="flex items-center gap-2 text-orange-600 animate-pulse">
+                  <RotateCcw className="w-3 h-3 animate-spin" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Resolving Address...</span>
+                </div>
+              )}
             </div>
           </div>
-          <p className="text-xs font-semibold text-gray-500">
-            Drag or zoom the map. The center pin is your selected destination.
-          </p>
-          <a
-            href={googleMapsUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-block text-xs font-black uppercase text-orange-600 hover:text-orange-700"
+
+          {/* Form Fields */}
+          <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Label (e.g. Home, Office)</label>
+              <input
+                value={locationName}
+                onChange={(e) => setLocationName(e.target.value)}
+                className="w-full bg-orange-50/30 border border-orange-100 rounded-2xl px-4 py-3 text-sm font-bold text-[#4A2600] outline-none focus:ring-4 focus:ring-orange-500/10 transition-all"
+                placeholder="Name this location"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center px-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Address Details</label>
+                {handleManualSearch && (
+                  <button 
+                    type="button"
+                    onClick={handleManualSearch}
+                    className="text-[10px] font-black text-orange-600 uppercase flex items-center gap-1 hover:underline"
+                  >
+                    <Search className="w-3 h-3" />
+                    Search & Pin
+                  </button>
+                )}
+              </div>
+              <textarea
+                value={locationDetail}
+                onChange={(e) => setLocationDetail(e.target.value)}
+                className="w-full bg-orange-50/30 border border-orange-100 rounded-2xl px-4 py-3 text-sm font-bold text-[#4A2600] outline-none focus:ring-4 focus:ring-orange-500/10 transition-all h-24 resize-none"
+                placeholder="Enter full address or use map to auto-fill..."
+              />
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleConfirm}
+            className="w-full py-4 rounded-2xl bg-[#4A2600] text-white font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-black/10 hover:bg-black transition-all"
           >
-            View on Google Maps
-          </a>
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => {
-                const nextLat = toNumber(locationLat);
-                const nextLng = toNumber(locationLng);
-                if (nextLat == null || nextLng == null) return;
-                resolveAddressFromCoordinates(nextLat, nextLng);
-              }}
-              disabled={resolvingAddress}
-              className="px-3 py-1.5 rounded-md bg-orange-50 text-orange-700 font-black text-xs uppercase hover:bg-orange-100 disabled:bg-gray-100 disabled:text-gray-400"
-            >
-              {resolvingAddress ? "Resolving..." : "Use Pin Address"}
-            </button>
-          </div>
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={saveLocation}
-              disabled={savingLocation}
-              className="px-4 py-1.5 rounded-md bg-[#A03F00] text-white font-black text-xs uppercase disabled:bg-gray-300 disabled:text-gray-500"
-            >
-              {savingLocation ? "Saving..." : "Save"}
-            </button>
-          </div>
+            Confirm Location
+          </button>
         </div>
       ) : (
-        <div>
-          <p className="text-sm font-bold text-[#4A2600]">{locationName}</p>
-          <p className="text-xs text-gray-600 mt-1">{locationDetail}</p>
-          <div className="rounded-md overflow-hidden border border-gray-200 mt-3">
-            <iframe
-              title="Destination location"
-              src={mapSrc}
-              className="w-full h-44"
-              loading="lazy"
-            />
+        <div className="space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 shrink-0 shadow-sm border border-orange-100">
+              <MapPin className="w-6 h-6" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h4 className="font-black text-[#4A2600] text-lg truncate">{locationName || "No Name Set"}</h4>
+              <p className="text-sm text-gray-500 font-medium leading-relaxed line-clamp-2">{locationDetail || "No detail provided."}</p>
+            </div>
           </div>
-          <a
-            href={googleMapsUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-block mt-2 text-xs font-black uppercase text-orange-600 hover:text-orange-700"
-          >
-            View on Google Maps
-          </a>
+
+          <div className="rounded-3xl overflow-hidden border-4 border-white shadow-xl h-48 bg-orange-50 relative group">
+            {mapSrc ? (
+              <iframe
+                title="Destination location"
+                src={mapSrc}
+                className="w-full h-full"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full grayscale-[0.5] contrast-[1.1]">
+                <MapPicker 
+                  lat={latNum} 
+                  lng={lngNum} 
+                  address={address}
+                  onChange={() => {}} // Read-only in this view
+                  readOnly={true}
+                />
+                {/* Overlay to prevent interaction in non-edit mode */}
+                <div className="absolute inset-0 z-10 cursor-default" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-orange-900/5 group-hover:bg-transparent transition-colors" />
+          </div>
+
+          {googleMapsUrl && (
+            <a
+              href={googleMapsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-2 text-[10px] font-black text-orange-600 uppercase tracking-widest hover:bg-orange-50 py-2 rounded-xl transition-all"
+            >
+              <MapIcon className="w-3.5 h-3.5" />
+              Open in Google Maps
+            </a>
+          )}
         </div>
       )}
-
-      {locationError && (
-        <p className="text-xs font-semibold text-red-600 mt-2">
-          {locationError}
-        </p>
-      )}
-    </section>
+    </div>
   );
 }

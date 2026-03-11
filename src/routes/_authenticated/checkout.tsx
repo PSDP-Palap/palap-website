@@ -106,7 +106,7 @@ function CheckoutComponent() {
     }, 0);
   }, [products, cartItems]);
 
-  const tax = Math.round(subtotal * 0.03 * 100) / 100;
+  const tax = Math.round(subtotal * 0.03);
   const total = subtotal + tax;
 
   const orderRows = useMemo(() => {
@@ -144,12 +144,17 @@ function CheckoutComponent() {
       const pickupAddressId = selectedProduct?.pickup_address_id || null;
       const destinationAddressId = savedAddress?.id || null;
 
-      // Create Order directly (no more service session creation for products)
+      if (!pickupAddressId || !destinationAddressId) {
+        throw new Error("Missing pickup or destination address.");
+      }
+
+      // Create Order
       let orderId: string | null = null;
       let lastOrderError: any = null;
 
       const baseOrderPayload = {
         customer_id: currentUserId,
+        service_id: null,
         product_id: selectedProduct.id,
         pickup_address_id: pickupAddressId,
         destination_address_id: destinationAddressId,
@@ -314,6 +319,7 @@ function CheckoutComponent() {
               <PaymentSummary
                 subtotal={subtotal}
                 tax={tax}
+                deliveryFee={0}
                 total={total}
                 isSubmitting={isSubmitting}
                 proceedDisabled={isSubmitting}

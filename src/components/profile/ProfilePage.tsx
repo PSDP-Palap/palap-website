@@ -89,6 +89,22 @@ const ProfilePage = () => {
                     </p>
                   </div>
                 </div>
+
+                {profile.role === "customer" && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-400 uppercase mb-1">
+                      Home Location
+                    </label>
+                    <p className="text-lg text-gray-700">
+                      {(profile as any).addressName || "Home"}: {profile.address || "Not provided"}
+                    </p>
+                    {profile.lat && profile.lng && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        Coordinates: {profile.lat.toFixed(6)}, {profile.lng.toFixed(6)}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Only show Settings/Edit if it's my own profile (defaulting to true for private /profile route) */}

@@ -20,6 +20,10 @@ export type Profile = {
   created_at: string;
   avatar_url?: string | null;
   address?: string | null;
+  addressName?: string | null;
+  addressId?: string | null;
+  lat?: number | null;
+  lng?: number | null;
   earning?: number | null;
 };
 

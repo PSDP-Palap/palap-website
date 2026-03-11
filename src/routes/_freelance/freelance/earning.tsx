@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import EarningTab from "@/components/freelance/EarningTab";
 import { useUserStore } from "@/stores/useUserStore";
-import type { Transaction } from "@/types/payment";
+import type { FreelanceEarning } from "@/types/payment";
 import supabase from "@/utils/supabase";
 
 export const Route = createFileRoute("/_freelance/freelance/earning")({
@@ -19,7 +19,7 @@ function EarningRoute() {
     completedOrders: 0,
     pendingOrders: 0
   });
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<FreelanceEarning[]>([]);
   const [loadingEarning, setLoadingEarning] = useState(false);
 
   const loadEarningSummary = useCallback(async () => {
@@ -34,7 +34,7 @@ function EarningRoute() {
 
       if (error) throw error;
 
-      const list = (earnings || []) as Transaction[];
+      const list = (earnings || []) as FreelanceEarning[];
       const total = list
         .filter((e) => e.status === "completed" || e.status === "paid")
         .reduce((sum, e) => sum + Number(e.amount || 0), 0);

@@ -6,7 +6,6 @@ import { Toaster } from "react-hot-toast";
 import FloatingChatWidget from "@/components/chat/FloatingChatWidget";
 import Navbar from "@/components/Navbar";
 import Loading from "@/components/shared/Loading";
-import GlobalOrderTrackingWidget from "@/components/tracking/GlobalOrderTrackingWidget";
 import { useUserStore } from "@/stores/useUserStore";
 
 export const Route = createRootRoute({
@@ -35,7 +34,6 @@ function RootLayout() {
       <main>
         <Outlet />
       </main>
-      {(isCustomer || isFreelance) && <GlobalOrderTrackingWidget />}
       {(isCustomer || isFreelance) && <FloatingChatWidget />}
       <TanStackRouterDevtools />
     </>

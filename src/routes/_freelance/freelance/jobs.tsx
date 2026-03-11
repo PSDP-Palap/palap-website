@@ -65,7 +65,9 @@ function JobsRoute() {
       setLoadingServices(true);
       const { data } = await supabase
         .from("services")
-        .select("*, pickup_address:addresses!pickup_address_id(*), dest_address:addresses!destination_address_id(*)")
+        .select(
+          "*, pickup_address:addresses!pickup_address_id(*), dest_address:addresses!destination_address_id(*)"
+        )
         .eq("created_by", currentUserId)
         .order("created_at", { ascending: false });
       setServices((data as Service[]) || []);
@@ -85,24 +87,14 @@ function JobsRoute() {
       let pickupAddressId = null;
       let destinationAddressId = null;
 
-      // Upload image if provided
-      let finalImageUrl = formData.image_url || "";
-      if (formData.imageFile) {
-        try {
-          finalImageUrl = await uploadServiceImage(formData.imageFile);
-        } catch (uploadErr) {
-          console.error("Image upload failed:", uploadErr);
-          throw new Error("Failed to upload service image.");
-        }
-      }
-
       // Create pickup address if provided
       if (formData.pickupAddress) {
         const { data: pAddr, error: pError } = await supabase
           .from("addresses")
           .insert({
             name: formData.pickupAddress,
-            address_detail: formData.pickupAddress
+            address_detail: formData.pickupAddress,
+            is_public: true
           })
           .select("id")
           .single();
@@ -116,7 +108,8 @@ function JobsRoute() {
           .from("addresses")
           .insert({
             name: formData.destinationAddress,
-            address_detail: formData.destinationAddress
+            address_detail: formData.destinationAddress,
+            is_public: true
           })
           .select("id")
           .single();
@@ -130,7 +123,7 @@ function JobsRoute() {
         category: formData.category,
         pickup_address_id: pickupAddressId,
         destination_address_id: destinationAddressId,
-        image_url: finalImageUrl,
+        image_url: formData.image_url,
         created_by: currentUserId
       };
       const { error } = await supabase.from("services").insert([payload]);
@@ -437,10 +430,18 @@ function JobsRoute() {
     if (!currentUserId) return;
     try {
       setAcceptingHireRoomId(request.orderId);
-      // Update order status to 'ON_MY_WAY' and assign freelance_id
+
+      // 1. Get order price for earning
+      const { data: orderData } = await supabase
+        .from("orders")
+        .select("price")
+        .eq("order_id", request.orderId)
+        .single();
+
+      // 2. Update order status to 'ON_MY_WAY' and assign freelance_id
       const { error: orderError } = await supabase
         .from("orders")
-        .update({ 
+        .update({
           status: "ON_MY_WAY",
           freelance_id: currentUserId
         })
@@ -448,7 +449,21 @@ function JobsRoute() {
 
       if (orderError) throw orderError;
 
-      const systemMessage = "Freelancer accepted your request and is on the way!";
+      // 3. Create Freelance Earning (20% logic)
+      if (orderData) {
+        const subtotal = orderData.price / 1.0815;
+        const earningAmount = subtotal * 0.2;
+
+        await supabase.from("freelance_earnings").insert({
+          order_id: request.orderId,
+          freelance_id: currentUserId,
+          amount: earningAmount,
+          status: "pending"
+        });
+      }
+
+      const systemMessage =
+        "Freelancer accepted your request and is on the way!";
       await supabase.from("chat_messages").insert([
         {
           room_id: request.roomId,
@@ -510,6 +525,39 @@ function JobsRoute() {
 
       if (updateError) throw updateError;
 
+      // Send automated system message to chat
+      const { data: rooms } = await supabase
+        .from("chat_rooms")
+        .select("id")
+        .eq("order_id", orderId);
+
+      if (rooms && rooms.length > 0) {
+        let systemMsg = `Status updated to ${nextStatus.replace(/_/g, " ")}`;
+        let msgType = "SYSTEM";
+
+        if (nextStatus === "ON_MY_WAY") {
+          systemMsg = "Freelancer is on the way to pick up your order.";
+          msgType = "SYSTEM_ON_MY_WAY";
+        } else if (nextStatus === "IN_SERVICE") {
+          systemMsg = "Freelancer has started the service.";
+          msgType = "SYSTEM_IN_SERVICE";
+        } else if (nextStatus === "COMPLETE") {
+          systemMsg =
+            "Freelancer has completed the task. Please review and release payment.";
+          msgType = "SYSTEM_COMPLETE";
+        }
+
+        for (const room of rooms) {
+          await supabase.from("chat_messages").insert({
+            room_id: room.id,
+            order_id: orderId,
+            sender_id: currentUserId,
+            content: systemMsg,
+            message_type: msgType
+          });
+        }
+      }
+
       toast.success(`Status updated to ${nextStatus.replace(/_/g, " ")}`);
       await refreshJobBoard();
     } catch (err: any) {
@@ -519,37 +567,52 @@ function JobsRoute() {
     }
   };
 
-const acceptDeliveryOrder = async (order: DeliveryOrderItem) => {
-  if (!currentUserId) return;
-  try {
-    setAcceptingOrderId(order.orderId);
-    
-    // ตรวจสอบชื่อคอลัมน์ให้ตรงกับ Database ของคุณ!
-    // ส่วนใหญ่มักจะเป็น 'freelance_id' หรือ 'freelancer_id' (เลือกตัวใดตัวหนึ่ง)
-    const payload = {
-      freelance_id: currentUserId, 
-      status: "ON_MY_WAY"
-    };
+  const acceptDeliveryOrder = async (order: DeliveryOrderItem) => {
+    if (!currentUserId) return;
+    try {
+      setAcceptingOrderId(order.orderId);
 
-    const { error } = await supabase
-      .from("orders")
-      .update(payload)
-      .eq("order_id", order.orderId);
+      // 1. Get order price for earning
+      const { data: orderData } = await supabase
+        .from("orders")
+        .select("price")
+        .eq("order_id", order.orderId)
+        .single();
 
-    if (error) {
-      console.error("Supabase Update Error:", error); // ดูรายละเอียดใน Console
-      throw error;
+      const payload = {
+        freelance_id: currentUserId,
+        status: "ON_MY_WAY"
+      };
+
+      const { error } = await supabase
+        .from("orders")
+        .update(payload)
+        .eq("order_id", order.orderId);
+
+      if (error) throw error;
+
+      // 2. Create Freelance Earning (20% logic)
+      if (orderData) {
+        const subtotal = orderData.price / 1.0815;
+        const earningAmount = subtotal * 0.2;
+
+        await supabase.from("freelance_earnings").insert({
+          order_id: order.orderId,
+          freelance_id: currentUserId,
+          amount: earningAmount,
+          status: "pending"
+        });
+      }
+
+      toast.success("Order accepted!");
+      await loadDeliveryOrders();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || "Unable to accept order.");
+    } finally {
+      setAcceptingOrderId(null);
     }
-    
-    toast.success("Order accepted!");
-    await loadDeliveryOrders();
-  } catch (err: any) {
-    console.error(err);
-    toast.error(err?.message || "Unable to accept order.");
-  } finally {
-    setAcceptingOrderId(null);
-  }
-};
+  };
 
   const completeDeliveryOrder = async (order: DeliveryOrderItem) => {
     if (!currentUserId) return;
