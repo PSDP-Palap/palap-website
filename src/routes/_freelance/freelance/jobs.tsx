@@ -89,7 +89,8 @@ function JobsRoute() {
           .from("addresses")
           .insert({
             name: formData.pickupAddress,
-            address_detail: formData.pickupAddress
+            address_detail: formData.pickupAddress,
+            is_public: true
           })
           .select("id")
           .single();
@@ -103,7 +104,8 @@ function JobsRoute() {
           .from("addresses")
           .insert({
             name: formData.destinationAddress,
-            address_detail: formData.destinationAddress
+            address_detail: formData.destinationAddress,
+            is_public: true
           })
           .select("id")
           .single();
@@ -117,7 +119,7 @@ function JobsRoute() {
         category: formData.category,
         pickup_address_id: pickupAddressId,
         destination_address_id: destinationAddressId,
-        image_url: formData.imageUrl,
+        image_url: formData.image_url,
         created_by: currentUserId
       };
       const { error } = await supabase.from("services").insert([payload]);

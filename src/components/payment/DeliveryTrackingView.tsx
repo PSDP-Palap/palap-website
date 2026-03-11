@@ -169,17 +169,6 @@ export function DeliveryTrackingView({
                   <span>Chat</span>
                 </Link>
                 
-                {isCompleteUnpaid && handlePay && (
-                  <button
-                    onClick={handlePay}
-                    disabled={isPaying}
-                    className="flex items-center gap-2 px-5 py-3 rounded-xl bg-orange-500 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-orange-900/20 animate-pulse hover:bg-orange-600 transition-all"
-                  >
-                    <CreditCard className="w-3.5 h-3.5" />
-                    <span>Pay</span>
-                  </button>
-                )}
-                
                 <button className="hidden sm:flex items-center justify-center w-11 h-11 rounded-xl bg-orange-50 text-[#A03F00] border border-orange-100 hover:bg-orange-100 transition-all">
                   <Phone className="w-4 h-4" />
                 </button>
