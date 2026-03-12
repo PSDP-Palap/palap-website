@@ -14,19 +14,19 @@ interface RawProductRow {
   price: number;
   qty: number;
   image_url: string | null;
-  category: string | null;
+  product_type: string | null;
   created_at: string;
   pickup_address_id: string | null;
 }
 
-const CATEGORIES = ["All", "Food", "Toys", "Treats", "Accessories", "Health"];
+const CATEGORIES = ["All", "FOOD", "TOYS", "TREATS", "ACCESSORIES", "HEALTH"];
 
 export const Route = createFileRoute("/product/")({
   loader: async () => {
     const { data, error } = await supabase
       .from("products")
       .select(
-        "product_id, name, price, qty, image_url, category, created_at, pickup_address_id"
+        "product_id, name, price, qty, image_url, product_type, created_at, pickup_address_id"
       )
       .order("name", { ascending: true })
       .limit(100);
@@ -41,7 +41,8 @@ export const Route = createFileRoute("/product/")({
       price: Number(item.price || 0),
       qty: Number(item.qty || 0),
       image_url: item.image_url || null,
-      category: item.category || null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      product_type: (item.product_type as any) || "FOOD",
       created_at: String(item.created_at),
       pickup_address_id: item.pickup_address_id || null
     }));
@@ -88,7 +89,7 @@ function RouteComponent() {
       const matchesSearch = !query || item.name.toLowerCase().includes(query);
       const matchesCategory =
         selectedCategory === "All" ||
-        item.category?.toLowerCase() === selectedCategory.toLowerCase();
+        item.product_type?.toLowerCase() === selectedCategory.toLowerCase();
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
@@ -104,13 +105,12 @@ function RouteComponent() {
   return (
     <div className="min-h-screen bg-[#FDFCFB] font-sans pb-32">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28">
-        {/* Banner Section */}
         <div className="relative rounded-[2.5rem] bg-linear-to-r from-[#FF914D] to-[#FF7F32] overflow-hidden shadow-2xl shadow-orange-900/20 mb-12 group">
           <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10" />
           <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between">
             <div className="text-center md:text-left space-y-4 max-w-lg">
               <span className="px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-[0.2em] border border-white/30">
-                New Season 2024
+                New Season 2026
               </span>
               <h1 className="text-4xl md:text-6xl font-black text-white leading-tight">
                 PREMIUM <span className="text-[#4A2600]">PET CARE</span>{" "}

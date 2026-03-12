@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import Loading from "@/components/shared/Loading";
@@ -24,7 +24,7 @@ export const ProductManagementDialog = ({
   onUpdate,
   onDelete
 }: ProductManagementDialogProps) => {
-  const { uploadImage, loadAddresses, createAddress } = useProductStore();
+  const { uploadImage, createAddress } = useProductStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>(
@@ -48,18 +48,58 @@ export const ProductManagementDialog = ({
     price: product?.price || 0,
     qty: product?.qty || 0,
     image_url: product?.image_url || "",
+    product_type: product?.product_type || "FOOD",
     pickup_address_id: product?.pickup_address_id || ""
   });
 
   useEffect(() => {
-    if (isOpen) {
-      loadAddresses();
+    if (isOpen && product) {
+      setForm({
+        name: product.name || "",
+        price: product.price || 0,
+        qty: product.qty || 0,
+        image_url: product.image_url || "",
+        product_type: product.product_type || "FOOD",
+        pickup_address_id: product.pickup_address_id || ""
+      });
+      setPreviewUrl(product.image_url || "");
     }
-  }, [isOpen, loadAddresses]);
+  }, [isOpen, product]);
 
-  const handleMapChange = useCallback((lat: number, lng: number) => {
-    setNewAddressForm((prev) => ({ ...prev, lat, lng }));
-  }, []);
+  const [resolvingAddress, setResolvingAddress] = useState(false);
+
+  const resolveAddressFromCoordinates = async (lat: number, lng: number) => {
+    try {
+      setResolvingAddress(true);
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      const data = await res.json();
+      return data?.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    } catch {
+      return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    } finally {
+      setResolvingAddress(false);
+    }
+  };
+
+  const handleMapChange = async (lat: number, lng: number) => {
+    // Update coordinates immediately
+    setNewAddressForm((prev) => ({
+      ...prev,
+      lat,
+      lng,
+      address_detail: prev.address_detail || "Resolving address..."
+    }));
+
+    // Resolve address in background
+    const addressDetail = await resolveAddressFromCoordinates(lat, lng);
+    setNewAddressForm((prev) => ({
+      ...prev,
+      address_detail: addressDetail
+    }));
+  };
 
   if (!isOpen || !product) return null;
 
@@ -279,6 +319,14 @@ export const ProductManagementDialog = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="border-b border-gray-50 pb-2">
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                      Type
+                    </label>
+                    <p className="font-bold text-gray-800 capitalize">
+                      {product.product_type || "food"}
+                    </p>
+                  </div>
+                  <div className="border-b border-gray-50 pb-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">
                       Quantity
                     </label>
                     <p className="font-bold text-gray-800">
@@ -326,6 +374,24 @@ export const ProductManagementDialog = ({
               /* EDIT MODE */
               <form onSubmit={handleUpdate} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                      Product Type
+                    </label>
+                    <select
+                      name="product_type"
+                      value={form.product_type || "FOOD"}
+                      onChange={handleChange}
+                      className="w-full border border-gray-100 bg-gray-50 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none cursor-pointer"
+                      required
+                    >
+                      <option value="FOOD">Food</option>
+                      <option value="TOYS">Toys</option>
+                      <option value="TREATS">Treats</option>
+                      <option value="ACCESSORIES">Accessories</option>
+                      <option value="HEALTH">Health</option>
+                    </select>
+                  </div>
                   <div className="col-span-2">
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">
                       Name
@@ -484,15 +550,22 @@ export const ProductManagementDialog = ({
                         className="w-full border border-white bg-white/80 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                       />
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">
                           เลือกตำแหน่งบนแผนที่
                         </label>
-                        <MapPicker
-                          lat={product?.pickup_address?.lat}
-                          lng={product?.pickup_address?.lng}
-                          onChange={handleMapChange}
-                        />
-                        <div className="flex justify-between text-[10px] font-mono text-gray-400 px-1">
+                        <div className="h-64 rounded-2xl overflow-hidden border-2 border-orange-100 shadow-inner relative">
+                          <MapPicker
+                            lat={newAddressForm.lat || 13.7563}
+                            lng={newAddressForm.lng || 100.5018}
+                            onChange={handleMapChange}
+                          />
+                          {resolvingAddress && (
+                            <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] z-1001 flex items-center justify-center">
+                              <Loading size={32} fullScreen={false} />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex justify-between text-[10px] font-mono text-gray-400 px-1 pt-1">
                           <span>Lat: {newAddressForm.lat.toFixed(6)}</span>
                           <span>Lng: {newAddressForm.lng.toFixed(6)}</span>
                         </div>

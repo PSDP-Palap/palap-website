@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ProductDetailView } from "@/components/product/ProductDetailView";
 import Loading from "@/components/shared/Loading";
 import { useCartStore } from "@/stores/useCartStore";
+import { useServiceStore } from "@/stores/useServiceStore";
 import { withTimeout } from "@/utils/helpers";
 import supabase from "@/utils/supabase";
 
@@ -101,6 +102,7 @@ export const Route = createFileRoute("/product/$product_id")({
       product,
       pickupAddress,
       pickupLookupHint,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       relatedProducts: (relatedProducts as any[]) || []
     };
   },
@@ -126,7 +128,8 @@ export const Route = createFileRoute("/product/$product_id")({
 });
 
 function RouteComponent() {
-  const { product, pickupAddress, pickupLookupHint, relatedProducts } = Route.useLoaderData();
+  const { product, pickupAddress, pickupLookupHint, relatedProducts } =
+    Route.useLoaderData();
   const { product_id } = Route.useParams();
   const router = useRouter();
 
@@ -165,11 +168,15 @@ function RouteComponent() {
       relatedProducts={relatedProducts}
       onAddToCart={() => {
         if (isOutOfStock) return;
+        // Clear any pending service hire when switching to product flow
+        useServiceStore.getState().setSelectedServiceForHire(null);
         setQuantity(product_id, Math.min(qty, maxQty));
         router.navigate({ to: "/product" });
       }}
       onBuyNow={() => {
         if (isOutOfStock) return;
+        // Clear any pending service hire when switching to product flow
+        useServiceStore.getState().setSelectedServiceForHire(null);
         setQuantity(product_id, Math.min(qty, maxQty));
         router.navigate({ to: "/order-summary" });
       }}
